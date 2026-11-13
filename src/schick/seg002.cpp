@@ -1809,9 +1809,27 @@ static SDL_mutex *g_sdl_timer_mutex = NULL;
 
 static int g_sdl_quit_event = 0;
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+/* Browser: regelmäßig die Kontrolle abgeben (Asyncify), sonst blockiert die Seite. */
+static void web_yield(void)
+{
+	static double last = 0;
+	const double now = emscripten_get_now();
+	if (now - last >= 16.0) {
+		emscripten_sleep(0);
+		last = emscripten_get_now();
+	}
+}
+#endif
+
 static int sdl_event_loop(const int cmd)
 {
 	SDL_Event event;
+
+#if defined(__EMSCRIPTEN__)
+	web_yield();
+#endif
 
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_QUIT) {
@@ -1839,7 +1857,9 @@ static int sdl_event_loop(const int cmd)
 
 
 		} else if (event.type == SDL_MOUSEBUTTONDOWN) {
-			if (event.button.button == 1) {
+			if (event.button.button == 1 && !g_mouse_locked) {
+				/* wie mouse_isr() im Original: beide Flags setzen */
+				g_mouse1_event2 = 1;
 				g_mouse_leftclick_event = 1;
 			}
 			if (event.button.button == 3) {
@@ -2006,6 +2026,7 @@ void handle_gui_input(void)
 
 		if (g_action_table_secondary) {
 			l_in_key_ext = get_mouse_action(g_mouse_posx, g_mouse_posy, g_action_table_secondary);
+
 		}
 
 		if (!l_in_key_ext && g_action_table_primary) {
