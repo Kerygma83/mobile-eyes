@@ -18,7 +18,7 @@ Aufwand in Arbeitsstunden (gemeinsame Sitzungen mit Claude, grob geschätzt; Feh
 
 | Nr | Stufe | Lauffähiges Ergebnis | Aufwand |
 | --- | --- | --- | --- |
-| 0 | Projekt-Setup | Eigenes Repo, `./pruefen.sh` mit Browser-Regressionstests | 3–4 h |
+| 0 | Projekt-Setup ✓ | Eigenes Repo, `./pruefen.sh` mit Browser-Regressionstests | 3–4 h |
 | 1 | Stabilität | Bekannte Fehler behoben, Speicherfehler-Suche mit Prüf-Build | 6–10 h |
 | 2 | Spielstart wie im Original | Intro, Hauptmenü „Neu/Laden“, Heldenerschaffung im Browser | 6–10 h |
 | 3 | Dauerhafte Spielstände | Speichern überlebt Neuladen, Export/Import als Datei | 3–4 h |
@@ -78,6 +78,13 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 - Ein absichtlich wieder eingebauter Fehler (z. B. Kampf-Warteschleife ohne `wait_for_vsync`) lässt die Tests scheitern.
 
 **Risiken:** Tests mit festen Klickkoordinaten sind empfindlich → Hilfsfunktionen, die auf Spielzustände warten (z. B. „Ort = Stadt“), statt fester Pausen.
+
+**Umsetzungsnotizen (14.11.2026):**
+- Repo `forgejo:gero/mobile-eyes`: `main` = Projekt, `brighteyes-web` = BrightEyes-Fork mit Hennes Historie; Untermodul mit relativer URL `../mobile-eyes.git`.
+- Test-Auslöser fest unter `WEB_TESTHOOKS`: `web_test_fight`, `web_test_sign`, `web_test_state` (JSON mit Ort, Position, Richtung, Helden, Kampf, Dialog, Menü, Karte). Test-Build nach `build/web-test`, getrennt vom ausgelieferten `build/web`.
+- 7 Szenarien (`werkzeuge/szenarien.mjs`), Laufzeit ca. 2 Minuten, alle über das mobile Layout. Gegenprobe: Kampf-Warteschleife ohne `wait_for_vsync` → „Seite blockiert“, Exit-Code 1.
+- Erkenntnisse: Das Kampfmenü steht je nach Held an anderer Stelle (`g_basepos_x`), Eintrag „Computerkampf“ ist immer Nr. 11 → per Tastatur wählen. Der Charakterbogen schließt nur über sein Menü (Rechtsklick → „Zurück“), Esc wirkt dort nicht.
+- Build-Skript: Objektdatei wird vor dem Übersetzen gelöscht (vorher blieb bei Compilerfehlern still der alte Stand liegen); Wechsel der Schalter erzwingt Neuübersetzung.
 
 ## Stufe 1 – Stabilität
 

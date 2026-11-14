@@ -48,7 +48,16 @@ docker compose up -d
 ./werkzeug.sh bash -c 'cmake -S BrightEyes/src/schick -B build/nativ -DCMAKE_CXX_FLAGS="-include /app/werkzeuge/compat.h" && cmake --build build/nativ -j'
 ```
 
-Browser-Test (Playwright, Screenshots nach `build/screens/`):
+Alles prüfen (nativer Build, Test-Build mit Abkürzungen, Browser-Szenarien in der Handy-Ansicht;
+Ergebnisse und Screenshots in `build/regression/`):
+
+```sh
+./pruefen.sh            # alles, ca. 3 Minuten
+./pruefen.sh kampf      # nur Szenarien mit „kampf“ im Namen
+SCHNELL=1 ./pruefen.sh  # ohne nativen Build
+```
+
+Einzelner Ad-hoc-Browsertest (Screenshots nach `build/screens/`):
 
 ```sh
 MOBIL=1 werkzeuge/test.sh '[{"tippAus":["Aktionen",252,69]},{"seite":"dialog"}]'

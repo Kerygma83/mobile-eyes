@@ -9,7 +9,9 @@ Die Schicksalsklinge (DSA 1) als Web-App. Spiellogik aus BrightEyes (`BrightEyes
 - Änderungen an BrightEyes im Untermodul, Branch `web` (Remote-Branch `brighteyes-web`), je Korrektur ein Commit mit Begründung. Upstream-Remote heißt `henne`.
 - Abweichungen vom DOS-Original nur nativ: `#if !defined(__BORLANDC__)`; der Borland-Build muss unverändert bleiben. Web-Spezifisches unter `#if defined(__EMSCRIPTEN__)`.
 - Neue Fehlerklasse gefunden → im ganzen Code nach demselben Muster suchen.
-- Test-Auslöser (z. B. Kampf starten) nur vorübergehend und mit `/* TESTHOOK */` markiert; vor dem Commit entfernen.
+- Vor jedem Commit `./pruefen.sh` (nativer Build, Test-Build, Browser-Szenarien in `werkzeuge/szenarien.mjs`). Neue Fehler → neues Szenario.
+- Test-Auslöser nur unter `#if defined(WEB_TESTHOOKS)` (Build mit `TESTHOOKS=1` → `build/web-test`, wird nie ausgeliefert). Vorhanden: `web_test_fight(id)`, `web_test_sign(typeindex)`, `web_test_state()` (JSON).
+- Szenarien warten auf Spielzustände (`warteAuf`), nicht auf feste Zeiten; Menüs mit wechselnder Position per Tastatur bedienen.
 
 ## Typische Fehler im nativen Port
 
