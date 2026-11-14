@@ -78,6 +78,15 @@ static unsigned char g_unkn_072[4]; // ds:0xbc54
 /* static prototypes */
 static void CD_audio_stop_hsg(void);
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+/* Browser: die Audio-CD gibt es als Dateien (MUSIC/TrackNN der GOG-Fassung, umgewandelt
+ * nach musik/TrackNN.m4a); die Seite spielt sie in Schleife ab (werkzeuge/ton.js). */
+EM_JS(void, web_musik, (int track), { if (Module.musikSpielen) Module.musikSpielen(track); });
+EM_JS(void, web_musik_pause, (void), { if (Module.musikPause) Module.musikPause(); });
+EM_JS(void, web_musik_weiter, (void), { if (Module.musikWeiter) Module.musikWeiter(); });
+#endif
+
 #if defined(__BORLANDC__)
 /**
  * \brief   check if cdrom-drives are installed
@@ -299,6 +308,10 @@ void CD_audio_pause(void)
 
 	req[6].status = 0;
 	CD_driver_request(&req[6]);
+#elif defined(__EMSCRIPTEN__)
+	if (g_cd_audio_paused) return;
+	g_cd_audio_paused = 1;
+	web_musik_pause();
 #endif
 }
 
@@ -321,6 +334,10 @@ void CD_audio_play(void)
 
 	req[7].status = 0;
 	CD_driver_request(&req[7]);
+#elif defined(__EMSCRIPTEN__)
+	if (!g_cd_audio_paused) return;
+	g_cd_audio_paused = 0;
+	web_musik_weiter();
 #endif
 }
 
@@ -386,6 +403,21 @@ void CD_set_track(const signed int index)
 			g_cd_audio_paused = 0;
 			CD_audio_pause();
 		}
+	}
+#elif defined(__EMSCRIPTEN__)
+	signed int i;
+
+	/* wie oben: Platz in der Liste = Nummer des CD-Tracks */
+	for (i = 0; i < 15; i++) {
+		if (g_cd_audio_tracklist[i] == index) break;
+	}
+
+	g_cd_audio_track = i + 1;
+
+	if (g_cd_audio_track_bak != g_cd_audio_track) {
+		g_cd_audio_track_bak = g_cd_audio_track;
+		web_musik(g_cd_audio_track);	/* in Schleife (CD_enable_repeat) */
+		if (g_cd_audio_paused) web_musik_pause();
 	}
 #endif
 }

@@ -14,6 +14,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <fcntl.h>
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
 
 #if defined(__BORLANDC__)
 #include <ALLOC.H>
@@ -110,6 +113,12 @@ static signed int g_ail_digi_driver_id;		// ds:0xbcfb
 #endif
 
 signed int g_use_cdaudio_flag; // ds:0xbcfd
+
+#if defined(__EMSCRIPTEN__)
+/* Browser: Soundeffekte (play_voc) über die Seite */
+static uint8_t *g_ail_voc_buffer;		/* VOC-Datei aus SCHICK.DAT */
+extern signed int g_snd_voc_enabled;		/* datseg.cpp */
+#endif
 
 #if defined(__BORLANDC__)
 static signed int g_load_sound_driver;		// ds:0xbcff
@@ -517,6 +526,11 @@ void read_sound_cfg(void)
 		}
 
 	}
+#elif defined(__EMSCRIPTEN__)
+	/* Browser: Musik wie von der Audio-CD (MUSIC/TrackNN der GOG-Fassung, seg001),
+	 * Soundeffekte an (wie nach erfolgreich geladenem Digitaltreiber) */
+	g_use_cdaudio_flag = 1;
+	g_snd_effects_enabled = 1;
 #endif
 }
 
@@ -830,10 +844,34 @@ signed int have_mem_for_sound(void)
 	}
 
 	return retval;
+#elif defined(__EMSCRIPTEN__)
+	/* Browser: Soundeffekte über Web Audio (play_voc) */
+	g_snd_voc_enabled = 1;
+	return 1;
 #else
 	return 0;
 #endif
 }
+
+#if defined(__EMSCRIPTEN__)
+/* Browser: VOC-Datei (aus SCHICK.DAT) an die Seite geben, die sie per Web Audio
+ * abspielt (werkzeuge/ton.js). Rückgabe: Dauer in Millisekunden (0 = nichts). */
+EM_JS(int, web_voc_abspielen, (const uint8_t *daten, int laenge), {
+	if (!Module.tonEffekt) return 0;
+	return Module.tonEffekt(HEAPU8.slice(daten, daten + laenge)) | 0;
+});
+
+static int web_play_voc(const signed int index)
+{
+	signed int handle;
+	uint16_t len;
+
+	if (!g_ail_voc_buffer || (handle = load_archive_file(index)) == -1) return 0;
+	len = read_archive_file(handle, g_ail_voc_buffer, 0x7fff);
+	close(handle);
+	return web_voc_abspielen(g_ail_voc_buffer, len);
+}
+#endif
 
 void play_voc(const signed int index)
 {
@@ -841,6 +879,10 @@ void play_voc(const signed int index)
 	if (g_snd_voc_enabled && g_snd_effects_enabled) {
 		SND_set_volume(90);
 		SND_play_voc(index);
+	}
+#elif defined(__EMSCRIPTEN__)
+	if (g_snd_voc_enabled && g_snd_effects_enabled) {
+		web_play_voc(index);
 	}
 #endif
 }
@@ -856,11 +898,25 @@ void play_voc_delay(const signed int index)
 			wait_for_vsync();
 		}
 	}
+#elif defined(__EMSCRIPTEN__)
+	if (g_snd_voc_enabled && g_snd_effects_enabled) {
+		/* wie das Original warten, bis der Effekt verklungen ist */
+		const double ende = emscripten_get_now() + web_play_voc(index);
+		while (emscripten_get_now() < ende) {
+			wait_for_vsync();
+		}
+	}
 #endif
 }
 
 void alloc_voc_buffer(uint32_t size)
 {
+#if defined(__EMSCRIPTEN__)
+	if (g_snd_voc_enabled && !g_ail_voc_buffer) {
+		g_ail_voc_buffer = (uint8_t*)schick_alloc(0x8000);
+	}
+	return;
+#endif
 #if defined(__BORLANDC__)
 	if (g_snd_voc_enabled) {
 		if ((g_ail_voc_buffer = (uint8_t*)schick_alloc(size))) ;
