@@ -78,7 +78,13 @@ void do_random_talk(const signed int talk_id, const signed int informer_id)
 	load_tlk(talk_id + ARCHIVE_FILE_DIALOGS_TLK);
 	g_dialog_state = g_dialog_done = 0;
 	partners_tab = &gs_dialog_partners[0];
+#if defined(__BORLANDC__)
 	states_tab = (struct struct_dialog_state*)partners_tab[informer_id].states_offset;
+#else
+	/* native: load_tlk() keeps the offset from the file (a pointer does not fit into 32 bits),
+	 * add it here like the original does after loading */
+	states_tab = (struct struct_dialog_state*)((uint8_t*)&gs_dialog_states + partners_tab[informer_id].states_offset);
+#endif
 	txt_offset = partners_tab[informer_id].txt_offset;
 	dialog_title = partners_tab[informer_id].title;
 	load_in_head(partners_tab[informer_id].head_id);
