@@ -11,10 +11,14 @@
 //   { eingabe: '12' }                Text im Overlay eingeben und bestätigen
 //   { schnellwahl: 20 }              Wert der Schnellwahl im Overlay antippen
 //   { tippen: '37' }                 ins Eingabefeld tippen (echte Tasten) und Enter
+//   { neuLaden: true }               Seite neu laden (Spielstände bleiben in IndexedDB)
+//   { exportiere: 'NAME', datei: 'X.GAM' }  Spielstand über „Spielstände“ herunterladen
+//   { importiere: 2, datei: 'X.GAM' }      Datei in Platz 2 importieren (Seite startet neu)
 //   { taste: 'n' }                   Tastendruck
 //   { js: 'Module._web_test_fight(213)' }
 //   { warte: ms }
 //   { warteAuf: 'z.ort == 0', max: ms }   Bedingung über den Spielzustand z (web_test_state)
+//   { warteAuf: 'js', seite: true }  Bedingung als Ausdruck in der Seite (FS, DOM)
 //   { merke: 'start' }               Zustand unter einem Namen merken (m.start)
 //   { erwarte: 'z.richtung == m.start.richtung', text: '…' }
 //   { bild: 'name' }                 Screenshot der Seite
@@ -189,6 +193,49 @@ export const szenarien = [
 			{ warteAuf: 'z.ov == 1', max: 3000 },
 			{ abbrechen: true },
 			{ warteAuf: 'z.eingabe == -1 && z.ov == 0 && z.haupt == 1', max: 3000 },
+		],
+	},
+	{
+		// Stufe 3: Speichern/Laden war nativ gar nicht umgesetzt; Spielstände müssen das Neuladen überstehen
+		name: 'Spielstand: speichern, neu laden, laden',
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(2),
+			{ merke: 'gespeichert' },
+			{ knopf: 'Zurück' },                                   // Tempelmenü
+			{ warteAuf: 'z.ov == 1 && z.ovN == 9', max: 3000 },
+			{ wahl: 5 },                                           // Spiel speichern
+			{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 3000 },   // fünf Plätze + Abbrechen
+			{ wahl: 1 },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 0', max: 3000 },   // Name
+			{ tippen: 'TEST' },
+			{ warteAuf: 'z.ov == 0 && z.dialog == 0', max: 5000 },
+			{ warteAuf: "FS.readdir('/spielstand').includes('TEST____.GAM')", seite: true, max: 5000 },
+			...tempelVerlassen,
+			{ neuLaden: true },
+			...spielBereit,
+			{ erwarte: 'z.helden == 0', text: 'nach dem Neuladen ohne Helden' },
+			{ knopf: 'Zurück' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 9', max: 3000 },
+			{ wahl: 4 },                                           // Spiel laden
+			{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 3000 },
+			{ bild: 'laden' },
+			{ wahl: 'TEST' },
+			{ warteAuf: 'z.helden == 2 && z.ov == 0', max: 5000 },
+			{ erwarte: 'z.x == m.gespeichert.x && z.y == m.gespeichert.y && z.ort == m.gespeichert.ort', text: 'Position wie beim Speichern' },
+			{ bild: 'geladen' },
+			// Export und Import als Datei
+			{ knopf: 'Spielstände' },
+			{ bild: 'verwaltung' },
+			{ exportiere: 'TEST', datei: 'KOPIE.GAM' },
+			{ importiere: 2, datei: 'KOPIE.GAM' },
+			...spielBereit,
+			{ erwarte: 'z.helden == 0' },
+			{ knopf: 'Zurück' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 9', max: 3000 },
+			{ wahl: 4 },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 3000 },
+			{ wahl: 'KOPIE' },
+			{ warteAuf: 'z.helden == 2 && z.ov == 0', max: 5000 },
 		],
 	},
 	{

@@ -14,7 +14,7 @@ fi
 
 if [ "${SCHNELL:-0}" != 1 ]; then
 	echo "== Nativer Build"
-	./werkzeug.sh bash -c 'cmake -S BrightEyes/src/schick -B build/nativ -DCMAKE_BUILD_TYPE=Release \
+	./werkzeug.sh bash -c 'set -o pipefail; cmake -S BrightEyes/src/schick -B build/nativ -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_CXX_FLAGS="-include /app/werkzeuge/compat.h" >/dev/null && cmake --build build/nativ -j"$(nproc)" 2>&1 | grep -E "error|Built target" '
 fi
 

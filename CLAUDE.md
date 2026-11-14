@@ -23,6 +23,8 @@ Die Schicksalsklinge (DSA 1) als Web-App. Spiellogik aus BrightEyes (`BrightEyes
 
 ## Nützlich
 
+- Spielstände: `save/load_game_state` in seg026 sind nativ eigene Zweige (`*_native`). Der Spielzustand wird über `datseg_status.h` in das DOS-Format (ds:0x2d34–0x4474) gebracht. Nach Änderungen an `datseg.cpp` `python3 werkzeuge/status-tabelle.py` ausführen; der Compiler prüft jede Größe gegen DOS. Im Browser liegen `*.GAM`/`GAMES.NAM` zusätzlich in IDBFS `/spielstand` (`pre.js`).
+
 - Bildbereiche des Hauptbildschirms (320×200): Ansicht 0–239/0–135, Icons 241–318/57–134, Ortszeile y 136–156, Porträts y 157–199 (`g_action_table_playmask` in `datseg.cpp`).
 - Schnittstellen Seite ↔ Spiel: `web_key`, `web_right_click`, `web_click`, `web_screen_mode`, `web_menu_select`, `Module.onFrame`.
 - Textboxen (`GUI_input`, `GUI_radio`, `GUI_dialogbox` in seg097) melden sich per `Module.dialogAuf/dialogZu` an die Seite (Overlay); das Spiel bleibt für Ablauf und Ergebnis zuständig. Texte sind Großbuchstaben im DOS-Zeichensatz (Ä 0x8e, Ö 0x99, Ü 0x9a, ß 0xe1; `@` Umbruch, `~` Tabulator, 0xf0–f3 Farbe).

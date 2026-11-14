@@ -43,6 +43,7 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 	const konsole = [];
 	let laufzeitfehler = null;
 	page.on('console', (m) => konsole.push(`[${m.type()}] ${m.text()}`));
+	page.on('dialog', (d) => d.accept());   // Rückfragen (confirm) bestätigen
 	page.on('pageerror', (e) => { laufzeitfehler ??= e; konsole.push(`[pageerror] ${e.message}\n${e.stack}`); });
 
 	// vor dem Start des Spiels (Modul lädt noch) gibt es keinen Zustand
@@ -118,6 +119,20 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 				await page.keyboard.press('Enter');
 				await page.waitForTimeout(250);
 			}
+			if (s.exportiere) {
+				// Spielstand über die Verwaltung herunterladen, nach build/regression/<datei>
+				const zeile = page.locator('#verwaltung li').filter({ hasText: s.exportiere });
+				const [dl] = await Promise.all([page.waitForEvent('download'), zeile.getByRole('button', { name: 'Exportieren' }).tap()]);
+				await dl.saveAs(`${ausgabe}/${s.datei}`);
+				if (fs.statSync(`${ausgabe}/${s.datei}`).size < 20 + 5952 + 286 * 4) throw new Error('Export zu klein');
+			}
+			if (s.importiere) {
+				const [wahl] = await Promise.all([page.waitForEvent('filechooser'),
+					page.locator('#verwaltung li').nth(s.importiere - 1).getByRole('button', { name: 'Importieren' }).tap()]);
+				await wahl.setFiles(`${ausgabe}/${s.datei}`);
+				await page.waitForEvent('load', { timeout: 10000 });   // Seite startet nach dem Import neu
+			}
+			if (s.neuLaden) { await page.reload(); await page.waitForTimeout(500); }
 			if (s.abbrechen) { await page.locator('#dialog .abbrechen').tap(); await page.waitForTimeout(250); }
 			if (s.weiter) { await page.locator('#dialog .karte').tap(); await page.waitForTimeout(250); }
 			if (s.eingabe !== undefined) {
@@ -135,8 +150,10 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 				let z;
 				for (;;) {
 					if (laufzeitfehler) throw laufzeitfehler;
-					z = await zustand();
-					if (bewerte(s.warteAuf, z, m)) break;
+					// seite: Ausdruck in der Seite auswerten (z. B. FS, DOM), sonst über den Spielzustand
+					z = s.seite ? await mitFrist(page.evaluate(`(() => { try { return !!(${s.warteAuf}); } catch (e) { return false; } })()`), 5000, s.warteAuf)
+						: await zustand();
+					if (s.seite ? z : bewerte(s.warteAuf, z, m)) break;
 					if (Date.now() > bis) throw new Error(`Zeitüberschreitung: ${s.warteAuf}\n  Zustand: ${JSON.stringify(z)}`);
 					await page.waitForTimeout(150);
 				}

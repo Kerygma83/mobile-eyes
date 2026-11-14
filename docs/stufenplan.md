@@ -120,6 +120,8 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Abnahmekriterien:** Speichern, Seite neu laden, Laden → gleicher Stand. Export auf dem PC, Import auf dem Handy funktioniert.
 
+**Stand (14.11.):** Speichern und Laden waren in BrightEyes nur für DOS umgesetzt, nativ taten beide nichts. Jetzt gibt es eigene native Zweige in seg026. Der Spielzustand wird über eine aus `datseg.cpp` erzeugte Tabelle (`datseg_status.h`, 585 Variablen) in den DOS-Block gebracht, der Compiler prüft jede Größe. Spielstände überstehen das Neuladen (IDBFS) und lassen sich über „Spielstände“ exportieren und importieren. Szenario: speichern, neu laden, laden, exportieren, importieren. Offen: Spielstand aus der DOS-Fassung testweise laden (Format sollte passen, ungeprüft).
+
 ## Stufe 4 – Spieldaten vom Nutzer
 
 **Ziel:** Die App enthält keine Spieldaten mehr.

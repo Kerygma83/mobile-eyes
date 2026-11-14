@@ -145,6 +145,7 @@
 	#dialog.dicht .optionen button { min-height: 2.5rem; padding: 0.3rem 0.9rem; font-size: 1.02rem; }
 	#dialog .optionen button.vorwahl { border-color: var(--gold); }
 	#dialog .optionen button.hervor { color: var(--gold); }
+	#dialog .optionen button.frei { color: var(--leise); font-style: italic; }
 	#dialog .eingabe { display: flex; gap: 0.5rem; }
 	#dialog .eingabe input {
 		flex: 1; min-width: 0; font: inherit; text-transform: uppercase;
@@ -159,6 +160,31 @@
 	#dialog .fuss button, #dialog .eingabe button { min-height: 2.8rem; padding: 0 1.1rem; font-size: 1rem; touch-action: manipulation; }
 	#dialog .hinweis { color: var(--leise); font: 0.85rem system-ui, sans-serif; align-self: center; margin-right: auto; }
 	#dialog.gesendet .karte { opacity: 0.6; }
+
+	/* ---------- Spielstände ---------- */
+	#verwaltung {
+		position: fixed; inset: 0; z-index: 11;
+		display: flex; flex-direction: column; justify-content: flex-end;
+		background: rgb(0 0 0 / 0.55);
+		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+	}
+	#verwaltung[hidden] { display: none; }
+	#verwaltung .karte {
+		display: flex; flex-direction: column; gap: 0.7rem;
+		max-height: 85dvh; overflow-y: auto;
+		margin: 0 0.5rem 0.5rem; padding: 1.1rem;
+		background: var(--panel); border: 1px solid var(--rand); border-radius: 0.9rem;
+	}
+	#verwaltung h2 { margin: 0; font: bold 1.2rem Georgia, serif; color: var(--gold); }
+	#verwaltung p { margin: 0; font-size: 0.9rem; }
+	#verwaltung .leise { color: var(--leise); }
+	#verwaltung .plaetze { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+	#verwaltung .plaetze li { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.7rem; background: var(--bg); border: 1px solid var(--rand); border-radius: 0.6rem; }
+	#verwaltung .plaetze .name { flex: 1; font: 1.05rem Georgia, serif; letter-spacing: 0.03em; }
+	#verwaltung .plaetze .name.frei { color: var(--leise); font-style: italic; }
+	#verwaltung .plaetze button, #verwaltung .fuss button { min-height: 2.5rem; padding: 0 0.8rem; font-size: 0.9rem; touch-action: manipulation; }
+	#verwaltung .fuss { display: flex; justify-content: flex-end; }
+	#verwaltung .meldung:empty { display: none; }
 
 	/* Querformat im Original-Layout: Leiste rechts */
 	@media (orientation: landscape) and (max-height: 600px) {
@@ -205,6 +231,18 @@
 	</div>
 </div>
 
+<!-- Spielstände sichern: Export/Import der .GAM-Dateien (liegen sonst nur im Browser) -->
+<div id="verwaltung" hidden role="dialog" aria-modal="true" aria-label="Spielstände">
+	<div class="karte">
+		<h2>Spielstände</h2>
+		<p class="leise">Spielstände liegen im Speicher dieses Browsers. Exportierte Dateien sind eine Sicherung, etwa vor dem Löschen der Browserdaten oder für ein anderes Gerät.</p>
+		<ol class="plaetze"></ol>
+		<p class="meldung" role="status"></p>
+		<div class="fuss"><button type="button" class="schliessen">Schließen</button></div>
+	</div>
+	<input type="file" accept=".gam,.GAM" hidden>
+</div>
+
 <div id="leiste">
 	<div id="icons-halter">
 		<canvas id="icons" class="aus" data-aus="241,57,78,78" aria-label="Aktionen"></canvas>
@@ -232,6 +270,7 @@
 			<button data-key="j" title="Ja (J)">Ja</button>
 			<button data-key="n" title="Nein (N)">Nein</button>
 			<button id="layout" title="Zwischen mobilem und originalem Layout wechseln">Layout</button>
+			<button id="spielstaende-knopf" title="Spielstände exportieren und importieren">Spielstände</button>
 			<button id="vollbild" title="Vollbild">Vollbild</button>
 		</div>
 	</div>
@@ -376,6 +415,7 @@
 			const b = document.createElement('button');
 			b.type = 'button';
 			spieltext(o, b);
+			if (!alsText(o).trim()) { b.classList.add('frei'); b.textContent = 'frei'; }   // z. B. leerer Spielstandplatz
 			b.classList.toggle('vorwahl', i === d.vorwahl);
 			b.classList.toggle('hervor', i === d.hervor);
 			b.addEventListener('click', () => senden(() => Module._web_menu_select(i + 1)));
@@ -531,6 +571,104 @@
 		b.addEventListener('lostpointercapture', ende);
 		b.addEventListener('contextmenu', (e) => e.preventDefault());
 	}
+
+	// ---------- Spielstände: Export/Import ----------
+	// GAMES.NAM: 5 Namen à 9 Bytes; Datei je Platz = Name auf 8 Zeichen (nicht alphanumerisch
+	// und Rest „_“, wie prepare_sg_name in seg026) + „.GAM“, im Spielverzeichnis /spiel
+	const verwaltungEl = document.getElementById('verwaltung');
+	const vPlaetze = verwaltungEl.querySelector('.plaetze');
+	const vMeldung = verwaltungEl.querySelector('.meldung');
+	const vDatei = verwaltungEl.querySelector('input[type=file]');
+	let importPlatz = -1;
+
+	function spielstandNamen() {
+		let nam;
+		try { nam = FS.readFile('/spiel/GAMES.NAM'); } catch (e) { nam = new Uint8Array(45); }
+		return [0, 1, 2, 3, 4].map((i) => {
+			const b = nam.subarray(i * 9, i * 9 + 9);
+			const ende = b.indexOf(0);
+			return alsText([...b.subarray(0, ende < 0 ? 9 : ende)]);
+		});
+	}
+	function dateiName(name) {
+		let n = '';
+		for (let i = 0; i < 8; i++) n += /[A-Za-z0-9]/.test(name[i] ?? '') ? name[i] : '_';
+		return n + '.GAM';
+	}
+	function zeigeSpielstaende(meldung = '') {
+		const namen = spielstandNamen();
+		vPlaetze.replaceChildren(...namen.map((name, i) => {
+			const li = document.createElement('li');
+			const n = document.createElement('span');
+			n.className = 'name' + (name ? '' : ' frei');
+			n.textContent = name || 'frei';
+			li.append(n);
+			let vorhanden = false;
+			try { vorhanden = !!name && FS.stat('/spiel/' + dateiName(name)); } catch (e) {}
+			if (vorhanden) {
+				const ex = document.createElement('button');
+				ex.type = 'button'; ex.textContent = 'Exportieren';
+				ex.addEventListener('click', () => exportieren(name));
+				li.append(ex);
+			}
+			const im = document.createElement('button');
+			im.type = 'button'; im.textContent = 'Importieren';
+			im.addEventListener('click', () => { importPlatz = i; vDatei.value = ''; vDatei.click(); });
+			li.append(im);
+			return li;
+		}));
+		vMeldung.textContent = meldung;
+	}
+	function exportieren(name) {
+		const daten = FS.readFile('/spiel/' + dateiName(name));
+		const url = URL.createObjectURL(new Blob([daten], { type: 'application/octet-stream' }));
+		const a = document.createElement('a');
+		a.href = url; a.download = dateiName(name);
+		document.body.append(a); a.click(); a.remove();
+		setTimeout(() => URL.revokeObjectURL(url), 10000);
+	}
+	vDatei.addEventListener('change', async () => {
+		const datei = vDatei.files?.[0];
+		if (!datei || importPlatz < 0) return;
+		const daten = new Uint8Array(await datei.arrayBuffer());
+		// Kopf „DSA VERSION“, dann Spielzustand (5952) und Dateitabelle (286 × 4)
+		const kennung = String.fromCharCode(...daten.subarray(0, 11));
+		if (kennung !== 'DSA VERSION' || daten.length < 20 + 5952 + 286 * 4) {
+			zeigeSpielstaende(`„${datei.name}“ ist kein Spielstand der Schicksalsklinge.`);
+			return;
+		}
+		const name = datei.name.replace(/\.gam$/i, '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || `IMPORT${importPlatz + 1}`;
+		const namen = spielstandNamen();
+		const doppelt = namen.findIndex((n, i) => i !== importPlatz && dateiName(n) === dateiName(name));
+		if (doppelt >= 0) { zeigeSpielstaende(`Der Name „${name}“ ist schon auf Platz ${doppelt + 1} vergeben.`); return; }
+		if (namen[importPlatz] && !confirm(`Platz ${importPlatz + 1} („${namen[importPlatz]}“) überschreiben?`)) return;
+		if (!confirm('Nach dem Import startet das Spiel neu. Nicht gespeicherter Fortschritt geht verloren. Fortfahren?')) return;
+		try {
+			if (namen[importPlatz]) { try { FS.unlink('/spiel/' + dateiName(namen[importPlatz])); } catch (e) {} }
+			FS.writeFile('/spiel/' + dateiName(name), daten);
+			const nam = new Uint8Array(45);
+			try { nam.set(FS.readFile('/spiel/GAMES.NAM').subarray(0, 45)); } catch (e) {}
+			nam.fill(0, importPlatz * 9, importPlatz * 9 + 9);
+			for (let i = 0; i < name.length; i++) nam[importPlatz * 9 + i] = name.charCodeAt(i);
+			FS.writeFile('/spiel/GAMES.NAM', nam);
+		} catch (e) {
+			zeigeSpielstaende('Import fehlgeschlagen: ' + e);
+			return;
+		}
+		// das laufende Spiel kennt die Namen nur vom Start: sichern und neu starten
+		Module.spielstaendeGesichert = (ok) => {
+			Module.spielstaendeGesichert = null;
+			if (ok) location.reload(); else zeigeSpielstaende('Import konnte nicht gesichert werden.');
+		};
+		Module.spielstaendeSichern();
+	});
+	document.getElementById('spielstaende-knopf').addEventListener('click', () => {
+		zeigeSpielstaende();
+		verwaltungEl.hidden = false;
+	});
+	verwaltungEl.querySelector('.schliessen').addEventListener('click', () => { verwaltungEl.hidden = true; });
+	// Browser bitten, die Spielstände nicht bei Speicherknappheit zu löschen
+	navigator.storage?.persist?.().catch(() => {});
 
 	// Layout umschalten (wird im Browser gemerkt)
 	function setzeLayout(mobil) {
