@@ -866,7 +866,13 @@ void draw_wallclock(signed int pos, const signed int night)
 
 	/* calculate y value */
 	/* Original-Bug: off-by-one with pos > 80 */
+#if defined(__BORLANDC__)
 	y = g_wallclock_y + g_wallclock_pos_y[pos];
+#else
+	/* native: pos runs up to 84 (12 hours / 771) in the last half hour of day and night,
+	 * the table has 81 entries; keep the sun/moon at the horizon instead of reading past it */
+	y = g_wallclock_y + g_wallclock_pos_y[pos > 80 ? 80 : pos];
+#endif
 
 	/* calculate x value */
 	pos += g_wallclock_x - 2;
