@@ -645,6 +645,22 @@ void restore_rect_rle(uint8_t *dst, uint8_t *src, const signed int x, const sign
 	call_mouse();
 }
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+/* Mobiles Layout: kein Mauszeiger, nur Antippen. Sonst bleibt er an der letzten
+ * Tippstelle stehen (z. B. mitten in den Ortsicons). Ein getragener Gegenstand
+ * (g_ggst_cursor, Inventar) bleibt sichtbar. */
+static int g_web_mouse_cursor = 1;
+
+extern "C" EMSCRIPTEN_KEEPALIVE void web_mouse_cursor(const int on)
+{
+	if (g_web_mouse_cursor == on) return;
+	call_mouse_bg();	/* sichtbaren Zeiger entfernen … */
+	g_web_mouse_cursor = on;
+	call_mouse();		/* … und je nach Einstellung neu zeichnen */
+}
+#endif
+
 void mouse_cursor_draw(void)
 {
 	register signed int mask;
@@ -656,6 +672,10 @@ void mouse_cursor_draw(void)
 	signed int y;
 	signed int width;
 	signed int height;
+
+#if defined(__EMSCRIPTEN__)
+	if (!g_web_mouse_cursor && (g_current_cursor != &g_ggst_cursor)) return;
+#endif
 
 	dst = g_vga_memstart;
 	mouse_cursor = &g_current_cursor->mask[0];
