@@ -1871,10 +1871,20 @@ extern "C" EMSCRIPTEN_KEEPALIVE int web_screen_mode(void)
 		!g_dialogbox_lock && !g_in_fight && !gs_show_travel_map;
 }
 
+/* Gruppe für die Steuerleiste (Wiederholung beim Halten):
+ * Bit 0-7 x, 8-15 y, 16-17 Richtung, 18-25 Ortstyp */
+extern "C" EMSCRIPTEN_KEEPALIVE int web_party_state(void)
+{
+	return (gs_x_target & 0xff) | ((gs_y_target & 0xff) << 8) | ((gs_direction & 3) << 16) |
+		((gs_town_loc_type & 0xff) << 18);
+}
+
 #if defined(WEB_TESTHOOKS)
 /* ---- Nur im Test-Build (TESTHOOKS=1): Abkürzungen und Zustand für Browser-Tests ---- */
 static int g_web_test_fight = 0;	/* Kampf-ID, wird in game_loop() gestartet */
 static int g_web_test_sign = 0;		/* Wegweiser-Typindex, wird in game_loop() gesetzt */
+int g_web_test_no_city_events = 0;	/* 1 = keine zufälligen Stadtereignisse (seg066) */
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_no_city_events(const int an) { g_web_test_no_city_events = an; }
 
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_fight(const int fight_id) { g_web_test_fight = fight_id; }
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_sign(const int typeindex) { g_web_test_sign = typeindex; }

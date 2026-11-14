@@ -27,6 +27,9 @@
 #include "seg032.h"
 #include "seg049.h"
 #include "seg066.h"
+#if defined(WEB_TESTHOOKS)
+extern int g_web_test_no_city_events; /* seg002.cpp */
+#endif
 #include "seg067.h"
 #include "seg068.h"
 #include "seg069.h"
@@ -1390,7 +1393,11 @@ signed int town_step(void)
 		{
 
 		       	/* 1% chance only between 8:00 and 20:00 o'clock */
-			if ((random_schick(100) <= 1) && (gs_day_timer > HOURS(8)) && (gs_day_timer < HOURS(20)))
+			if ((random_schick(100) <= 1) && (gs_day_timer > HOURS(8)) && (gs_day_timer < HOURS(20))
+#if defined(WEB_TESTHOOKS)
+				&& !g_web_test_no_city_events	/* Test-Build: Zufallsereignisse abschaltbar */
+#endif
+				)
 			{
 				city_event_switch();
 			}
