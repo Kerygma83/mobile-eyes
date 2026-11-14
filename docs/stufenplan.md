@@ -10,7 +10,9 @@ Tempel, Helden aufnehmen/tauschen, Charakterbogen, Laufen in Thorwal, Kampf (Com
 
 Bisher behobene Fehler im nativen Port (je ein Commit im Branch `web`): Browser-Abgabe, Mausklick-Flags, Bildaktualisierung, Tastenreihenfolge, gesammeltes Zeichnen, `wait_for_vsync` mit Eingabeverarbeitung, Timer-Interrupt-Emulation, Kampf-Warteschleife, 16/32-Bit-Lesefehler bei der Reisekarte.
 
-Bekannte offene Punkte: kein Ton, Original-Intro (`INTRO.EXE`) nicht nachgebaut. Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
+Prüf-Builds (14.11., Stufe 1): `PRUEF=1` (SAFE_HEAP, Assertions) und `ASAN=1` (AddressSanitizer + UBSan) laufen mit allen Szenarien; dazu ein Zufallsspieler für lange Testpartien (`ZUFALL_MIN=… ./pruefen.sh zufall`). Gefunden und behoben: Gespräche mit Händlern und Informanten lasen nativ die Dialogtabelle ab Adresse 0 (seg030/seg031), Statusbalken-Schleife schrieb über ihre Zeile hinaus (seg029), Sonnenuhr las in der letzten halben Stunde von Tag und Nacht hinter ihrer Tabelle (seg004), Zeiger auf Tagebucheintrag −1 (seg024), Grenzprüfung erst nach dem Zugriff bei Startausrüstung und Beuteliste (seg106, seg035). Zufallsläufe danach: 15 min ohne Fund.
+
+Bekannte offene Punkte: Original-Intro (`INTRO.EXE`) nicht nachgebaut. Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
 
 ## Überblick
 

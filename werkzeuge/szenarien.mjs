@@ -469,4 +469,35 @@ export const szenarien = [
 			{ bild: 'reisekarte' },
 		],
 	},
+	{
+		// Gefunden vom Zufallsspieler (ASan): Gespräche lasen nativ die Zustandstabelle ab Adresse 0
+		// (Offset aus der TLK-Datei ohne Basis), Texte und Antworten waren Zufall aus dem Speicher
+		name: 'Gespräche: Händler und Informant',
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen, ...ohneZufall,
+			{ js: 'Module._web_test_talk(2, 15, 0)' },             // Kräuterhändler (talk_merchant)
+			{ warteAuf: 'z.ov == 1', max: 5000 },
+			{ bild: 'haendler' },
+			{ erwarte: 'z.ovN == 3 && /WILLKOMMEN IN MEINER BESCHEIDENEN/.test(z.ovText)', text: 'Begrüßung des Händlers mit drei Antworten' },
+			{ abbrechen: true },
+			{ warte: 1000 },
+			{ js: 'Module._web_test_talk(1, 6, 1)' },              // Hjore in Thorwal (do_talk)
+			{ warteAuf: 'z.ov == 1', max: 5000 },
+			{ bild: 'hjore' },
+			{ erwarte: '/WEISSHAARIGER ALTER MANN/.test(z.ovText)', text: 'Hjore öffnet (ohne Auftrag: „Ihr seid hier sicher falsch“)' },
+			{ weiter: true },
+			{ warteAuf: 'z.ov == 0 && z.dialog == 0', max: 5000 },
+		],
+	},
+	{
+		// Testpartie per Zufall (nicht in ./pruefen.sh ohne Filter):
+		//   ZUFALL_MIN=20 ZUFALL_SAAT=7 ASAN=1 SCHNELL=1 ./pruefen.sh zufall
+		name: 'Zufallsspieler',
+		nurAufWunsch: true,
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(5), ...tempelVerlassen,
+			{ zufall: { dauer: Number(process.env.ZUFALL_MIN || 5) * 60000, saat: Number(process.env.ZUFALL_SAAT || 1) } },
+			{ bild: 'ende' },
+		],
+	},
 ];

@@ -3,6 +3,9 @@
 #   ./pruefen.sh            alles
 #   ./pruefen.sh kampf      nur Szenarien, deren Name „kampf“ enthält
 #   SCHNELL=1 ./pruefen.sh  ohne nativen Build
+#   PRUEF=1 ./pruefen.sh    Szenarien im Prüf-Build (SAFE_HEAP, Assertions; langsamer)
+#   ASAN=1 ./pruefen.sh     Szenarien mit AddressSanitizer/UBSan (deutlich langsamer)
+#   ZUFALL_MIN=20 ZUFALL_SAAT=3 ./pruefen.sh zufall   Testpartie per Zufallsspieler
 set -euo pipefail
 cd "$(dirname "$0")"
 filter="${1:-}"
@@ -22,11 +25,14 @@ if [ "${SCHNELL:-0}" != 1 ]; then
 fi
 
 echo "== Web-Test-Build"
-./werkzeug.sh env SPIELDATEN=1 TESTHOOKS=1 werkzeuge/web-bauen.sh | grep -E "error|→" 
+./werkzeug.sh env SPIELDATEN=1 TESTHOOKS=1 PRUEF="${PRUEF:-0}" ASAN="${ASAN:-0}" werkzeuge/web-bauen.sh | grep -E "error|→"
+wurzel=/app/build/web-test
+[ "${PRUEF:-0}" = 1 ] && wurzel+=-pruef
+[ "${ASAN:-0}" = 1 ] && wurzel+=-asan
 
 echo "== Browser-Regressionstests"
 mkdir -p build/pw
-docker run --rm --init --ipc=host --user "$(id -u):$(id -g)" -e HOME=/tmp -e BROWSER="${BROWSER:-}" \
+docker run --rm --init --ipc=host --user "$(id -u):$(id -g)" -e HOME=/tmp -e BROWSER="${BROWSER:-}" -e WURZEL="$wurzel" -e ZUFALL_MIN="${ZUFALL_MIN:-}" -e ZUFALL_SAAT="${ZUFALL_SAAT:-}" \
 	-v "$PWD":/app -w /app/build/pw mcr.microsoft.com/playwright:v1.64.1-noble bash -c \
 	'[ -d node_modules/playwright ] || npm i -s playwright@1.64.1 >/dev/null 2>&1
 	 cp /app/werkzeuge/regression.mjs /app/werkzeuge/szenarien.mjs . && node regression.mjs "$1"' _ "$filter"

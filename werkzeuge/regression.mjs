@@ -36,13 +36,19 @@ function mitFrist(promise, ms, was) {
 	]);
 }
 
-for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.toLowerCase()))) {
+// nurAufWunsch (lange Läufe wie der Zufallsspieler): nur, wenn der Filter sie nennt
+const auswahl = szenarien.filter((s) => s.name.toLowerCase().includes(filter.toLowerCase()) && (filter || !s.nurAufWunsch));
+for (const sz of auswahl) {
 	const kurz = sz.name.replace(/[^A-Za-z0-9äöüÄÖÜß]+/g, '-').toLowerCase();
 	const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
 	const page = await ctx.newPage();
 	const konsole = [];
 	let laufzeitfehler = null;
-	page.on('console', (m) => konsole.push(`[${m.type()}] ${m.text()}`));
+	page.on('console', (m) => {
+		konsole.push(`[${m.type()}] ${m.text()}`);
+		// Sanitizer (ASAN=1): UBSan meldet nur und läuft weiter, das zählt trotzdem als Fehler
+		if (/runtime error:|AddressSanitizer|LeakSanitizer/.test(m.text())) laufzeitfehler ??= new Error(`Sanitizer: ${m.text()}`);
+	});
 	page.on('dialog', (d) => d.accept());   // Rückfragen (confirm) bestätigen
 	page.on('pageerror', (e) => { laufzeitfehler ??= e; konsole.push(`[pageerror] ${e.message}\n${e.stack}`); });
 
@@ -104,6 +110,116 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 		return [b.x + (gx - ax + 0.5) / aw * b.width, b.y + (gy - ay + 0.5) / ah * b.height];
 	}
 	const knopf = (name) => page.getByRole('button', { name, exact: true });
+
+	/**
+	 * Zufallsspieler: tippt dauer ms lang auf sichtbare Ausschnitte, Knöpfe und Overlay-Einträge.
+	 * saat macht den Lauf wiederholbar (Spiel-Zufall bleibt eigen). Fehler: pageerror, Sanitizer,
+	 * „Seite blockiert“ (Zustand kommt nicht zurück). Die letzten Aktionen landen in der Konsole.
+	 */
+	async function zufallsspieler({ dauer = 60000, saat = 1 }) {
+		let a = saat >>> 0;
+		const zufall = () => {   // mulberry32
+			a = (a + 0x6d2b79f5) >>> 0;
+			let t = Math.imul(a ^ (a >>> 15), 1 | a);
+			t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+			return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+		};
+		const eins = (liste) => liste[Math.floor(zufall() * liste.length)];
+		const protokoll = [];
+		const orte = new Map();
+		const bis = Date.now() + dauer;
+		let n = 0;
+		let woVorher = '', gleich = 0;   // Aktionen am selben Ort: ab 40 strebt er nach draußen
+		try {
+			while (Date.now() < bis) {
+				if (laufzeitfehler) throw laufzeitfehler;
+				const z = await zustand();
+				const wo = `${z.stadt}/${z.ort}/${z.dungeon}${z.kampf ? ' Kampf' : ''}${z.karte ? ' Karte' : ''}`;
+				orte.set(wo, (orte.get(wo) || 0) + 1);
+				gleich = wo === woVorher ? gleich + 1 : 0;
+				woVorher = wo;
+				const raus = gleich > 40 && zufall() < 0.5;
+				let aktion;
+				try {
+				if (z.ov) {
+					// Overlay: Eintrag wählen, Meldung weg, Zahl/Text eingeben oder abbrechen.
+					// Nie das Spiel beenden (sonst ist der Lauf vorbei)
+					const texte = await page.locator('#dialog .optionen button').allTextContents();
+					const erlaubt = texte.map((t, i) => [t, i]).filter(([t]) => !/BEENDEN/.test(t));
+					const eingabe = await page.locator('#dialog input').isVisible();
+					const r = zufall();
+					const ausgang = erlaubt.filter(([t]) => /VERLASSEN|ZURÜCK|ABBRECHEN|NEIN|ENDE/.test(t));
+					if (raus && ausgang.length) {
+						const [t, i] = eins(ausgang);
+						aktion = `wahl ${i + 1} „${t.trim()}“ (raus)`;
+						await page.locator('#dialog .optionen button').nth(i).tap({ timeout: 2000 });
+					} else if (eingabe) {
+						const wert = String(Math.floor(zufall() * 20));
+						aktion = `eingabe ${wert}`;
+						await page.locator('#dialog input').fill(wert, { timeout: 2000 });
+						await page.locator('#dialog .eingabe button').tap({ timeout: 2000 });
+					} else if (erlaubt.length && r < 0.85) {
+						const [t, i] = eins(erlaubt);
+						aktion = `wahl ${i + 1} „${t.trim()}“`;
+						await page.locator('#dialog .optionen button').nth(i).tap({ timeout: 2000 });
+					} else if (await page.locator('#dialog .abbrechen').isVisible() && r < 0.95) {
+						aktion = 'abbrechen';
+						await page.locator('#dialog .abbrechen').tap({ timeout: 2000 });
+					} else {
+						aktion = 'weiter';
+						await page.locator('#dialog .karte').tap({ timeout: 2000 });
+					}
+				} else {
+					// Ausschnitte (Ansicht, Icons …) und Knöpfe der Steuerleiste, je nach Layout sichtbar
+					const ziele = [];
+					for (const el of await page.locator('canvas[aria-label]').all()) {
+						if (await el.isVisible()) ziele.push(['ausschnitt', el]);
+					}
+					for (const el of await page.locator('#leiste button[data-key]').all()) {
+						if (!(await el.isVisible())) continue;
+						const taste = await el.getAttribute('data-key');
+						if (['up', 'left', 'right', 'down'].includes(taste)) el._name = 'bewegung';
+						if (taste === 'rechtsklick') el._zurueck = true;
+						ziele.push(['knopf', el]);
+					}
+					// draußen öfter laufen; zu lange am selben Ort: Zurück (Rechtsklick)
+					const laufen = ziele.filter(([art, el]) => art === 'knopf' && el._name === 'bewegung');
+					if (!ziele.length) { aktion = 'warten'; await page.waitForTimeout(300); }
+					else {
+						let wahl = eins(ziele);
+						const zurueck = ziele.find(([art, el]) => el._zurueck);
+						if (raus && zurueck) wahl = zurueck;
+						else if (z.ort == 0 && !z.kampf && !z.karte && laufen.length && zufall() < 0.5) wahl = eins(laufen);
+						const [art, el] = wahl;
+						const name = (await el.getAttribute('aria-label')) || (await el.textContent()).trim();
+						if (art === 'knopf') {
+							aktion = `knopf ${name}`;
+							await el.tap({ timeout: 2000 });
+						} else {
+							const b = await el.boundingBox({ timeout: 2000 });
+							if (!b) throw Object.assign(new Error('weg'), { name: 'TimeoutError' });   // gerade ausgeblendet
+							const x = b.x + zufall() * b.width, y = b.y + zufall() * b.height;
+							aktion = `tipp ${name} ${Math.round(x - b.x)},${Math.round(y - b.y)}`;
+							await page.touchscreen.tap(x, y);
+						}
+					}
+				}
+				} catch (e) {
+					// Ziel inzwischen verdeckt oder weg (Overlay ging gerade auf/zu): nächste Runde
+					if (e.name !== 'TimeoutError') throw e;
+					aktion += ' (verdeckt)';
+				}
+				protokoll.push(`${++n} [${wo}] ${aktion}`);
+				await page.waitForTimeout(150 + zufall() * 350);
+			}
+		} catch (e) {
+			konsole.push('[zufall] letzte Aktionen:\n' + protokoll.slice(-40).join('\n'));
+			throw e;
+		}
+		konsole.push('[zufall] Aktionen:\n' + protokoll.join('\n'));
+		konsole.push(`[zufall] ${n} Aktionen; Orte (stadt/ort/dungeon): ` + [...orte].map(([o, k]) => `${o}×${k}`).join(', '));
+		console.log(`    ${n} Aktionen, Orte: ${[...orte.keys()].join(', ')}`);
+	}
 
 	const start = Date.now();
 	let fehler = null;
@@ -192,6 +308,7 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 				await page.locator('#dialog .eingabe button').tap();
 				await page.waitForTimeout(250);
 			}
+			if (s.zufall) await zufallsspieler(s.zufall);
 			if (s.knopf) { await knopf(s.knopf).tap(); await page.waitForTimeout(250); }
 			if (s.schnell) { for (const k of s.schnell) await knopf(k).tap(); }
 			if (s.taste) { await page.keyboard.press(s.taste); await page.waitForTimeout(250); }

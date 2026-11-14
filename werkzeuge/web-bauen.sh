@@ -6,7 +6,10 @@
 #   TESTHOOKS=1   Test-Build mit Abkürzungen (Kampf starten, Zustand abfragen)
 #                 → baut nach build/web-test statt build/web
 #   PROFIL=1      Funktionsnamen im WASM behalten (Stacktraces, CPU-Profile)
-#   PRUEF=1       Prüf-Build mit Laufzeitprüfungen (Speicherzugriffe, Assertions)
+#   ASAN=1        AddressSanitizer + UBSan (Feldgrenzen, freigegebener Speicher, undefiniertes
+#                 Verhalten) → build/…-asan, deutlich langsamer
+#   PRUEF=1       Prüf-Build mit Laufzeitprüfungen (Speicherzugriffe, Assertions; unausgerichtete
+#                 Zugriffe erlaubt: WASM kann sie, das Spiel liest gepackte Daten)
 set -euo pipefail
 cd /app
 src=BrightEyes/src/schick
@@ -20,12 +23,18 @@ out=build/web
 if [ "${TESTHOOKS:-0}" = 1 ]; then
 	out=build/web-test
 	cflags+=(-DWEB_TESTHOOKS)
-	exports+=,_web_test_fight,_web_test_sign,_web_test_no_city_events,_web_test_state,_web_test_input
+	exports+=,_web_test_fight,_web_test_sign,_web_test_no_city_events,_web_test_state,_web_test_input,_web_test_talk
 	runtime+=,UTF8ToString
 fi
 if [ "${PRUEF:-0}" = 1 ]; then
 	out+=-pruef
-	lflags+=(-sASSERTIONS=2 -sSAFE_HEAP=1 -sSTACK_OVERFLOW_CHECK=2)
+	lflags+=(-sASSERTIONS=2 -sSAFE_HEAP=2 -sSTACK_OVERFLOW_CHECK=2 --profiling-funcs)
+fi
+if [ "${ASAN:-0}" = 1 ]; then
+	out+=-asan
+	san=(-fsanitize=address,undefined -fno-sanitize=alignment -fno-omit-frame-pointer)
+	cflags+=("${san[@]}")
+	lflags+=("${san[@]}" -sINITIAL_MEMORY=256MB --profiling-funcs)
 fi
 if [ "${SPIELDATEN:-0}" = 1 ]; then
 	# Musik nicht ins Paket (rund 40 MB), sie liegt einzeln unter musik/ (siehe unten)
@@ -83,6 +92,7 @@ for q in ngen cda_code vgalib ail_stub powerp20; do
 	fi
 done
 glflags=()
+if [ "${PRUEF:-0}" = 1 ]; then glflags+=(-sASSERTIONS=2 -sSAFE_HEAP=2 -sSTACK_OVERFLOW_CHECK=2 --profiling-funcs); fi
 if [ "${SPIELDATEN:-0}" = 1 ]; then
 	glflags+=(--preload-file spiel/DSAGEN.DAT@/gen/DSAGEN.DAT)
 else
