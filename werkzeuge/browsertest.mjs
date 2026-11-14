@@ -11,7 +11,7 @@ const wurzel = process.env.WURZEL || '/app/build/web';   // z. B. /app/build/web
 const ausgabe = '/app/build/screens';
 fs.rmSync(ausgabe, { recursive: true, force: true });
 fs.mkdirSync(ausgabe, { recursive: true });
-const typen = { '.html': 'text/html', '.js': 'text/javascript', '.wasm': 'application/wasm', '.data': 'application/octet-stream', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
+const typen = { '.html': 'text/html', '.js': 'text/javascript', '.wasm': 'application/wasm', '.data': 'application/octet-stream', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.m4a': 'audio/mp4' };
 
 const server = http.createServer((req, res) => {
 	const datei = path.join(wurzel, decodeURIComponent(req.url.split('?')[0]).replace(/^\/$/, '/index.html'));

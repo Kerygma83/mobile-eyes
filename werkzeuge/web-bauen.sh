@@ -28,7 +28,8 @@ if [ "${PRUEF:-0}" = 1 ]; then
 	lflags+=(-sASSERTIONS=2 -sSAFE_HEAP=1 -sSTACK_OVERFLOW_CHECK=2)
 fi
 if [ "${SPIELDATEN:-0}" = 1 ]; then
-	lflags+=(--preload-file spiel@/spiel)
+	# Musik nicht ins Paket (rund 40 MB), sie liegt einzeln unter musik/ (siehe unten)
+	lflags+=(--preload-file spiel@/spiel --exclude-file 'spiel/musik/*')
 fi
 if [ "${PROFIL:-0}" = 1 ]; then
 	lflags+=(--profiling-funcs)
@@ -91,7 +92,12 @@ emcc "${gobjs[@]}" -o "$out/gen.html" "${glflags[@]}" \
 	-sUSE_SDL=2 -sASYNCIFY -sASYNCIFY_STACK_SIZE=65536 -sALLOW_MEMORY_GROWTH -sSTACK_SIZE=1MB \
 	-sEXPORTED_RUNTIME_METHODS=FS -lidbfs.js \
 	--pre-js werkzeuge/gen-pre.js --shell-file werkzeuge/gen-shell.html
-cp werkzeuge/dialog.js "$out/"
+cp werkzeuge/dialog.js werkzeuge/ton.js "$out/"
+# CD-Musik (spiel/musik/TrackNN.m4a, aus werkzeuge/musik-umwandeln.sh): nur mit Spieldaten
+rm -rf "$out/musik"
+if [ "${SPIELDATEN:-0}" = 1 ] && [ -d spiel/musik ]; then
+	mkdir -p "$out/musik" && cp spiel/musik/*.m4a "$out/musik/"
+fi
 
 # Emscripten schreibt zufällige temporäre Dateinamen als Kommentar in die JS-Dateien;
 # entfernen, damit derselbe Stand dieselbe Version ergibt (sonst Update-Hinweis bei jedem Build)
@@ -99,7 +105,7 @@ sed -i -E '/^[[:space:]]*\/\/ (end )?include: \/tmp\/tmp[^ ]*\.js$/d' "$out/inde
 
 # ---- PWA: Manifest, Icons, Service Worker mit Version (Prüfsumme aller Dateien) ----
 cp werkzeuge/pwa/manifest.webmanifest werkzeuge/pwa/icon-*.png "$out/"
-dateien=(index.html index.js index.wasm gen.html gen.js gen.wasm dialog.js manifest.webmanifest icon-180.png icon-192.png icon-512.png)
+dateien=(index.html index.js index.wasm gen.html gen.js gen.wasm dialog.js ton.js manifest.webmanifest icon-180.png icon-192.png icon-512.png)
 for d in index.data gen.data; do [ -f "$out/$d" ] && dateien+=("$d"); done
 version=$(cd "$out" && cat "${dateien[@]}" | sha256sum | cut -c1-12)
 liste=$(printf '"./",'; printf '"%s",' "${dateien[@]}")

@@ -231,6 +231,7 @@
 </div>
 
 <script src="dialog.js"></script>
+<script src="ton.js"></script>
 <script>
 	// SDL-Tastencodes, die das Spiel in sdl_event_loop() auswertet
 	const TASTEN = {
@@ -323,6 +324,7 @@
 	// Spiels wieder alles (die Box ist dort schon entfernt)
 	const overlay = textboxOverlay(Module, { portraetQuelle: () => lebend, beimOeffnen: alleLoslassen });
 	const { dialoge, alsText, portraetZeichnen } = overlay;
+	const ton = tonEinrichten(Module);   // Soundeffekte und Musik (ton.js)
 	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
 
 	function taste(name) {

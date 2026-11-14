@@ -171,6 +171,15 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Risiken:** OGG-Dateien sind ~120 MB → nur auf Wunsch importieren, Spiel läuft auch ohne.
 
+**Stand (14.11.):**
+- **Effekte:** `play_voc`/`play_voc_delay` lesen die VOC-Datei aus `SCHICK.DAT`, die Seite spielt sie per Web Audio ab (`werkzeuge/ton.js`, 8-Bit-PCM, Lautstärke 90 % wie im Original).
+- **Musik:**
+  - Die CD-Funktionen in seg001 spielen die Tracks der GOG-Fassung, nach AAC umgewandelt (`werkzeuge/musik-umwandeln.sh` → `spiel/musik/TrackNN.m4a`, 14 Tracks, 44 MB).
+  - Die Musik liegt nicht in `index.data`. Der Service Worker legt jeden Track beim ersten Abspielen dauerhaft ab.
+  - Das Tonmenü des Spiels (Musik/Effekte an oder aus) wirkt wie im Original.
+- **Szenario:** Effekt und Musik im Tempel. Geprüft werden das Auswerten der VOC-Datei und das Laden des Tracks; hören kann der Testbrowser nichts.
+- **Offen:** Musik in der Heldenerschaffung (ngen nutzt eigene FLAC-Pfade). Auf iOS gilt der Stummschalter, Ton erst nach der ersten Berührung. Wirkliches Hören nur auf dem Gerät prüfbar.
+
 ## Stufe 7 – Bugfixes übernehmen
 
 **Ziel:** Die Fehlerkorrekturen der Community auch in der Web-Fassung.

@@ -446,6 +446,19 @@ export const szenarien = [
 		],
 	},
 	{
+		// Stufe 6: Soundeffekte (VOC aus SCHICK.DAT) und CD-Musik (musik/TrackNN.m4a)
+		name: 'Ton: Effekt und Musik im Tempel',
+		schritte: [
+			{ js: `(() => { const alt = Module.tonEffekt; window.effekte = []; Module.tonEffekt = (b) => { const d = alt(b); window.effekte.push(d); return d; }; })()` },
+			...spielBereit,
+			{ warteAuf: 'ton.track == 7', seite: true, max: 5000 },          // Tempelmusik (TEMPLE.XMI → Track 7)
+			{ tipp: ['Aktionen', 252, 69] },                                 // Heldenliste: FX3.VOC
+			{ warteAuf: 'z.ov == 1', max: 3000 },
+			{ warteAuf: 'window.effekte.length > 0 && window.effekte[0] > 50', seite: true, max: 3000 },
+			{ warteAuf: 'ton.geladen == 7 && ton.musik.src.startsWith("blob:")', seite: true, max: 15000 },
+		],
+	},
+	{
 		name: 'Reisekarte',
 		schritte: [
 			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen,

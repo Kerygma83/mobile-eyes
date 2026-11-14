@@ -34,6 +34,9 @@ cd schick
 docker run --rm -v "$PWD/spieldaten":/d -w /d debian:13-slim bash -c \
   'apt-get update -qq && apt-get install -y -qq innoextract && innoextract -q -d gog-de installer-de.exe'
 mkdir -p spiel && cp spieldaten/gog-de/app/{SCHICK.DAT,SCHICKM.EXE,DSAGEN.DAT,FONT.NVF,MOUSE.NVF,POPUP.NVF,SOUND.*,*.CHR,INTRODAT.*,*.ADV} spiel/
+
+# CD-Musik (MUSIC/TrackNN.ogg) nach spiel/musik/TrackNN.m4a umwandeln (AAC, für Safari), optional
+werkzeuge/musik-umwandeln.sh
 ```
 
 ## Bauen und starten
