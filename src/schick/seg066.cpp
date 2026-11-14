@@ -1530,8 +1530,14 @@ void town_fade_and_colors(void)
 		memset(g_renderbuf_ptr, 0, 0x120);
 		memcpy(dst, gs_palette_floor, 0x120);
 #else
-		memset(g_renderbuf_ptr, 0, 3 * 0x20);
+		/* Unter DOS liegen Boden-, Gebäude- und Himmelspalette direkt hintereinander
+		 * und werden oben in einem Stück kopiert. Nativ einzeln: sonst blendet die
+		 * Schleife Gebäude und Himmel aus nicht gesetztem Speicher ein (schwarze
+		 * Häuser, weißer Himmel nach dem Verlassen eines Gebäudes). */
+		memset(g_renderbuf_ptr, 0, 3 * 0x60);
 		memcpy(dst, gs_palette_floor, 3 * 0x20);
+		memcpy(dst + 3 * 0x20, gs_palette_buildings, 3 * 0x20);
+		memcpy(dst + 3 * 0x40, gs_palette_sky, 3 * 0x20);
 #endif
 
 		for (i = 0; i < 64; i += 2) {

@@ -1341,8 +1341,12 @@ mark2:			   goto mark1;
 		memset(g_renderbuf_ptr, 0, 0x120);
 		memcpy(g_renderbuf_ptr + 500, gs_palette_floor, 0x120);
 #else
-		memset(g_renderbuf_ptr, 0, 3 * 0x20);
+		/* wie in seg066 town_fade_and_colors(): die drei Paletten liegen nur unter
+		 * DOS hintereinander, nativ einzeln kopieren */
+		memset(g_renderbuf_ptr, 0, 3 * 0x60);
 		memcpy(g_renderbuf_ptr + 500, gs_palette_floor, 3 * 0x20);
+		memcpy(g_renderbuf_ptr + 500 + 3 * 0x20, gs_palette_buildings, 3 * 0x20);
+		memcpy(g_renderbuf_ptr + 500 + 3 * 0x40, gs_palette_sky, 3 * 0x20);
 #endif
 
 		for (i = 0; i < 0x40; i++) {
