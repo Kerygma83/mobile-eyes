@@ -224,10 +224,19 @@ static void sdl_update_rect_pixels(const int x_in, const int y_in, const int wid
 	}
 }
 
+#if defined(__EMSCRIPTEN__)
+/* > 0: ein HTML-Overlay ist offen, das Bild bleibt stehen (die Box von ngen wird
+ * nicht gezeigt). ngen.c zählt hoch/herunter und zeichnet danach alles neu. */
+int g_web_freeze_display = 0;
+#endif
+
 void sdl_update_rect_window(const int x_in, const int y_in, const int width_in, const int height_in)
 {
 	calls++;
 	if (pixels == NULL) return;
+#if defined(__EMSCRIPTEN__)
+	if (g_web_freeze_display) return;	/* auch erzwungene: enter_string zeichnet je Zeichen */
+#endif
 
 
 

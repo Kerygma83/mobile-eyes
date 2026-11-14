@@ -2517,9 +2517,9 @@ static signed long process_nvf(struct nvf_desc *nvf)
  * Textboxen zusätzlich als HTML-Overlay (werkzeuge/dialog.js); ngen bleibt für
  * Ablauf und Ergebnis zuständig, die Seite schickt Tasten oder wählt einen Eintrag.
  *   art: 0 = Meldung, 1 = Texteingabe, 2 = Auswahl, 3 = Ja/Nein, 4 = Zahleneingabe */
-EM_JS(void, web_dialog_auf, (int art, const char *name, const char *text, int n, const char **optionen,
+EM_JS(int, web_dialog_auf_js, (int art, const char *name, const char *text, int n, const char **optionen,
 	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild), {
-	if (!Module.dialogAuf) return;
+	if (!Module.dialogAuf) return 0;   /* Original-Layout: kein Overlay */
 	const s = (p) => {
 		if (!p) return null;
 		const b = [];
@@ -2530,8 +2530,30 @@ EM_JS(void, web_dialog_auf, (int art, const char *name, const char *text, int n,
 	for (let i = 0; i < n; i++) opt.push(s(HEAPU32[(optionen >> 2) + i]));
 	Module.dialogAuf({ art, name: s(name), text: s(text), optionen: opt, zeichen, vorwahl, hervor,
 		vorgabe: s(vorgabe), bild });
+	return 1;
 });
-EM_JS(void, web_dialog_zu, (void), { if (Module.dialogZu) Module.dialogZu(); });
+EM_JS(void, web_dialog_zu_js, (void), { if (Module.dialogZu) Module.dialogZu(); });
+
+/* Solange ein Overlay offen ist, gibt ngen keine Bilder aus: die eigene Box bleibt
+ * unsichtbar, sichtbar ist nur das Overlay (wie im Spiel, dort hält die Seite das
+ * Bild fest). Danach einmal alles neu zeichnen. */
+extern int g_web_freeze_display;	/* vgalib.c */
+
+static void web_dialog_auf(int art, const char *name, const char *text, int n, const char **optionen,
+	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild)
+{
+	if (web_dialog_auf_js(art, name, text, n, optionen, zeichen, vorwahl, hervor, vorgabe, bild)) {
+		g_web_freeze_display++;
+	}
+}
+
+static void web_dialog_zu(void)
+{
+	web_dialog_zu_js();
+	if ((g_web_freeze_display > 0) && (--g_web_freeze_display == 0)) {
+		sdl_forced_update();
+	}
+}
 
 static int g_web_menu_choice = 0;	/* von der Seite gewählter Eintrag (1-basiert) */
 
