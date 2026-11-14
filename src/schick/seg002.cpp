@@ -58,6 +58,7 @@
 #include "seg027.h"
 #include "seg029.h"
 #include "seg030.h"
+#include "seg031.h"
 #include "seg039.h"
 #include "seg041.h"
 #include "seg047.h"
@@ -1952,6 +1953,12 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_test_sign(const int typeindex) { g_web_
 static int g_web_test_input = 0;
 static int g_web_test_input_result = -2;
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_input(const int digits) { g_web_test_input = digits; }
+/* Gespräch starten: art 1 = Informant (do_talk), 2 = Händler/Zufall (do_random_talk) */
+static int g_web_test_talk[3] = { 0, 0, 0 };
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_talk(const int art, const int talk_id, const int partner)
+{
+	g_web_test_talk[0] = art; g_web_test_talk[1] = talk_id; g_web_test_talk[2] = partner;
+}
 
 extern "C" int web_screen_mode(void);
 
@@ -1978,6 +1985,12 @@ static void web_test_hooks(void)
 		g_web_test_input = 0;
 		strcpy(text, "TESTEINGABE: WIEVIEL PROZENT (0-50)?");
 		g_web_test_input_result = GUI_input(text, digits);
+	}
+	if (g_web_test_talk[0]) {
+		const int art = g_web_test_talk[0];
+		g_web_test_talk[0] = 0;
+		if (art == 1) do_talk(g_web_test_talk[1], g_web_test_talk[2]);
+		else do_random_talk(g_web_test_talk[1], g_web_test_talk[2]);
 	}
 	if (g_web_test_sign) {
 		gs_town_loc_type = LOCTYPE_SIGNPOST;
