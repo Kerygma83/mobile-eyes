@@ -286,6 +286,31 @@ void sdl_forced_update(void)
 	forced_update = 0;
 }
 
+/**
+ * \brief zeigt das ganze Bild neu an, wenn sich Bildspeicher oder Palette
+ *        seit der letzten Anzeige geändert haben (wie ein VGA-Monitor).
+ *
+ * sdl_update_rect_window() überträgt nur das jeweilige Rechteck, merkt sich
+ * aber den ganzen Bildspeicher als angezeigt; Paletten werden ohne pal_logic
+ * gar nicht übertragen. Diese Funktion wird regelmäßig aufgerufen und holt
+ * beides nach.
+ */
+void sdl_present_if_changed(void)
+{
+	static uint8_t shown_vga[O_WIDTH * O_HEIGHT];
+	static uint32_t shown_pal[256];
+
+	if (pixels == NULL || g_vga_memstart == NULL) return;
+
+	if (memcmp(shown_vga, g_vga_memstart, sizeof(shown_vga)) ||
+		memcmp(shown_pal, palette, sizeof(shown_pal)))
+	{
+		memcpy(shown_vga, g_vga_memstart, sizeof(shown_vga));
+		memcpy(shown_pal, palette, sizeof(shown_pal));
+		sdl_forced_update();
+	}
+}
+
 SDL_Window* sdl_get_window(void)
 {
 	return window;

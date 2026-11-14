@@ -1817,6 +1817,7 @@ static void web_yield(void)
 	static double last = 0;
 	const double now = emscripten_get_now();
 	if (now - last >= 16.0) {
+		sdl_present_if_changed();
 		emscripten_sleep(0);
 		last = emscripten_get_now();
 	}
