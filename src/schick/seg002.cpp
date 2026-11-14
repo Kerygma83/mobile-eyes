@@ -1878,10 +1878,19 @@ static int sdl_event_loop(const int cmd)
 		} else if (event.type == SDL_MOUSEMOTION) {
 			int ratio = sdl_get_ratio();
 
-			g_mouse_moved = 1;
-			/* Assume 320x200 */
-			g_mouse_posx = event.motion.x / ratio;
-			g_mouse_posy = event.motion.y / ratio;
+			if (!g_mouse_locked) {
+				g_mouse_moved = 1;
+				/* Assume 320x200 */
+				g_mouse_posx = event.motion.x / ratio;
+				g_mouse_posy = event.motion.y / ratio;
+
+				/* wie mouse_isr() im Original: auf den erlaubten Bereich begrenzen
+				 * (z.B. Porträtzeile beim Heldentausch, Menüeinträge) */
+				if (g_mouse_posx > g_mouse_posx_max) g_mouse_posx = g_mouse_posx_max;
+				if (g_mouse_posx < g_mouse_posx_min) g_mouse_posx = g_mouse_posx_min;
+				if (g_mouse_posy < g_mouse_posy_min) g_mouse_posy = g_mouse_posy_min;
+				if (g_mouse_posy > g_mouse_posy_max) g_mouse_posy = g_mouse_posy_max;
+			}
 
 
 		} else if (event.type == SDL_MOUSEBUTTONDOWN) {
@@ -1974,6 +1983,33 @@ static int sdl_event_loop(const int cmd)
 	}
 
 	return 0;
+}
+
+/**
+ * \brief   Ersatz für das Warten auf den VGA-Bildrücklauf (ca. 70 Hz).
+ *
+ * Im Original lief die Maus per Interrupt weiter, während das Spiel in
+ * wait_for_vsync() wartete; einige Schleifen (Heldentausch, Doppelklick)
+ * verlassen sich darauf. Hier werden deshalb beim Warten Eingaben verarbeitet
+ * (Tasten bleiben in der Warteschlange).
+ */
+void sdl_wait_vsync(void)
+{
+	static Uint32 next = 0;
+	const Uint32 now = SDL_GetTicks();
+
+	if ((next <= now) || (next - now > 14)) next = now;
+	next += 14;
+
+	do {
+		sdl_event_loop(1);
+#if defined(__EMSCRIPTEN__)
+		sdl_present_if_changed();
+		emscripten_sleep(1);
+#else
+		SDL_Delay(1);
+#endif
+	} while (SDL_GetTicks() < next);
 }
 
 signed int bioskey(const signed int cmd)
@@ -5913,7 +5949,12 @@ int main(int argc, char** argv)
 		} else {
 			/* disable sound */
 			exit_AIL();
+#if defined(__BORLANDC__)
 			GUI_output(g_snd_txt_disabled_mem2);
+#else
+			/* nativ gibt es (noch) keinen Ton; die Meldung "zu wenig Speicher"
+			 * wäre irreführend und blockiert bis zum ersten Klick */
+#endif
 		}
 
 		CD_init();

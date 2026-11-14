@@ -30,4 +30,7 @@ void do_pic_copy(const signed int);
 void do_save_rect(void);
 void do_fill_rect(uint8_t*, const signed int, const signed int, const signed int, const signed int, const signed int);
 void wait_for_vsync(void);
+#if !defined(__BORLANDC__)
+void sdl_wait_vsync(void); /* seg002.cpp */
+#endif
 void map_effect(uint8_t*);

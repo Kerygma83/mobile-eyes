@@ -1168,7 +1168,7 @@ void wait_for_vsync(void)
 
 	} while (!(tmp & 0x8) || !(tmp & 0x1));
 #else
-	//SDL_Delay(16);
+	sdl_wait_vsync();
 #endif
 }
 
