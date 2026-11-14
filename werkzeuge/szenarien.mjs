@@ -96,6 +96,35 @@ export const szenarien = [
 		],
 	},
 	{
+		// Häuser schwarz und Himmel weiß direkt nach dem Tempel (seg066: Paletten nativ nicht
+		// zusammenhängend, Einblenden las Gebäude/Himmel aus nicht gesetztem Speicher)
+		name: 'Stadtfarben nach dem Tempel',
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen,
+			{ warte: 1500 },
+			{ bild: 'nach-tempel' },
+			{ merke: 'vorher' },
+			{ knopf: 'Rechts drehen' }, { warte: 600 }, { knopf: 'Links drehen' }, { warte: 1000 },
+			{ merke: 'nachher' },
+			{ erwarte: 'Math.abs(m.vorher.schwarz - m.nachher.schwarz) <= 2', text: 'gleiche Ansicht, gleiche Farben vor und nach dem Drehen' },
+		],
+	},
+	{
+		// Mauszeiger blieb im mobilen Layout an der letzten Tippstelle stehen (z. B. in den Ortsicons)
+		name: 'Kein Mauszeiger im mobilen Layout',
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen,
+			{ warte: 800 },
+			{ merke: 'mobil' },
+			{ knopf: 'Layout' }, { warte: 800 },
+			{ merke: 'original' },
+			{ knopf: 'Layout' }, { warte: 800 },
+			{ merke: 'wieder' },
+			{ erwarte: 'm.original.zeiger > m.mobil.zeiger', text: 'im Original-Layout ist der Zeiger zu sehen' },
+			{ erwarte: 'm.wieder.zeiger == m.mobil.zeiger', text: 'zurück im mobilen Layout wieder verschwunden' },
+		],
+	},
+	{
 		name: 'Tastenreihenfolge bei schnellem Tippen',
 		schritte: [
 			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen,

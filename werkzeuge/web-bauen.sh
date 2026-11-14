@@ -13,7 +13,7 @@ src=BrightEyes/src/schick
 
 cflags=(-O2 -fno-asm -Wno-register -Wno-unused-result -sUSE_SDL=2)
 lflags=()
-exports=_main,_web_key,_web_right_click,_web_click,_web_screen_mode,_web_party_state,_web_menu_select
+exports=_main,_web_key,_web_right_click,_web_click,_web_screen_mode,_web_party_state,_web_menu_select,_web_mouse_cursor
 runtime=FS,callMain
 out=build/web
 

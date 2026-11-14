@@ -64,6 +64,15 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 			let gleich = 1;
 			for (let i = 0; i < a.length; i++) if (a[i] !== g[i]) { gleich = 0; break; }
 			z.ansichtAktuell = gleich;
+			// Anteil rein schwarzer Pixel in der Ansicht (aktuelles Spielbild), in Prozent
+			let schwarz = 0;
+			for (let i = 0; i < g.length; i += 4) if (!g[i] && !g[i + 1] && !g[i + 2]) schwarz++;
+			z.schwarz = Math.round(schwarz / (240 * 136) * 100);
+			// weiße Pixel (Farbe des Mauszeigers) um die letzte Tippstelle in den Icons (306,124)
+			const um = ganz.getContext('2d').getImageData(296, 114, 24, 24).data;
+			let weiss = 0;
+			for (let i = 0; i < um.length; i += 4) if (um[i] >= 235 && um[i + 1] >= 235 && um[i + 2] >= 235) weiss++;   // Zeiger: Farbe 0xff = 240,240,240
+			z.zeiger = weiss;
 			return JSON.stringify(z);
 		}), 5000, 'Zustand abfragen'));
 	const bewerte = (ausdruck, z, m) => Function('z', 'm', `return (${ausdruck});`)(z, m);

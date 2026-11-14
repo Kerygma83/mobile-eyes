@@ -10,7 +10,7 @@ Tempel, Helden aufnehmen/tauschen, Charakterbogen, Laufen in Thorwal, Kampf (Com
 
 Bisher behobene Fehler im nativen Port (je ein Commit im Branch `web`): Browser-Abgabe, Mausklick-Flags, Bildaktualisierung, Tastenreihenfolge, gesammeltes Zeichnen, `wait_for_vsync` mit Eingabeverarbeitung, Timer-Interrupt-Emulation, Kampf-Warteschleife, 16/32-Bit-Lesefehler bei der Reisekarte.
 
-Bekannte offene Fehler: falsche Häuserfarben direkt nach dem Tempel, Mauszeiger-Rest beim Heldentausch, Reisemenü erscheint erst nach Rechtsklick, kein Ton, kein Intro/Hauptmenü, keine Heldenerschaffung, Spielstände gehen beim Neuladen verloren.
+Bekannte offene Punkte: kein Ton, kein Intro/Hauptmenü, keine Heldenerschaffung. Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
 
 ## Überblick
 
@@ -187,7 +187,7 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 ## Stufe 11 – Mobiles UI IV: Reisen und Karte
 
-**Umfang:** Reisekarte zoom- und verschiebbar, Ziele antippen statt Rechtsklick-Menü; Reiseereignisse über die Dialoge aus Stufe 8.
+**Umfang:** Reisekarte zoom- und verschiebbar, Ziele antippen statt Rechtsklick-Menü (im Original zeigt der Wegweiser erst die Karte, das Zielmenü öffnet erst ein Rechtsklick; bis dahin: Knopf „Zurück“); Reiseereignisse über die Dialoge aus Stufe 8.
 
 ## Stufe 12 – Mobiles UI V: Kampf
 

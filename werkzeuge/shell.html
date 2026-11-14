@@ -312,8 +312,13 @@
 	}
 
 	// vom Spiel nach jedem geänderten Bild aufgerufen (RGBA, Alpha 0)
+	// Mauszeiger nur im Original-Layout; erst setzen, wenn das Spiel zeichnet (Maus initialisiert)
+	let zeigerGesetzt = false;
+	const zeigerSetzen = () => Module._web_mouse_cursor?.(document.body.classList.contains('mobil') ? 0 : 1);
+
 	function neuesBild(heap, ptr, w, h) {
 		if (w !== 320 || h !== 200) return;
+		if (!zeigerGesetzt) { zeigerGesetzt = true; zeigerSetzen(); }
 		const quelle = heap.subarray(ptr, ptr + w * h * 4);
 		const ziel = ganzBild.data;
 		ziel.set(quelle);
@@ -673,6 +678,7 @@
 	// Layout umschalten (wird im Browser gemerkt)
 	function setzeLayout(mobil) {
 		document.body.classList.toggle('mobil', mobil);
+		if (zeigerGesetzt) zeigerSetzen();
 		try { localStorage.setItem('layout', mobil ? 'mobil' : 'original'); } catch (e) {}
 	}
 	try { if (localStorage.getItem('layout') === 'original') setzeLayout(false); } catch (e) {}
