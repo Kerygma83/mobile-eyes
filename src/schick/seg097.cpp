@@ -37,6 +37,7 @@
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten.h>
+#include "vgalib.h"
 
 /* Mobile Oberfläche: Textboxen zusätzlich als HTML-Overlay zeigen.
  * Das Spiel zeichnet seine Box weiter selbst und bleibt für Eingabe, Zeitablauf
@@ -44,7 +45,7 @@
  * Texte liegen roh im DOS-Zeichensatz vor und werden in JS umgesetzt; sie müssen
  * vor GUI_count_lines() gelesen werden, das Zeilenumbrüche hineinschreibt.
  *   art: 0 = Meldung, 1 = Eingabe (zeichen = Länge), 2 = Auswahl, 3 = Ja/Nein */
-EM_JS(void, web_dialog_auf, (int art, const char *name, const char *text, int n, const char **optionen,
+EM_JS(void, web_dialog_auf_js, (int art, const char *name, const char *text, int n, const char **optionen,
 	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild), {
 	if (!Module.dialogAuf) return;
 	const s = (p) => {
@@ -58,6 +59,14 @@ EM_JS(void, web_dialog_auf, (int art, const char *name, const char *text, int n,
 	Module.dialogAuf({ art, name: s(name), text: s(text), optionen: opt, zeichen, vorwahl, hervor,
 		vorgabe: s(vorgabe), bild });
 });
+/* Vorher das aktuelle Bild ausgeben: die Seite hält es fest, solange das Overlay
+ * offen ist, und zeigt so die Box des Spiels nicht (nur unsere Darstellung). */
+static void web_dialog_auf(int art, const char *name, const char *text, int n, const char **optionen,
+	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild)
+{
+	sdl_present_if_changed();
+	web_dialog_auf_js(art, name, text, n, optionen, zeichen, vorwahl, hervor, vorgabe, bild);
+}
 EM_JS(void, web_dialog_bild, (int x, int y), { Module.dialogBild?.(x, y); });
 EM_JS(void, web_dialog_zu, (void), { Module.dialogZu?.(); });
 
