@@ -278,10 +278,13 @@
 
 		const haupt = Module._web_screen_mode?.() === 1;
 		if (!haupt) alleLoslassen();   // Meldung/Dialog: gehaltene Bewegung sofort beenden
-		// Textbox über dem Hauptbildschirm: Ausschnitte stehen lassen, das Overlay liegt darüber
-		const ueberHaupt = dialoge.length > 0 && dialoge[0].haupt && document.body.classList.contains('mobil');
-		mobilEl.classList.toggle('vollbild', !haupt && !ueberHaupt);
-		if (dialoge.at(-1)?.bildPos) portraetZeichnen();
+		// Overlay offen: Ausschnitte auf dem Bild vor der Textbox festhalten (das Spiel gibt es
+		// direkt vor dialogAuf aus), damit nur das Overlay zu sehen ist und nicht die Box des Spiels
+		if (dialoge.length > 0 && document.body.classList.contains('mobil')) {
+			if (dialoge.at(-1).bildPos) portraetZeichnen();
+			return;
+		}
+		mobilEl.classList.toggle('vollbild', !haupt);
 		for (const a of ausschnitte) {
 			if (a.c.offsetParent === null) continue; // ausgeblendet
 			a.ctx.drawImage(ganz, a.x, a.y, a.w, a.h, 0, 0, a.w, a.h);
@@ -413,11 +416,11 @@
 		onRuntimeInitialized: () => { statusEl.style.display = 'none'; },
 		onFrame: neuesBild,
 		dialogAuf: (d) => {
-			d.haupt = !mobilEl.classList.contains('vollbild');
 			dialoge.push(d);
 			alleLoslassen();
 			zeigeDialog();
 		},
+		// danach zeigt das nächste Bild des Spiels wieder alles (Box dort schon entfernt)
 		dialogZu: () => { dialoge.pop(); zeigeDialog(); },
 		dialogBild: (x, y) => {
 			const d = dialoge.at(-1);

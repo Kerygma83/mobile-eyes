@@ -55,6 +55,13 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 			z.ovText = d.hidden ? '' : d.querySelector('.text').textContent;
 			z.ovN = d.hidden ? 0 : d.querySelectorAll('.optionen button').length;
 			z.vollbild = document.getElementById('mobil').classList.contains('vollbild') ? 1 : 0;
+			// Ansicht zeigt dasselbe wie das aktuelle Spielbild? (0 = festgehalten, z. B. ohne die Box des Spiels)
+			const ans = document.querySelector('canvas[aria-label="Ansicht"]');
+			const a = ans.getContext('2d').getImageData(0, 0, 240, 136).data;
+			const g = ganz.getContext('2d').getImageData(0, 0, 240, 136).data;
+			let gleich = 1;
+			for (let i = 0; i < a.length; i++) if (a[i] !== g[i]) { gleich = 0; break; }
+			z.ansichtAktuell = gleich;
 			return JSON.stringify(z);
 		}), 5000, 'Zustand abfragen'));
 	const bewerte = (ausdruck, z, m) => Function('z', 'm', `return (${ausdruck});`)(z, m);

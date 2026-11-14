@@ -166,6 +166,13 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Abnahmekriterien:** Alle Dialoge der Regressionstests erscheinen als HTML; Zurück schließt; Spiellogik unverändert.
 
+**Stand (14.11.):** Grundlage fertig. `GUI_input`, `GUI_radio`/`GUI_bool` und `GUI_dialogbox` melden sich per `EM_JS` an die Seite, das Overlay zeigt Text, Optionen, Eingabefeld und Porträt. Die Box des Spiels wird verdeckt, indem die Ansicht auf dem Bild davor stehen bleibt. Das Spiel bleibt für Ablauf und Ergebnis zuständig. Offen: Testszenario für Eingaben (Geldbetrag, Spielstandname), lange Menüs (Kampf: 13 Einträge) ohne Scrollen.
+
+**Merkposten Groß-/Kleinschreibung und Schriftart:** Die Spieltexte liegen im Original nur in Großbuchstaben vor, die Spielschrift hat keine Kleinbuchstaben. Im Overlay ist das lange Fließtext in Versalien (derzeit Georgia). Mögliche Wege:
+- Wörterbuch für die deutsche Großschreibung (Substantive), alles andere klein, Satzanfänge groß. Das Wörterbuch aus den Spieltexten selbst aufbauen und die Sonderfälle von Hand pflegen, etwa Eigennamen, Anreden und Abkürzungen wie „GGST.“.
+- Schriftart, die Versalien gut lesbar macht: Kapitälchen-Schnitt oder eine zum Spiel passende, frei lizenzierte Fantasy-/Buchschrift (Google Fonts). Alternativ die Originalschrift des Spiels (`FONT6` aus den Spieldaten) vergrößert.
+- Als Einstellung anbieten (Original-Versalien / normale Schreibung / Schriftart).
+
 ## Stufe 9 – Mobiles UI II: Bewegung und Orte
 
 **Umfang:** Wischen (vor/zurück/drehen) auf der 3D-Ansicht; die Icon-Leiste rechts wird zu beschrifteten Knöpfen aus den Aktionstabellen des Spiels (je nach Ort: Tempel, Händler, Taverne …); Hochformat-Layout: Ansicht oben, Gruppe und Aktionen darunter.
