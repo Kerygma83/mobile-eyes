@@ -13,7 +13,7 @@ const filter = process.argv[2] || '';
 fs.rmSync(ausgabe, { recursive: true, force: true });
 fs.mkdirSync(ausgabe, { recursive: true });
 
-const typen = { '.html': 'text/html', '.js': 'text/javascript', '.wasm': 'application/wasm', '.data': 'application/octet-stream' };
+const typen = { '.html': 'text/html', '.js': 'text/javascript', '.wasm': 'application/wasm', '.data': 'application/octet-stream', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 const server = http.createServer((req, res) => {
 	const datei = path.join(wurzel, decodeURIComponent(req.url.split('?')[0]).replace(/^\/$/, '/index.html'));
 	fs.readFile(datei, (err, inhalt) => {
@@ -183,6 +183,7 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 				await wahl.setFiles(`${ausgabe}/${s.datei}`);
 				await page.waitForEvent('load', { timeout: 10000 });   // Seite startet nach dem Import neu
 			}
+			if (s.offline !== undefined) { await ctx.setOffline(s.offline); }
 			if (s.neuLaden) { await page.reload(); await page.waitForTimeout(500); }
 			if (s.abbrechen) { await ort.locator('#dialog .abbrechen').tap(); await page.waitForTimeout(250); }
 			if (s.weiter) { await ort.locator('#dialog .karte').tap(); await page.waitForTimeout(250); }

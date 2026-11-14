@@ -6,6 +6,11 @@
 <meta name="theme-color" content="#14110f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Schicksalsklinge">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>Schicksalsklinge</title>
 <style>
 	:root {
@@ -133,6 +138,18 @@
 	#gen[hidden] { display: none; }
 	#gen iframe { width: 100%; height: 100%; border: 0; display: block; }
 
+	/* ---------- Update-Hinweis (PWA) ---------- */
+	#update {
+		position: fixed; z-index: 30; left: 50%; transform: translateX(-50%);
+		top: calc(env(safe-area-inset-top) + 0.5rem);
+		display: flex; align-items: center; gap: 0.8rem;
+		padding: 0.5rem 0.6rem 0.5rem 1rem;
+		background: var(--panel); border: 1px solid var(--gold); border-radius: 0.8rem;
+		box-shadow: 0 0.3rem 1rem rgb(0 0 0 / 0.5); font-size: 0.95rem;
+	}
+	#update[hidden] { display: none; }
+	#update button { min-height: 2.4rem; padding: 0 0.9rem; touch-action: manipulation; }
+
 	/* Querformat im Original-Layout: Leiste rechts */
 	@media (orientation: landscape) and (max-height: 600px) {
 		body:not(.mobil) { flex-direction: row; }
@@ -173,6 +190,12 @@
 
 <!-- Heldenerschaffung und Intro (gen.html, eigenes Programm wie GEN.EXE) -->
 <div id="gen" hidden><iframe title="Heldenerschaffung"></iframe></div>
+
+<!-- neue Version der App bereit (Service Worker) -->
+<div id="update" hidden role="status">
+	<span>Neue Version verfügbar</span>
+	<button type="button">Jetzt laden</button>
+</div>
 
 <div id="leiste">
 	<div id="icons-halter">
@@ -475,6 +498,42 @@
 		genEl.hidden = false;
 		genFrame.focus();
 	});
+
+	// ---------- PWA: Offline (Service Worker), Updates, Bildschirm anlassen ----------
+	// Beides geht nur in einem sicheren Kontext (HTTPS oder localhost), nicht über http://<IP>.
+	const updateEl = document.getElementById('update');
+	if ('serviceWorker' in navigator && window.isSecureContext) {
+		let neuLaden = false;
+		navigator.serviceWorker.addEventListener('controllerchange', () => {
+			if (neuLaden) location.reload();
+		});
+		navigator.serviceWorker.register('sw.js').then((reg) => {
+			// neue Version wartet: Hinweis zeigen, erst auf Wunsch übernehmen (nicht mitten im Spiel)
+			const zeigen = () => { if (reg.waiting && navigator.serviceWorker.controller) updateEl.hidden = false; };
+			zeigen();
+			reg.addEventListener('updatefound', () => {
+				reg.installing?.addEventListener('statechange', zeigen);
+			});
+			updateEl.querySelector('button').addEventListener('click', () => {
+				neuLaden = true;
+				reg.waiting?.postMessage('jetzt-aktualisieren');
+			});
+			// regelmäßig nach Updates sehen, wenn die App lange offen ist
+			setInterval(() => reg.update().catch(() => {}), 30 * 60 * 1000);
+		}).catch((e) => console.warn('Service Worker nicht angemeldet', e));
+	}
+	// Bildschirm während des Spiels anlassen; der Browser gibt die Sperre beim Verbergen frei
+	let wachSperre = null;
+	async function wachHalten() {
+		if (!('wakeLock' in navigator) || document.visibilityState !== 'visible' || wachSperre) return;
+		try {
+			wachSperre = await navigator.wakeLock.request('screen');
+			wachSperre.addEventListener('release', () => { wachSperre = null; });
+		} catch (e) { /* z. B. Energiesparmodus */ }
+	}
+	document.addEventListener('visibilitychange', wachHalten);
+	document.addEventListener('pointerdown', wachHalten, { once: true });   // iOS: erst nach einer Berührung
+	wachHalten();
 
 	// Layout umschalten (wird im Browser gemerkt)
 	function setzeLayout(mobil) {

@@ -23,10 +23,9 @@ Aufwand in Arbeitsstunden (gemeinsame Sitzungen mit Claude, grob geschätzt; Feh
 | 2 | Spielstart wie im Original | Intro, Hauptmenü „Neu/Laden“, Heldenerschaffung im Browser | 6–10 h |
 | 3 | Dauerhafte Spielstände | Speichern überlebt Neuladen, Export/Import als Datei | 3–4 h |
 | | **Meilenstein A: Durchspielbar im Browser** | Mehrstündige Testpartie ohne Hänger, Spielstände bleiben | |
-| 4 | Spieldaten vom Nutzer | Daten-Import (Ordner oder ZIP), Prüfsumme, Ablage im Browser | 4–6 h |
 | 5 | PWA | Installierbar, offline, Vollbild, Hoch-/Querformat | 3–4 h |
 | 6 | Ton | Soundeffekte und CD-Musik (OGG aus der GOG-Fassung) | 6–10 h |
-| | **Meilenstein B: Installierbare App ohne mitgelieferte Daten** | Auf echtem Android- und iOS-Gerät getestet | |
+| | **Meilenstein B: Installierbare App (intern, Spieldaten eingebaut)** | Auf echtem Android- und iOS-Gerät getestet | |
 | 7 | Bugfixes übernehmen | Fehlerkorrekturen aus MeowMuhMuhCow/NRS als Schalter | 8–16 h |
 | 8 | Mobiles UI I: Dialoge | Alle `GUI_*`-Dialoge als HTML (große Schrift, Touch) | 8–12 h |
 | 9 | Mobiles UI II: Bewegung und Orte | Wischgesten, Ortsaktionen als Knöpfe statt Icon-Leiste | 8–12 h |
@@ -35,10 +34,11 @@ Aufwand in Arbeitsstunden (gemeinsame Sitzungen mit Claude, grob geschätzt; Feh
 | 12 | Mobiles UI V: Kampf | Felder antippen, Aktionsleiste, Zoom | 12–20 h |
 | | **Meilenstein C: Mobile Fassung** | Komplett im Hochformat spielbar | |
 | 13 | Upstream und Pflege | Korrekturen an BrightEyes zurückgeben, Updates einpflegen | laufend |
+| 4 | Spieldaten vom Nutzer (zurückgestellt, 14.11.) | Daten-Import (Ordner oder ZIP), Prüfsumme, Ablage im Browser – erst vor einer Veröffentlichung, bis dahin bleibt das Projekt intern | 4–6 h |
 
 Summe bis Meilenstein A: ca. 18–28 h · bis B: ca. 31–48 h · bis C: ca. 85–138 h.
 
-Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander parallel. 4 braucht 3. 5 braucht 4. 6 unabhängig ab 1. 7 jederzeit ab 1. 8 vor 9–12 (gemeinsame Brücke C ↔ HTML). 9–12 untereinander frei.
+Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander parallel. 4 braucht 3 und kommt erst vor einer Veröffentlichung. 5 zunächst mit eingebauten Spieldaten (intern), die Variante ohne Daten folgt mit 4. 6 unabhängig ab 1. 7 jederzeit ab 1. 8 vor 9–12 (gemeinsame Brücke C ↔ HTML). 9–12 untereinander frei.
 
 ### Vorschlag für die Reihenfolge der Sitzungen
 
@@ -49,9 +49,10 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 | 3 | Stufe 1: Testpartie, gefundene Hänger beheben | 3–4 h |
 | 4 | Stufe 3 (Spielstände) + Beginn Stufe 2 (Hauptmenü, Intro) | 3–4 h |
 | 5 | Stufe 2: Heldenerschaffung | 3–5 h |
-| 6 | Stufe 4 + 5 (Daten-Import, PWA) → Meilenstein B ohne Ton | 4–6 h |
+| 6 | Stufe 5 (PWA, intern mit eingebauten Daten) → Meilenstein B ohne Ton | 3–4 h |
 | 7–8 | Stufe 6 (Ton) | 6–10 h |
 | ab 9 | Stufe 8 ff. (mobiles UI), Stufe 7 nach Bedarf dazwischen | |
+| zuletzt | Stufe 4 (Spieldaten vom Nutzer), vor einer Veröffentlichung | 4–6 h |
 
 ## Definition of Done (gilt für jede Stufe)
 
@@ -133,6 +134,8 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 ## Stufe 4 – Spieldaten vom Nutzer
 
+**Zurückgestellt (14.11.):** kommt ans Ende, erst vor einer Veröffentlichung. Bis dahin bleibt das Projekt intern und die Spieldaten sind im LAN-Build eingebaut.
+
 **Ziel:** Die App enthält keine Spieldaten mehr.
 
 **Umfang:** Erster Start: Assistent „Spieldaten auswählen“ (GOG-Ordner per Ordnerauswahl oder ZIP); Prüfung von `SCHICKM.EXE` (MD5 `4ce035f9…`, deutsche Fassung 3.02) mit verständlicher Meldung bei englischer Fassung; Ablage der benötigten Dateien (~6,5 MB) im Browser-Speicher. Option für später: GOG-Installer direkt einlesen (innoextract als WASM).
@@ -145,9 +148,18 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Ziel:** Installierbar wie eine App.
 
-**Umfang:** Manifest, Icons, Service Worker (App-Shell offline, Updates sichtbar), Vollbild/Standalone, Bildschirmausrichtung, Wake-Lock während des Spiels; Hosting-Variante ohne Spieldaten im Image.
+**Umfang:** Manifest, Icons, Service Worker (App-Shell offline, Updates sichtbar), Vollbild/Standalone, Bildschirmausrichtung, Wake-Lock während des Spiels. Zunächst mit eingebauten Spieldaten (intern); die Hosting-Variante ohne Spieldaten folgt mit Stufe 4.
 
 **Abnahmekriterien:** Auf Android und iOS installiert, offline startbar; Update der App ohne Verlust der Spielstände.
+
+**Stand (14.11.):**
+- Eingebaut sind Manifest, eigenes Icon (`werkzeuge/pwa/icon.svg`, Erzeugung mit `werkzeuge/pwa/icons.sh`) und ein Service Worker.
+- Der Service Worker lädt alle Dateien vorab. Seine Version ist eine Prüfsumme der Dateien, derselbe Stand ergibt dieselbe Version.
+- Eine neue Version meldet der Hinweis „Neue Version verfügbar – Jetzt laden“ und wird erst auf Wunsch übernommen. Spielstände bleiben in IndexedDB.
+- Wake-Lock hält den Bildschirm während des Spiels an.
+- Szenario: offline starten.
+- Voraussetzung für Service Worker und Wake-Lock ist HTTPS, über `http://<IP>` gehen nur Home-Bildschirm und Vollbild. Geplant ist ein Caddy-Eintrag auf 192.168.178.77, etwa `schick.ohrnernetz.de` → `192.168.178.128:8180`.
+- Spielstände hängen an der Adresse; beim Wechsel auf HTTPS mit „Spielstände“ exportieren und dort importieren.
 
 ## Stufe 6 – Ton
 

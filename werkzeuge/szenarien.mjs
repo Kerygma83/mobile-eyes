@@ -14,6 +14,7 @@
 //   { schnellwahl: 20 }              Wert der Schnellwahl im Overlay antippen
 //   { tippen: '37' }                 ins Eingabefeld tippen (echte Tasten) und Enter
 //   { neuLaden: true }               Seite neu laden (Spielstände bleiben in IndexedDB)
+//   { offline: true }                Netz abschalten (Service Worker muss liefern)
 //   { exportiere: 'NAME', datei: 'X.GAM' }  Spielstand über „Spielstände“ herunterladen
 //   { importiere: 2, datei: 'X.GAM' }      Datei in Platz 2 importieren (Seite startet neu)
 //   { taste: 'n' }                   Tastendruck
@@ -427,6 +428,19 @@ export const szenarien = [
 			{ warteAuf: 'z.ov == 1 && z.ovN > 0', max: 3000 },
 			{ wahl: 'TESTHELD' },
 			{ warteAuf: 'z.helden == 1', max: 3000 },
+		],
+	},
+	{
+		// Stufe 5: die App startet ohne Netz aus dem Service Worker (Test läuft auf localhost = sicherer Kontext)
+		name: 'PWA: offline starten',
+		schritte: [
+			...spielBereit,
+			{ warteAuf: 'navigator.serviceWorker.controller !== null', seite: true, max: 15000 },
+			{ warteAuf: "caches.keys().then((k) => k.some((n) => n.startsWith('schick-')))", seite: true, max: 15000 },
+			{ offline: true },
+			{ neuLaden: true },
+			...spielBereit,
+			{ erwarte: 'z.helden == 0 && z.stadt == 1', text: 'Spiel läuft offline' },
 		],
 	},
 	{

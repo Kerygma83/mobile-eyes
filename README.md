@@ -20,6 +20,7 @@ Dieses Repository enthält **keine** Spieldaten. Nötig ist die deutsche GOG-Fas
 | `BrightEyes/` | Untermodul: BrightEyes mit unseren Änderungen (Branch `brighteyes-web` dieses Repos) |
 | `werkzeuge/` | Build-Image, Build-Skript, HTML-Seiten (`shell.html` Spiel, `gen-shell.html` Heldenerschaffung, `dialog.js` Overlays), Browser-Tests |
 | `werkzeug.sh` | führt Befehle im Build-Container aus (auf dem Host ist kein Compiler nötig) |
+| `werkzeuge/pwa/` | Manifest, Icon (`icon.svg`, PNGs mit `icons.sh`), Vorlage des Service Workers |
 | `compose.yaml`, `nginx.conf` | Auslieferung von `build/web` auf Port 8180 |
 | `spieldaten/`, `spiel/` | GOG-Installer und entpackte Daten (nicht im Repo) |
 

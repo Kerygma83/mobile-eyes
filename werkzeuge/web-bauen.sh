@@ -92,4 +92,16 @@ emcc "${gobjs[@]}" -o "$out/gen.html" "${glflags[@]}" \
 	-sEXPORTED_RUNTIME_METHODS=FS -lidbfs.js \
 	--pre-js werkzeuge/gen-pre.js --shell-file werkzeuge/gen-shell.html
 cp werkzeuge/dialog.js "$out/"
-echo "→ $out"
+
+# Emscripten schreibt zufällige temporäre Dateinamen als Kommentar in die JS-Dateien;
+# entfernen, damit derselbe Stand dieselbe Version ergibt (sonst Update-Hinweis bei jedem Build)
+sed -i -E '/^[[:space:]]*\/\/ (end )?include: \/tmp\/tmp[^ ]*\.js$/d' "$out/index.js" "$out/gen.js"
+
+# ---- PWA: Manifest, Icons, Service Worker mit Version (Prüfsumme aller Dateien) ----
+cp werkzeuge/pwa/manifest.webmanifest werkzeuge/pwa/icon-*.png "$out/"
+dateien=(index.html index.js index.wasm gen.html gen.js gen.wasm dialog.js manifest.webmanifest icon-180.png icon-192.png icon-512.png)
+for d in index.data gen.data; do [ -f "$out/$d" ] && dateien+=("$d"); done
+version=$(cd "$out" && cat "${dateien[@]}" | sha256sum | cut -c1-12)
+liste=$(printf '"./",'; printf '"%s",' "${dateien[@]}")
+sed -e "s/__VERSION__/$version/" -e "s|__DATEIEN__|[${liste%,}]|" werkzeuge/pwa/sw.js > "$out/sw.js"
+echo "→ $out (Version $version)"

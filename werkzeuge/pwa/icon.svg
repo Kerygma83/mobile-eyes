@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Mobile Eyes: eigenes, schlichtes Auge (kein Spielmaterial). Sicherer Bereich für
+       „maskable“: wichtige Teile innerhalb des inneren 80-%-Kreises. -->
+  <rect width="512" height="512" fill="#14110f"/>
+  <circle cx="256" cy="256" r="200" fill="#221d19"/>
+  <path d="M86 256 C150 166 362 166 426 256 C362 346 150 346 86 256 Z" fill="#e8dcc8" stroke="#c9a45c" stroke-width="14" stroke-linejoin="round"/>
+  <circle cx="256" cy="256" r="74" fill="#0b0908" stroke="#c9a45c" stroke-width="10"/>
+  <circle cx="230" cy="230" r="18" fill="#e8dcc8"/>
+</svg>
