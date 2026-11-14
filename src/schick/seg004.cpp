@@ -652,9 +652,14 @@ void restore_rect_rle(uint8_t *dst, uint8_t *src, const signed int x, const sign
  * (g_ggst_cursor, Inventar) bleibt sichtbar. */
 static int g_web_mouse_cursor = 1;
 
-extern "C" EMSCRIPTEN_KEEPALIVE void web_mouse_cursor(const int on)
+extern "C" EMSCRIPTEN_KEEPALIVE void web_mouse_cursor(const int on, const int redraw)
 {
 	if (g_web_mouse_cursor == on) return;
+	if (!redraw) {
+		/* vor dem Start des Spiels (Maus noch nicht eingerichtet): nur merken */
+		g_web_mouse_cursor = on;
+		return;
+	}
 	call_mouse_bg();	/* sichtbaren Zeiger entfernen … */
 	g_web_mouse_cursor = on;
 	call_mouse();		/* … und je nach Einstellung neu zeichnen */

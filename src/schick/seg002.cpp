@@ -1814,6 +1814,10 @@ static int g_sdl_quit_event = 0;
 
 #if defined(__EMSCRIPTEN__)
 #include <emscripten.h>
+/* Logo-Intro abspielen (Seite öffnet gen.html?intro) und warten */
+EM_ASYNC_JS(void, web_intro, (void), {
+	if (Module.genStarten) await Module.genStarten('intro');
+});
 /* Browser: regelmäßig die Kontrolle abgeben (Asyncify), sonst blockiert die Seite. */
 static void web_yield(void)
 {
@@ -6106,7 +6110,13 @@ int main(int argc, char** argv)
 		}
 #endif
 
-#if !defined(__BORLANDC__)
+#if defined(__EMSCRIPTEN__)
+		/* Browser: Start wie im Original (SCHICK.BAT: erst das Intro, dann SCHICKM).
+		 * Das animierte INTRO.EXE ist nicht nachgebaut; die Seite zeigt stattdessen
+		 * das Logo-Intro der Heldenerschaffung. */
+		sdl_forced_update();
+		web_intro();
+#elif !defined(__BORLANDC__)
 		/* Playground 1 / 2 */
 		sdl_forced_update();
 
@@ -6196,6 +6206,10 @@ uint8_t* schick_alloc(uint32_t size)
 
 static signed int copy_protection(void)
 {
+#if defined(__EMSCRIPTEN__)
+	/* Browser: ohne Kopierschutzabfrage (wie Feature mod 5) */
+	return 1;
+#endif
 	signed int i;
 	signed int randval;
 	signed int tries;

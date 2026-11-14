@@ -2511,12 +2511,73 @@ static signed long process_nvf(struct nvf_desc *nvf)
 
 /* KEYBOARD AND INPUT MANAGEMENT */
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+/* ---- Browser (wie im Spiel, seg002/seg097) ----
+ * Textboxen zusätzlich als HTML-Overlay (werkzeuge/dialog.js); ngen bleibt für
+ * Ablauf und Ergebnis zuständig, die Seite schickt Tasten oder wählt einen Eintrag.
+ *   art: 0 = Meldung, 1 = Texteingabe, 2 = Auswahl, 3 = Ja/Nein, 4 = Zahleneingabe */
+EM_JS(void, web_dialog_auf, (int art, const char *name, const char *text, int n, const char **optionen,
+	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild), {
+	if (!Module.dialogAuf) return;
+	const s = (p) => {
+		if (!p) return null;
+		const b = [];
+		while (HEAPU8[p]) b.push(HEAPU8[p++]);
+		return b;
+	};
+	const opt = [];
+	for (let i = 0; i < n; i++) opt.push(s(HEAPU32[(optionen >> 2) + i]));
+	Module.dialogAuf({ art, name: s(name), text: s(text), optionen: opt, zeichen, vorwahl, hervor,
+		vorgabe: s(vorgabe), bild });
+});
+EM_JS(void, web_dialog_zu, (void), { if (Module.dialogZu) Module.dialogZu(); });
+
+static int g_web_menu_choice = 0;	/* von der Seite gewählter Eintrag (1-basiert) */
+
+EMSCRIPTEN_KEEPALIVE void web_menu_select(const int n)
+{
+	g_web_menu_choice = n;
+}
+
+EMSCRIPTEN_KEEPALIVE void web_key(const int sym)
+{
+	SDL_Event e;
+	memset(&e, 0, sizeof(e));
+	e.type = SDL_KEYDOWN;
+	e.key.state = SDL_PRESSED;
+	e.key.keysym.sym = sym;
+	SDL_PushEvent(&e);
+}
+
+EMSCRIPTEN_KEEPALIVE void web_right_click(void)
+{
+	g_mouse_rightclick_event = 1;
+}
+
+/* Browser: regelmäßig abgeben (Asyncify); enter_string() wartet sonst in einer
+ * leeren Schleife auf eine Taste und die Seite friert ein */
+static void web_yield(void)
+{
+	static double last = 0;
+	const double now = emscripten_get_now();
+	if (now - last >= 16.0) {
+		emscripten_sleep(0);
+		last = emscripten_get_now();
+	}
+}
+#endif
+
 #if !defined(__BORLANDC__)
 static int g_sdl_quit_event = 0;
 
 static int sdl_event_loop(const int cmd)
 {
 	SDL_Event event;
+
+#if defined(__EMSCRIPTEN__)
+	web_yield();
+#endif
 
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_QUIT) {
@@ -2555,9 +2616,16 @@ static int sdl_event_loop(const int cmd)
 			if (cmd == 1) {
 				// check if a key was pressed
 				int pressed = (event.type == SDL_KEYDOWN) ? 1 : 0;
-				SDL_Delay(10);
 				//fprintf(stdout, "%s(%d) = %d %d\n", __func__, cmd, pressed, key_cnt);
-				SDL_PushEvent(&event);
+				/* Taste wieder VORNE in die Warteschlange setzen (wie im Spiel, seg002).
+				 * SDL_PushEvent() hängt hinten an: bei mehreren wartenden Tasten ändert
+				 * sich die Reihenfolge, aus "TEST" wurde bei der Namenseingabe "ETS". */
+				{
+					SDL_Event rest[128];
+					const int n = SDL_PeepEvents(rest, 128, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT);
+					SDL_PeepEvents(&event, 1, SDL_ADDEVENT, 0, 0);
+					if (n > 0) SDL_PeepEvents(rest, n, SDL_ADDEVENT, 0, 0);
+				}
 				return pressed;
 			} else {
 
@@ -3665,6 +3733,13 @@ static signed short enter_string(char *dst, const signed short x, const signed s
 	signed short width;
 	signed short i;
 
+#if defined(__EMSCRIPTEN__)
+	/* Namenseingabe (txt == 1, kommt nicht aus infobox): Feld im Overlay, damit
+	 * auf dem Handy die Tastatur erscheint. Zahlen in infobox() meldet diese selbst. */
+	static char web_name_header[] = "NAME DES HELDEN:";
+	if (txt == 1) web_dialog_auf(1, NULL, web_name_header, 0, NULL, len, 0, -1, NULL, 0);
+#endif
+
 	g_gfx_ptr = g_vga_memstart;
 
 	mouse_bg();
@@ -3721,6 +3796,9 @@ static signed short enter_string(char *dst, const signed short x, const signed s
 			g_in_key_ext = 0;
 			g_gfx_ptr = gfx_bak;
 
+#if defined(__EMSCRIPTEN__)
+			if (txt == 1) web_dialog_zu();
+#endif
 			return 1;
 		}
 
@@ -3806,6 +3884,9 @@ static signed short enter_string(char *dst, const signed short x, const signed s
 	mouse_cursor();
 	g_gfx_ptr = gfx_bak;
 
+#if defined(__EMSCRIPTEN__)
+	if (txt == 1) web_dialog_zu();
+#endif
 	return 0;
 }
 
@@ -3905,6 +3986,9 @@ static int infobox(char *header, const signed short digits)
 
 	const int width = popup_width(g_menu_tiles);
 	const int left_border = (O_WIDTH - width) / 2 + g_text_x_mod;
+#if defined(__EMSCRIPTEN__)
+	web_dialog_auf(!digits ? 0 : (digits <= 3) ? 4 : 1, NULL, header, 0, NULL, digits, 0, -1, NULL, 0);
+#endif
 	g_text_x_end = width - 10;
 	lines = str_splitter(header);
 
@@ -3968,6 +4052,9 @@ static int infobox(char *header, const signed short digits)
 	g_in_infobox = 0;
 	g_in_key_ext = 0;
 
+#if defined(__EMSCRIPTEN__)
+	web_dialog_zu();
+#endif
 	return retval;
 }
 
@@ -4039,6 +4126,19 @@ signed short gui_radio(char *header, const signed int options, ...)
 	const int width = popup_width(g_menu_tiles);
 	const int left_border = (O_WIDTH - width) / 2 + g_text_x_mod;
 
+#if defined(__EMSCRIPTEN__)
+	{
+		/* vor str_splitter(), das Umbrüche in den Text schreibt */
+		const char *opt[20];
+		const int n = (options > 20) ? 20 : options;
+		va_start(arguments, options);
+		for (i = 0; i < n; i++) opt[i] = va_arg(arguments, char*);
+		va_end(arguments);
+		g_web_menu_choice = 0;
+		web_dialog_auf(g_bool_mode ? 3 : 2, NULL, header, n, opt, 0, 0, -1, NULL, 0);
+	}
+#endif
+
 	g_text_x_end = width - 10;
 	lines_header = str_splitter(header);
 	height = popup_height(lines_header, options);
@@ -4096,6 +4196,15 @@ signed short gui_radio(char *header, const signed int options, ...)
 	while (!done) {
 		g_action_table = g_action_input;
 		handle_input();
+
+#if defined(__EMSCRIPTEN__)
+		if (g_web_menu_choice >= 1 && g_web_menu_choice <= options) {
+			/* Eintrag im Overlay angetippt */
+			retval = g_web_menu_choice;
+			done = 1;
+			g_web_menu_choice = 0;
+		}
+#endif
 
 #if !defined(__BORLANDC__)
 		/* check if SDL got a quit event set by handle_input() */
@@ -4193,6 +4302,9 @@ signed short gui_radio(char *header, const signed int options, ...)
 	g_text_x_end = 0;
 	g_in_key_ext = 0;
 
+#if defined(__EMSCRIPTEN__)
+	web_dialog_zu();
+#endif
 	return retval;
 }
 
@@ -4641,10 +4753,16 @@ static void save_chr(volatile struct struct_hero *hero)
 	}
 
 	/* ask for output format */
+#if defined(__EMSCRIPTEN__)
+	/* Browser: das Spiel daneben ist immer die deutsche CD-Fassung (1754 Byte);
+	 * die Frage (eine Ergänzung von NGEN, nicht im Original) entfällt */
+	answer = 1;
+#else
 	g_menu_tiles = 5;
 	answer = gui_radio(get_text(290), 2, get_text(291), get_text(292));
 	g_menu_tiles = 3;
 	if (answer == -1) return;
+#endif
 
 	/* copy picture to the character struct */
 	memcpy((void*)hero->pic, g_buffer_current_head, 1024);
@@ -7663,10 +7781,24 @@ static void intro(void)
 	g_in_intro = 0;
 }
 
+#if defined(__EMSCRIPTEN__)
+/* Browser: die Seite des Spiels öffnet die Heldenerschaffung wie das Original per
+ * spawnl("gen.exe", …) und wartet auf diese Meldung (CHR-Dateien sind dann gesichert). */
+static void web_gen_done(void)
+{
+	EM_ASM({ if (Module.genFertig) Module.genFertig(); });
+}
+#endif
+
 int main(int argc, char** argv)
 {
 	int l_level = -1;
 	char param_level;
+#if defined(__EMSCRIPTEN__)
+	/* Parameter "intro": nur das Logo-Intro zeigen (Start der Web-Fassung) */
+	const int web_intro_only = (argc > 1) && !strcmp(argv[1], "intro");
+	if (web_intro_only) argc = 1;
+#endif
 
 	if (argc > 1) {
 		g_called_with_args = 1;
@@ -7715,6 +7847,15 @@ int main(int argc, char** argv)
 		init_colors();
 	}
 
+#if defined(__EMSCRIPTEN__)
+	if (web_intro_only) {
+		call_fill_rect_gen(g_vga_memstart, 0, 0, O_WIDTH - 1, O_HEIGHT - 1, 0);
+		restore_timer_isr();
+		web_gen_done();
+		return 0;
+	}
+#endif
+
 	load_common_files();
 
 #if !defined(__BORLANDC__)
@@ -7760,5 +7901,8 @@ int main(int argc, char** argv)
 
 	free_buffers();
 
+#if defined(__EMSCRIPTEN__)
+	web_gen_done();
+#endif
 	return 0;
 }

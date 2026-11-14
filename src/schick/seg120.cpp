@@ -984,6 +984,13 @@ void game_over_screen(void)
 	g_pp20_index = -1;
 }
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+EM_ASYNC_JS(void, web_gen, (const char *level), {
+	if (Module.genStarten) await Module.genStarten(UTF8ToString(level));
+});
+#endif
+
 /* Borlandified and identical */
 void call_gen(void)
 {
@@ -1059,5 +1066,22 @@ void call_gen(void)
 		gs_month = 1;
 		gs_year = 15;
 	}
+#elif defined(__EMSCRIPTEN__)
+	/* Browser: die Seite öffnet die Heldenerschaffung (gen.html, ngen) wie spawnl()
+	 * und wartet, bis sie beendet ist; neue CHR-Dateien liegen dann im Spiel- und
+	 * im TEMP-Verzeichnis. Speicher wurde nicht freigegeben, daher kein Neuaufbau. */
+	call_mouse_bg();
+	web_gen(g_game_mode == GAME_MODE_ADVANCED ? "a" : "n");
+	call_mouse();
+
+	/* wie nach spawnl() im Original: Spielbeginn neu setzen */
+	gs_day_timer = HOURS(24) - 1;
+	timewarp_until_time_of_day(1);
+	gs_day_timer = HOURS(8);
+
+	gs_day_of_week = 4;
+	gs_day_of_month = 17;
+	gs_month = 1;
+	gs_year = 15;
 #endif
 }
