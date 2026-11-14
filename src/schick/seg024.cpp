@@ -117,14 +117,15 @@ void diary_new_entry(void)
 		gs_diary_entry_counter--;
 	}
 
+	/* avoid double entries for the same town */
+#if defined(__BORLANDC__)
 	/* make a pointer to the last entry */
 	entry = &gs_diary_entries[gs_diary_entry_counter - 1];
 
-	/* avoid double entries for the same town */
-#if defined(__BORLANDC__)
 	if (gs_town_id != entry->town_id)
 #else
-	if ((gs_diary_entry_counter == 0) || (gs_town_id != entry->town_id))
+	/* native: no pointer to entry -1 while the diary is empty */
+	if ((gs_diary_entry_counter == 0) || (gs_town_id != gs_diary_entries[gs_diary_entry_counter - 1].town_id))
 #endif
 	{
 
