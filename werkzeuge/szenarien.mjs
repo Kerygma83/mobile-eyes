@@ -6,6 +6,9 @@
 //   { doppeltipp: [ausschnitt, x, y] }
 //   { knopf: 'Vorwärts' }            Knopf der Steuerleiste (aria-label oder Text)
 //   { schnell: ['…', '…'] }          mehrere Knöpfe ohne Pause
+//   { wahl: 2 } / { wahl: 'Text' }  Eintrag im Overlay antippen (Nummer ab 1 oder Textteil)
+//   { weiter: true }                 Meldung im Overlay antippen
+//   { eingabe: '12' }                Text im Overlay eingeben und bestätigen
 //   { taste: 'n' }                   Tastendruck
 //   { js: 'Module._web_test_fight(213)' }
 //   { warte: ms }
@@ -14,7 +17,8 @@
 //   { erwarte: 'z.richtung == m.start.richtung', text: '…' }
 //   { bild: 'name' }                 Screenshot der Seite
 //
-// Zustand z: timer, stadt, ort, dungeon, x, y, richtung, helden, kampf, dialog, menue, karte, haupt, spielzustand
+// Zustand z: timer, stadt, ort, dungeon, x, y, richtung, helden, kampf, dialog, menue, karte, haupt, spielzustand,
+//   von der Seite: ov (Overlay sichtbar), ovText, ovN (Anzahl Einträge), vollbild (Ausschnitte ausgeblendet)
 
 const ORT_TEMPEL = 2;
 const THORWAL = 1;
@@ -22,13 +26,14 @@ const KAMPF_THOR8 = 213;
 
 const spielBereit = [{ warteAuf: `z.timer == 1 && z.ort == ${ORT_TEMPEL} && z.haupt == 1`, max: 20000 }];
 
-/** n Helden im Tempel aufnehmen (Liste: erster Eintrag bei y≈90) */
-function heldenAufnehmen(n) {
-	const schritte = [{ tipp: ['Aktionen', 252, 69] }, { warteAuf: 'z.dialog == 1', max: 3000 }];
+/** n Helden im Tempel aufnehmen (Auswahl im Overlay, jeweils der erste Eintrag) */
+function heldenAufnehmen(n, bild) {
+	const schritte = [{ tipp: ['Aktionen', 252, 69] }, { warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 }];
+	if (bild) schritte.push({ bild });
 	for (let i = 1; i <= n; i++) {
-		schritte.push({ tipp: ['Bildschirm', 125, 90] }, { warteAuf: `z.helden == ${i}`, max: 3000 }, { warte: 400 });
+		schritte.push({ wahl: 1 }, { warteAuf: `z.helden == ${i} && z.ov == 1`, max: 3000 }, { warte: 300 });
 	}
-	schritte.push({ knopf: 'Zurück' }, { warteAuf: 'z.dialog == 0 && z.haupt == 1', max: 3000 });
+	schritte.push({ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 });
 	return schritte;
 }
 
@@ -53,7 +58,7 @@ export const szenarien = [
 	},
 	{
 		name: 'Helden aufnehmen',
-		schritte: [...spielBereit, ...heldenAufnehmen(3), { erwarte: 'z.helden == 3' }],
+		schritte: [...spielBereit, ...heldenAufnehmen(3, 'heldenliste'), { erwarte: 'z.helden == 3' }],
 	},
 	{
 		name: 'Heldentausch und Charakterbogen',
@@ -106,13 +111,11 @@ export const szenarien = [
 			{ js: `Module._web_test_fight(${KAMPF_THOR8})` },
 			{ knopf: 'Vorwärts' },
 			{ warteAuf: 'z.kampf == 1 && z.menue == 1', max: 15000 },
-			// „Computerkampf“ ist immer der 11. Eintrag; das Menü steht je nach Held an
-			// anderer Stelle (g_basepos_x), deshalb per Tastatur wählen
-			...Array(10).fill({ taste: 'ArrowDown' }),
-			{ taste: 'Enter' },
-			{ warteAuf: 'z.menue == 1', max: 3000 },      // „Soll Magie angewendet werden?“
-			{ warte: 300 },
-			{ taste: 'n' },
+			{ warteAuf: 'z.ov == 1 && /WAS WILLST DU TUN/.test(z.ovText)', max: 3000 },
+			{ bild: 'kampfmenue' },
+			{ wahl: 'COMPUTERKAMPF' },
+			{ warteAuf: 'z.menue == 1 && z.ov == 1 && z.ovN == 2', max: 3000 },   // „Soll Magie angewendet werden?“
+			{ wahl: 2 },
 			{ warte: 20000 },
 			{ bild: 'kampf' },
 			{ warteAuf: 'z.kampf == 0', max: 300000 },
@@ -129,10 +132,13 @@ export const szenarien = [
 			{ merke: 'vorHaus' },
 			// Vorwärts gedrückt halten, ohne dass je ein Loslassen ankommt (wie auf iOS)
 			{ halten: 'Vorwärts' },
-			{ warteAuf: 'z.dialog == 1 && z.ort == 17', max: 5000 },   // Ottaskin: „werdet ihr abgewiesen“
+			{ warteAuf: 'z.dialog == 1 && z.ort == 17 && z.ov == 1', max: 5000 },   // Ottaskin: „werdet ihr abgewiesen“
 			{ warte: 2500 },
-			{ erwarte: 'z.dialog == 1', text: 'Meldung bleibt stehen (nicht von der Wiederholung weggeklickt)' },
-			{ knopf: 'OK' },
+			{ erwarte: 'z.dialog == 1 && z.ov == 1', text: 'Meldung bleibt stehen (nicht von der Wiederholung weggeklickt)' },
+			{ erwarte: '/ABGEWIESEN/.test(z.ovText)', text: 'Text der Meldung im Overlay' },
+			{ erwarte: 'z.vollbild == 0', text: 'Ausschnitte bleiben hinter der Meldung stehen' },
+			{ bild: 'meldung' },
+			{ weiter: true },
 			{ warteAuf: 'z.haupt == 1 && z.ort == 0', max: 5000 },
 			{ merke: 'zurueck' },
 			{ warte: 3000 },

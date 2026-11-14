@@ -46,8 +46,17 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 
 	// vor dem Start des Spiels (Modul lädt noch) gibt es keinen Zustand
 	const zustand = async () => JSON.parse(await mitFrist(
-		page.evaluate(() => (typeof Module !== 'undefined' && Module.calledRun)
-			? Module.UTF8ToString(Module._web_test_state()) : '{}'), 5000, 'Zustand abfragen'));
+		page.evaluate(() => {
+			if (typeof Module === 'undefined' || !Module.calledRun) return '{}';
+			// Spielzustand plus Overlay der Seite (ov = sichtbar, ovText = Text, ovN = Anzahl Einträge)
+			const z = JSON.parse(Module.UTF8ToString(Module._web_test_state()));
+			const d = document.getElementById('dialog');
+			z.ov = d.hidden ? 0 : 1;
+			z.ovText = d.hidden ? '' : d.querySelector('.text').textContent;
+			z.ovN = d.hidden ? 0 : d.querySelectorAll('.optionen button').length;
+			z.vollbild = document.getElementById('mobil').classList.contains('vollbild') ? 1 : 0;
+			return JSON.stringify(z);
+		}), 5000, 'Zustand abfragen'));
 	const bewerte = (ausdruck, z, m) => Function('z', 'm', `return (${ausdruck});`)(z, m);
 	async function punkt(label, gx, gy) {
 		const el = page.locator(`canvas[aria-label="${label}"]`);
@@ -80,6 +89,19 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 			}
 			if (s.loslassen) {
 				await knopf(s.loslassen).dispatchEvent('pointerup', { pointerId: 77, pointerType: 'touch', isPrimary: true, bubbles: true });
+				await page.waitForTimeout(250);
+			}
+			if (s.wahl !== undefined) {
+				// Eintrag im Overlay: Nummer (1-basiert) oder Textteil
+				const opt = page.locator('#dialog .optionen button');
+				await (typeof s.wahl === 'number' ? opt.nth(s.wahl - 1) : opt.filter({ hasText: s.wahl }).first()).tap();
+				await page.waitForTimeout(250);
+			}
+			if (s.abbrechen) { await page.locator('#dialog .abbrechen').tap(); await page.waitForTimeout(250); }
+			if (s.weiter) { await page.locator('#dialog .karte').tap(); await page.waitForTimeout(250); }
+			if (s.eingabe !== undefined) {
+				await page.locator('#dialog input').fill(s.eingabe);
+				await page.locator('#dialog .eingabe button').tap();
 				await page.waitForTimeout(250);
 			}
 			if (s.knopf) { await knopf(s.knopf).tap(); await page.waitForTimeout(250); }

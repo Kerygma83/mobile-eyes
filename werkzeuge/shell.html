@@ -100,6 +100,62 @@
 	.aktionen button { font-size: 0.85rem; height: 2.3rem; padding: 0 0.7rem; }
 	button svg { width: 1.5rem; height: 1.5rem; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
+	/* ---------- Textboxen des Spiels als Overlay (nur mobil) ---------- */
+	#dialog {
+		position: fixed; inset: 0; z-index: 10;
+		display: flex; flex-direction: column; justify-content: flex-end;
+		background: rgb(0 0 0 / 0.45);
+		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+	}
+	#dialog[hidden], body:not(.mobil) #dialog { display: none; }
+	#dialog [hidden] { display: none !important; }
+	#dialog .karte {
+		display: flex; flex-direction: column; gap: 0.9rem;
+		max-height: 78dvh; overflow-y: auto; overscroll-behavior: contain;
+		margin: 0 0.5rem 0.5rem;
+		padding: 1.1rem 1.1rem 1rem;
+		background: var(--panel);
+		border: 1px solid var(--rand); border-radius: 0.9rem;
+		box-shadow: 0 -0.3rem 1.5rem rgb(0 0 0 / 0.5);
+		font: 1.12rem/1.45 Georgia, 'Times New Roman', serif;
+		letter-spacing: 0.02em;
+	}
+	#dialog .kopf { display: flex; align-items: center; gap: 0.8rem; }
+	#dialog .kopf:empty, #dialog .name:empty { display: none; }
+	#dialog .portraet { width: 4.5rem; height: auto; aspect-ratio: 32 / 38.4; border: 1px solid var(--rand); border-radius: 0.3rem; flex: none; }
+	#dialog .name { color: var(--gold); font-weight: bold; }
+	#dialog .text:empty { display: none; }
+	#dialog .zeile { display: flex; justify-content: space-between; gap: 1rem; min-height: 1.45em; }
+	#dialog .zeile > span:first-child { flex: 1; }
+	#dialog .f1 { color: var(--gold); }
+	#dialog .f2 { color: #e0906a; }
+	#dialog .f3 { color: #92b8dc; }
+	#dialog .optionen { display: flex; flex-direction: column; gap: 0.45rem; }
+	#dialog.janein .optionen { flex-direction: row; }
+	#dialog.janein .optionen button { flex: 1; }
+	#dialog .optionen button {
+		justify-content: flex-start; text-align: left;
+		min-height: 3rem; padding: 0.5rem 0.9rem;
+		font: inherit; letter-spacing: inherit;
+		touch-action: manipulation;
+	}
+	#dialog .optionen button .zeile { flex: 1; }
+	/* lange Menüs (z. B. Kampf mit 13 Einträgen) kompakter */
+	#dialog.dicht .optionen { gap: 0.3rem; }
+	#dialog.dicht .optionen button { min-height: 2.5rem; padding: 0.3rem 0.9rem; font-size: 1.02rem; }
+	#dialog .optionen button.vorwahl { border-color: var(--gold); }
+	#dialog .optionen button.hervor { color: var(--gold); }
+	#dialog .eingabe { display: flex; gap: 0.5rem; }
+	#dialog .eingabe input {
+		flex: 1; min-width: 0; font: inherit; text-transform: uppercase;
+		color: var(--text); background: var(--bg);
+		border: 1px solid var(--rand); border-radius: 0.6rem; padding: 0.5rem 0.7rem;
+	}
+	#dialog .fuss { display: flex; justify-content: flex-end; gap: 0.5rem; }
+	#dialog .fuss button, #dialog .eingabe button { min-height: 2.8rem; padding: 0 1.1rem; font-size: 1rem; touch-action: manipulation; }
+	#dialog .hinweis { color: var(--leise); font: 0.85rem system-ui, sans-serif; align-self: center; margin-right: auto; }
+	#dialog.gesendet .karte { opacity: 0.6; }
+
 	/* Querformat im Original-Layout: Leiste rechts */
 	@media (orientation: landscape) and (max-height: 600px) {
 		body:not(.mobil) { flex-direction: row; }
@@ -124,6 +180,24 @@
 	<canvas class="aus teil" data-aus="0,136,320,21" aria-label="Ortszeile"></canvas>
 	<canvas class="aus teil" data-aus="0,157,320,43" aria-label="Gruppe"></canvas>
 	<canvas class="aus voll" data-aus="0,0,320,200" aria-label="Bildschirm"></canvas>
+</div>
+
+<!-- Textbox des Spiels (Meldung, Auswahl, Eingabe), gefüllt von Module.dialogAuf -->
+<div id="dialog" hidden role="dialog" aria-modal="true" aria-label="Spieltext">
+	<div class="karte">
+		<div class="kopf"></div>
+		<div class="text"></div>
+		<form class="eingabe" hidden>
+			<input type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done" aria-label="Eingabe">
+			<button type="submit">OK</button>
+		</form>
+		<div class="optionen"></div>
+		<div class="fuss">
+			<span class="hinweis"></span>
+			<button type="button" class="abbrechen">Abbrechen</button>
+			<button type="button" class="weiter">Weiter</button>
+		</div>
+	</div>
 </div>
 
 <div id="leiste">
@@ -204,12 +278,129 @@
 
 		const haupt = Module._web_screen_mode?.() === 1;
 		if (!haupt) alleLoslassen();   // Meldung/Dialog: gehaltene Bewegung sofort beenden
-		mobilEl.classList.toggle('vollbild', !haupt);
+		// Textbox über dem Hauptbildschirm: Ausschnitte stehen lassen, das Overlay liegt darüber
+		const ueberHaupt = dialoge.length > 0 && dialoge[0].haupt && document.body.classList.contains('mobil');
+		mobilEl.classList.toggle('vollbild', !haupt && !ueberHaupt);
+		if (dialoge.at(-1)?.bildPos) portraetZeichnen();
 		for (const a of ausschnitte) {
 			if (a.c.offsetParent === null) continue; // ausgeblendet
 			a.ctx.drawImage(ganz, a.x, a.y, a.w, a.h, 0, 0, a.w, a.h);
 		}
 	}
+
+	// ---------- Textboxen als Overlay ----------
+	// Das Spiel meldet jede Textbox (seg097: web_dialog_auf/zu) und bleibt selbst zuständig für
+	// Ablauf und Ergebnis; das Overlay schickt nur Tasten oder wählt einen Eintrag.
+	const dialogEl = document.getElementById('dialog');
+	const dKopf = dialogEl.querySelector('.kopf');
+	const dText = dialogEl.querySelector('.text');
+	const dOptionen = dialogEl.querySelector('.optionen');
+	const dEingabe = dialogEl.querySelector('.eingabe');
+	const dFeld = dEingabe.querySelector('input');
+	const dWeiter = dialogEl.querySelector('.weiter');
+	const dAbbrechen = dialogEl.querySelector('.abbrechen');
+	const dHinweis = dialogEl.querySelector('.hinweis');
+	const dialoge = [];   // Stapel, falls eine Box eine weitere öffnet
+	const DOS = { 0x8e: 'Ä', 0x99: 'Ö', 0x9a: 'Ü', 0x84: 'ä', 0x94: 'ö', 0x81: 'ü', 0xe1: 'ß' };
+
+	/** Spieltext (Bytes im DOS-Zeichensatz) als Zeilen: @ = Umbruch, ~ = Tabulator, 0xf0–f3 = Farbe */
+	function spieltext(bytes, ziel) {
+		ziel.replaceChildren();
+		if (!bytes) return;
+		let zeile, spalte, span = null, farbe = 0;
+		const neueSpalte = () => { spalte = document.createElement('span'); zeile.append(spalte); span = null; };
+		const neueZeile = () => { zeile = document.createElement('div'); zeile.className = 'zeile'; ziel.append(zeile); neueSpalte(); };
+		const zeichen = (z) => {
+			if (!span) { span = document.createElement('span'); if (farbe) span.className = 'f' + farbe; spalte.append(span); }
+			span.textContent += z;
+		};
+		neueZeile();
+		for (const b of bytes) {
+			if (b === 0x40) neueZeile();
+			else if (b === 0x7e) neueSpalte();
+			else if (b >= 0xf0 && b <= 0xf3) { farbe = b - 0xf0; span = null; }
+			else if (b === 0x0d || b === 0x0a) zeichen(' ');
+			else if (DOS[b]) zeichen(DOS[b]);
+			else if (b >= 0x20 && b < 0x7f) zeichen(String.fromCharCode(b));
+		}
+	}
+	const alsText = (bytes) => bytes ? bytes.map((b) => DOS[b] ?? (b >= 0x20 && b < 0x7f ? String.fromCharCode(b) : '')).join('') : '';
+
+	function senden(fn) {
+		const d = dialoge.at(-1);
+		// nur eine Antwort je Box, und nur wenn der Tipp auf dem Overlay begonnen hat: sonst
+		// schließt das Loslassen des Tipps, der die Box geöffnet hat, sie gleich wieder
+		if (!d || d.gesendet || !d.gedrueckt) return;   // nur eine Antwort je Box (sonst landen Tasten im nächsten Bildschirm)
+		d.gesendet = true;
+		dialogEl.classList.add('gesendet');
+		fn();
+	}
+	function portraetZeichnen() {
+		const d = dialoge.at(-1);
+		const c = dKopf.querySelector('canvas');
+		if (!d?.bildPos || !c) return;
+		c.getContext('2d').drawImage(ganz, d.bildPos[0], d.bildPos[1], 32, 32, 0, 0, 32, 32);
+	}
+	function zeigeDialog() {
+		const d = dialoge.at(-1);
+		dialogEl.hidden = !d;
+		if (!d) return;
+		dialogEl.classList.toggle('gesendet', !!d.gesendet);
+		dialogEl.classList.toggle('janein', d.art === 3);
+		dialogEl.classList.toggle('dicht', d.optionen.length > 7);
+		dKopf.replaceChildren();
+		if (d.bild) {
+			const c = document.createElement('canvas');
+			c.width = c.height = 32; c.className = 'portraet';
+			dKopf.append(c);
+		}
+		if (d.name) { const n = document.createElement('div'); n.className = 'name'; spieltext(d.name, n); dKopf.append(n); }
+		spieltext(d.text, dText);
+		dOptionen.replaceChildren(...d.optionen.map((o, i) => {
+			const b = document.createElement('button');
+			b.type = 'button';
+			spieltext(o, b);
+			b.classList.toggle('vorwahl', i === d.vorwahl);
+			b.classList.toggle('hervor', i === d.hervor);
+			b.addEventListener('click', () => senden(() => Module._web_menu_select(i + 1)));
+			return b;
+		}));
+		dEingabe.hidden = d.art !== 1;
+		if (d.art === 1) {
+			dFeld.maxLength = d.zeichen;
+			dFeld.value = alsText(d.vorgabe);
+			setTimeout(() => dFeld.focus(), 0);
+		}
+		dWeiter.hidden = d.art !== 0;
+		dAbbrechen.hidden = d.art === 0;
+		dHinweis.textContent = d.art === 0 ? 'Tippen zum Weiterlesen' : '';
+		portraetZeichnen();
+	}
+	dialogEl.addEventListener('pointerdown', () => { const d = dialoge.at(-1); if (d) d.gedrueckt = true; });
+	// Meldung: Tippen irgendwo schließt (wie eine Taste im Original)
+	dialogEl.addEventListener('click', () => {
+		if (dialoge.at(-1)?.art === 0) senden(() => taste('enter'));
+	});
+	dAbbrechen.addEventListener('click', () => {
+		const d = dialoge.at(-1);
+		senden(() => d.art === 1 ? Module._web_key(TASTEN.esc) : Module._web_right_click());
+	});
+	dEingabe.addEventListener('submit', (e) => {
+		e.preventDefault();
+		const d = dialoge.at(-1);
+		d.gedrueckt = true;   // Eingabe per Tastatur (Enter) ohne Tipp
+		const text = dFeld.value.toUpperCase().replace(/ß/g, 'SS').slice(0, d.zeichen);
+		const codes = { Ä: 0x84, Ö: 0x94, Ü: 0x81 };
+		dFeld.blur();
+		senden(() => {
+			for (let i = 0; i < d.zeichen; i++) Module._web_key(8);   // Vorgabe des Spiels löschen
+			for (const z of text) {
+				const c = codes[z] ?? z.toLowerCase().charCodeAt(0);
+				if (c >= 0x20 && c <= 0x7a || c in { 0x81: 1, 0x84: 1, 0x94: 1 }) Module._web_key(c);
+			}
+			Module._web_key(13);
+		});
+	});
 
 	var Module = {
 		canvas: document.getElementById('canvas'),
@@ -221,6 +412,17 @@
 		},
 		onRuntimeInitialized: () => { statusEl.style.display = 'none'; },
 		onFrame: neuesBild,
+		dialogAuf: (d) => {
+			d.haupt = !mobilEl.classList.contains('vollbild');
+			dialoge.push(d);
+			alleLoslassen();
+			zeigeDialog();
+		},
+		dialogZu: () => { dialoge.pop(); zeigeDialog(); },
+		dialogBild: (x, y) => {
+			const d = dialoge.at(-1);
+			if (d) { d.bildPos = [x, y]; portraetZeichnen(); }
+		},
 	};
 	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
 

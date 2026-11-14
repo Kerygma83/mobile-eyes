@@ -11,7 +11,7 @@ Die Schicksalsklinge (DSA 1) als Web-App. Spiellogik aus BrightEyes (`BrightEyes
 - Neue Fehlerklasse gefunden → im ganzen Code nach demselben Muster suchen.
 - Vor jedem Commit `./pruefen.sh` (nativer Build, Test-Build, Browser-Szenarien in `werkzeuge/szenarien.mjs`). Neue Fehler → neues Szenario.
 - Test-Auslöser nur unter `#if defined(WEB_TESTHOOKS)` (Build mit `TESTHOOKS=1` → `build/web-test`, wird nie ausgeliefert). Vorhanden: `web_test_fight(id)`, `web_test_sign(typeindex)`, `web_test_state()` (JSON).
-- Szenarien warten auf Spielzustände (`warteAuf`), nicht auf feste Zeiten; Menüs mit wechselnder Position per Tastatur bedienen.
+- Szenarien warten auf Spielzustände (`warteAuf`), nicht auf feste Zeiten; Textboxen und Menüs über das Overlay bedienen (`wahl`, `weiter`, `eingabe`, `abbrechen`).
 
 ## Typische Fehler im nativen Port
 
@@ -23,5 +23,6 @@ Die Schicksalsklinge (DSA 1) als Web-App. Spiellogik aus BrightEyes (`BrightEyes
 ## Nützlich
 
 - Bildbereiche des Hauptbildschirms (320×200): Ansicht 0–239/0–135, Icons 241–318/57–134, Ortszeile y 136–156, Porträts y 157–199 (`g_action_table_playmask` in `datseg.cpp`).
-- Schnittstellen Seite ↔ Spiel: `web_key`, `web_right_click`, `web_click`, `web_screen_mode`, `Module.onFrame`.
+- Schnittstellen Seite ↔ Spiel: `web_key`, `web_right_click`, `web_click`, `web_screen_mode`, `web_menu_select`, `Module.onFrame`.
+- Textboxen (`GUI_input`, `GUI_radio`, `GUI_dialogbox` in seg097) melden sich per `Module.dialogAuf/dialogZu` an die Seite (Overlay); das Spiel bleibt für Ablauf und Ergebnis zuständig. Texte sind Großbuchstaben im DOS-Zeichensatz (Ä 0x8e, Ö 0x99, Ü 0x9a, ß 0xe1; `@` Umbruch, `~` Tabulator, 0xf0–f3 Farbe).
 - Fehlersuche: `PROFIL=1` beim Build behält Funktionsnamen (Stacktraces, CPU-Profile mit `werkzeuge/profil-auswerten.mjs`).
