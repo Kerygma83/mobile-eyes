@@ -57,6 +57,13 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 			z.ovText = d.hidden ? '' : d.querySelector('.text').textContent;
 			z.ovN = d.hidden ? 0 : d.querySelectorAll('.optionen button').length;
 			z.vollbild = document.getElementById('mobil').classList.contains('vollbild') ? 1 : 0;
+			// Heldenerschaffung (iframe): sichtbar, Overlay, Text, Anzahl Einträge
+			const gen = document.getElementById('gen');
+			z.gen = gen.hidden ? 0 : 1;
+			const gd = !gen.hidden && gen.querySelector('iframe').contentDocument?.getElementById('dialog');
+			z.gOv = gd && !gd.hidden ? 1 : 0;
+			z.gText = z.gOv ? gd.querySelector('.text').textContent : '';
+			z.gN = z.gOv ? gd.querySelectorAll('.optionen button').length : 0;
 			// Ansicht zeigt dasselbe wie das aktuelle Spielbild? (0 = festgehalten, z. B. ohne die Box des Spiels)
 			const ans = document.querySelector('canvas[aria-label="Ansicht"]');
 			const a = ans.getContext('2d').getImageData(0, 0, 240, 136).data;
@@ -90,7 +97,7 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 	let nr = 0;
 	const m = {};
 	try {
-		await page.goto('http://localhost:8080/');
+		await page.goto('http://localhost:8080' + (sz.adresse ?? '/?ohneIntro'));
 		for (const s of sz.schritte) {
 			if (laufzeitfehler) throw laufzeitfehler;
 			if (s.warte) await page.waitForTimeout(s.warte);
@@ -109,9 +116,31 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 				await knopf(s.loslassen).dispatchEvent('pointerup', { pointerId: 77, pointerType: 'touch', isPrimary: true, bubbles: true });
 				await page.waitForTimeout(250);
 			}
+			// imGen: Schritt gilt dem Overlay der Heldenerschaffung (iframe)
+			const ort = s.imGen ? page.frameLocator('#gen iframe') : page;
+			if (s.genTipp) {
+				// Tippen auf die Canvas der Heldenerschaffung, Spielkoordinaten 320x200
+				const c = page.frameLocator('#gen iframe').locator('#canvas');
+				const b = await c.boundingBox();
+				// Maus statt Touch: SDL setzt Touch im Testbrowser nicht in Mausklicks um
+				await page.mouse.click(b.x + (s.genTipp[0] + 0.5) / 320 * b.width, b.y + (s.genTipp[1] + 0.5) / 200 * b.height);
+				await page.waitForTimeout(400);
+			}
+			if (s.genKnopf) { await page.frameLocator('#gen iframe').getByRole('button', { name: s.genKnopf, exact: true }).tap(); await page.waitForTimeout(400); }
+			if (s.genWiederhole) {
+				// solange die Frage im Overlay der Heldenerschaffung passt: Eintrag wählen
+				const { solange, wahl, max = 30 } = s.genWiederhole;
+				for (let i = 0; ; i++) {
+					const z = await zustand();
+					if (!z.gOv || !new RegExp(solange).test(z.gText)) break;
+					if (i >= max) throw new Error(`genWiederhole: nach ${max} Runden noch „${z.gText}“`);
+					await page.frameLocator('#gen iframe').locator('#dialog .optionen button').nth(wahl - 1).tap();
+					await page.waitForTimeout(500);
+				}
+			}
 			if (s.wahl !== undefined) {
 				// Eintrag im Overlay: Nummer (1-basiert) oder Textteil
-				const opt = page.locator('#dialog .optionen button');
+				const opt = ort.locator('#dialog .optionen button');
 				await (typeof s.wahl === 'number' ? opt.nth(s.wahl - 1) : opt.filter({ hasText: s.wahl }).first()).tap();
 				await page.waitForTimeout(250);
 			}
@@ -121,9 +150,9 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 			}
 			if (s.tippen !== undefined) {
 				// echte Tastendrücke ins Feld (prüft, dass SDL sie nicht abfängt), dann Enter
-				await page.locator('#dialog input').tap();
+				await ort.locator('#dialog input').tap();
 				await page.keyboard.type(s.tippen, { delay: 40 });
-				const wert = await page.locator('#dialog input').inputValue();
+				const wert = await ort.locator('#dialog input').inputValue();
 				if (wert !== s.tippen) throw new Error(`Eingabefeld enthält „${wert}“ statt „${s.tippen}“ (Tasten abgefangen?)`);
 				await page.keyboard.press('Enter');
 				await page.waitForTimeout(250);
@@ -142,8 +171,8 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 				await page.waitForEvent('load', { timeout: 10000 });   // Seite startet nach dem Import neu
 			}
 			if (s.neuLaden) { await page.reload(); await page.waitForTimeout(500); }
-			if (s.abbrechen) { await page.locator('#dialog .abbrechen').tap(); await page.waitForTimeout(250); }
-			if (s.weiter) { await page.locator('#dialog .karte').tap(); await page.waitForTimeout(250); }
+			if (s.abbrechen) { await ort.locator('#dialog .abbrechen').tap(); await page.waitForTimeout(250); }
+			if (s.weiter) { await ort.locator('#dialog .karte').tap(); await page.waitForTimeout(250); }
 			if (s.eingabe !== undefined) {
 				await page.locator('#dialog input').fill(s.eingabe);
 				await page.locator('#dialog .eingabe button').tap();

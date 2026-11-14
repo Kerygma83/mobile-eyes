@@ -67,4 +67,29 @@ em++ "${objs[@]}" -o "$out/index.html" "${lflags[@]}" \
 	-sFORCE_FILESYSTEM -sEXPORTED_RUNTIME_METHODS=$runtime \
 	-lidbfs.js --pre-js werkzeuge/pre.js --shell-file werkzeuge/shell.html \
 	-sEXPORTED_FUNCTIONS=$exports
+
+# ---- Heldenerschaffung (ngen, eigenes Programm wie GEN.EXE im Original) → $out/gen.html ----
+gsrc=BrightEyes/src/gen
+gobjs=()
+for q in ngen cda_code vgalib ail_stub powerp20; do
+	o="$out/obj/gen_$q.o"
+	gobjs+=("$o")
+	if [ ! -f "$o" ] || [ "$gsrc/$q.c" -nt "$o" ] || [ -n "$(find "$gsrc" -maxdepth 1 -name '*.h' -newer "$o")" ]; then
+		echo "emcc gen/$q.c"
+		rm -f "$o"
+		# SDL2_mixer nur als Ersatz (werkzeuge/gen-stubs): Musik ist aus
+		emcc -O2 -fno-asm -Wno-unused-result -I werkzeuge/gen-stubs -sUSE_SDL=2 -c "$gsrc/$q.c" -o "$o"
+	fi
+done
+glflags=()
+if [ "${SPIELDATEN:-0}" = 1 ]; then
+	glflags+=(--preload-file spiel/DSAGEN.DAT@/gen/DSAGEN.DAT)
+else
+	glflags+=(-sFORCE_FILESYSTEM)
+fi
+emcc "${gobjs[@]}" -o "$out/gen.html" "${glflags[@]}" \
+	-sUSE_SDL=2 -sASYNCIFY -sASYNCIFY_STACK_SIZE=65536 -sALLOW_MEMORY_GROWTH -sSTACK_SIZE=1MB \
+	-sEXPORTED_RUNTIME_METHODS=FS -lidbfs.js \
+	--pre-js werkzeuge/gen-pre.js --shell-file werkzeuge/gen-shell.html
+cp werkzeuge/dialog.js "$out/"
 echo "→ $out"

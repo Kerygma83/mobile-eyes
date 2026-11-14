@@ -1,5 +1,7 @@
 // Regressionstests für ./pruefen.sh (ausgeführt von werkzeuge/regression.mjs)
 //
+// Je Szenario: name, schritte, optional adresse (Standard '/?ohneIntro').
+//
 // Schritte:
 //   { tipp: [ausschnitt, x, y] }     Antippen im mobilen Layout, x/y in Spielkoordinaten (320x200);
 //                                    ausschnitt = aria-label: Ansicht, Ortszeile, Gruppe, Aktionen, Bildschirm
@@ -30,7 +32,19 @@ const ORT_TEMPEL = 2;
 const THORWAL = 1;
 const KAMPF_THOR8 = 213;
 
-const spielBereit = [{ warteAuf: `z.timer == 1 && z.ort == ${ORT_TEMPEL} && z.haupt == 1`, max: 20000 }];
+/** Start wie im Original: Schwierigkeitsgrad, Hauptprogramm, kein Spielstand (Seite mit ?ohneIntro) */
+const startMenue = (grad = 1) => [
+	{ warteAuf: 'z.ov == 1 && /SCHWIERIGKEITSGRAD/.test(z.ovText)', max: 20000 },
+	{ wahl: grad },                                        // 1 Anfänger, 2 Fortgeschrittene
+	{ warteAuf: 'z.ov == 1 && /GESTARTET/.test(z.ovText)', max: 3000 },
+];
+const spielBereit = [
+	...startMenue(),
+	{ wahl: 'HAUPTPROGRAMM' },
+	{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 3000 },   // Spielstand laden: 5 Plätze + Keinen
+	{ wahl: 6 },
+	{ warteAuf: `z.timer == 1 && z.ort == ${ORT_TEMPEL} && z.haupt == 1`, max: 20000 },
+];
 
 /** n Helden im Tempel aufnehmen (Auswahl im Overlay, jeweils der erste Eintrag) */
 function heldenAufnehmen(n, bild) {
@@ -61,6 +75,18 @@ export const szenarien = [
 	{
 		name: 'Start im Tempel',
 		schritte: [...spielBereit, { erwarte: 'z.helden == 0 && z.stadt == 1', text: 'leere Gruppe in Thorwal' }],
+	},
+	{
+		// Start wie SCHICK.BAT: Logo-Intro (gen.html?intro im iframe, überspringbar), danach das Startmenü
+		name: 'Start mit Intro',
+		adresse: '/',
+		schritte: [
+			{ warteAuf: 'z.gen == 1', max: 15000 },
+			{ warte: 3000 },
+			{ bild: 'intro' },
+			{ genKnopf: 'Intro überspringen' },
+			{ warteAuf: 'z.gen == 0 && z.ov == 1 && /SCHWIERIGKEITSGRAD/.test(z.ovText)', max: 5000 },
+		],
 	},
 	{
 		name: 'Helden aufnehmen',
@@ -265,6 +291,138 @@ export const szenarien = [
 			{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 3000 },
 			{ wahl: 'KOPIE' },
 			{ warteAuf: 'z.helden == 2 && z.ov == 0', max: 5000 },
+		],
+	},
+	{
+		// gemeldet (iOS): Meldung „Zuerst Grundwerte ermitteln!“ ließ sich nicht schließen
+		name: 'Heldenerschaffung: Meldung schließen',
+		schritte: [
+			...startMenue(2),
+			{ wahl: 'GENERIERUNG' },
+			{ warteAuf: 'z.gen == 1 && z.gOv == 1 && z.gN == 9', max: 15000 },
+			{ wahl: 'TYPUS WÄHLEN', imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /GRUNDWERTE/.test(z.gText)', max: 3000 },
+			{ bild: 'meldung' },
+			{ weiter: true, imGen: true },
+			{ warteAuf: 'z.gOv == 0', max: 3000, text: 'Meldung geschlossen' },
+			{ genKnopf: 'Menü' },
+			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
+		],
+	},
+	{
+		// gemeldet (iOS): nach „Steigerung gelungen“ blieb die Erschaffung stehen
+		name: 'Heldenerschaffung: Talente steigern',
+		schritte: [
+			...startMenue(2),
+			{ wahl: 'GENERIERUNG' },
+			{ warteAuf: 'z.gen == 1 && z.gOv == 1 && z.gN == 9', max: 15000 },   // Menü der Erschaffung
+			{ bild: 'gen-menue' },
+			{ wahl: 'NAME', imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /NAME/.test(z.gText)', max: 3000 },
+			{ tippen: 'TESTHELD', imGen: true },
+			{ warteAuf: 'z.gOv == 0', max: 3000 },
+			{ genKnopf: 'Menü' },
+			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
+			{ wahl: 'NEUE WERTE', imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /WURF/.test(z.gText)', max: 3000 },
+			{ genWiederhole: { solange: 'WURF', wahl: 1 } },
+			{ warteAuf: 'z.gOv == 0', max: 3000 },
+			{ genKnopf: 'Menü' },
+			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
+			{ wahl: 'TYPUS FREI WÄHLEN', imGen: true },   // „Typus wählen“ hängt von den Würfen ab
+			{ warteAuf: 'z.gOv == 1 && /AUTOMATISCH/.test(z.gText)', max: 3000 },
+			{ wahl: 'JA', imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /TYPUS/.test(z.gText) && z.gN == 12', max: 3000 },
+			{ wahl: 'KRIEGER', imGen: true },
+			{ warteAuf: 'z.gOv == 0', max: 3000 },
+			{ genTipp: [294, 185] }, { warte: 800 },       // Pfeil rechts: Talente Kampf/Körper
+			{ bild: 'talente' },
+			{ genKnopf: 'Menü' },
+			{ warteAuf: 'z.gOv == 1', max: 3000 },
+			{ warteAuf: 'z.gOv == 1 && /TALENTGRUPPE/.test(z.gText)', max: 3000 },
+			{ wahl: 1, imGen: true },                       // Kampf
+			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
+			{ wahl: 8, imGen: true },                       // Schußwaffen
+			{ warteAuf: 'z.gOv == 1 && z.gN == 0', max: 3000 },   // Meldung: gelungen / misslungen
+			{ weiter: true, imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /TALENTGRUPPE/.test(z.gText)', max: 3000 },
+			{ wahl: 1, imGen: true },                       // Kampf
+			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
+			{ wahl: 8, imGen: true },                       // Schußwaffen
+			{ warteAuf: 'z.gOv == 1 && z.gN == 0', max: 3000 },   // Meldung: gelungen / misslungen
+			{ weiter: true, imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /TALENTGRUPPE/.test(z.gText)', max: 3000 },
+			{ wahl: 1, imGen: true },                       // Kampf
+			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
+			{ wahl: 8, imGen: true },                       // Schußwaffen
+			{ warteAuf: 'z.gOv == 1 && z.gN == 0', max: 3000 },   // Meldung: gelungen / misslungen
+			{ weiter: true, imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /TALENTGRUPPE/.test(z.gText)', max: 3000 },
+			{ wahl: 1, imGen: true },                       // Kampf
+			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
+			{ wahl: 8, imGen: true },                       // Schußwaffen
+			{ warteAuf: 'z.gOv == 1 && z.gN == 0', max: 3000 },   // Meldung: gelungen / misslungen
+			{ weiter: true, imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /TALENTGRUPPE/.test(z.gText)', max: 3000, text: 'nach der Meldung wieder die Gruppenauswahl' },
+			{ bild: 'nach-steigern' },
+			{ abbrechen: true, imGen: true },
+			{ warteAuf: 'z.gOv == 0', max: 3000, text: 'nach dem Abbrechen kein Overlay mehr offen' },
+		],
+	},
+	{
+		// Stufe 2: Heldenerschaffung (ngen als gen.html im iframe) wie GEN.EXE aus dem Startmenü
+		name: 'Heldenerschaffung: neuer Held im Tempel',
+		schritte: [
+			...startMenue(1),
+			{ wahl: 'GENERIERUNG' },
+			{ warteAuf: 'z.gen == 1 && z.gOv == 1 && z.gN == 9', max: 15000 },   // Menü der Erschaffung
+			{ bild: 'gen-menue' },
+			{ wahl: 'NAME', imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /NAME/.test(z.gText)', max: 3000 },
+			{ tippen: 'TESTHELD', imGen: true },
+			{ warteAuf: 'z.gOv == 0', max: 3000 },
+			{ genKnopf: 'Menü' },
+			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
+			{ wahl: 'NEUE WERTE', imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /WURF/.test(z.gText)', max: 3000 },
+			{ genWiederhole: { solange: 'WURF', wahl: 1 } },
+			{ warteAuf: 'z.gOv == 0', max: 3000 },
+			{ genKnopf: 'Menü' },
+			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
+			{ wahl: 'TYPUS FREI WÄHLEN', imGen: true },   // „Typus wählen“ hängt von den Würfen ab
+			{ warteAuf: 'z.gOv == 1 && /AUTOMATISCH/.test(z.gText)', max: 3000 },
+			{ wahl: 'JA', imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /TYPUS/.test(z.gText) && z.gN == 12', max: 3000 },
+			{ wahl: 'KRIEGER', imGen: true },
+			{ warteAuf: 'z.gOv == 0', max: 3000 },
+			{ bild: 'krieger' },
+			{ genKnopf: 'Menü' },
+			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
+			{ wahl: 'HELD SPEICHERN', imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /ABSPEICHERN/.test(z.gText)', max: 3000 },
+			{ wahl: 'JA', imGen: true },
+			{ warteAuf: 'z.gOv == 0', max: 3000 },
+			{ genKnopf: 'Menü' },
+			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
+			{ wahl: 'PROGRAMMENDE', imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /VERLASSEN/.test(z.gText)', max: 3000 },
+			{ wahl: 'JA', imGen: true },
+			// zurück im Spiel: Spielstand laden → „Keinen“, dann Tempel
+			{ warteAuf: 'z.gen == 0 && z.ov == 1 && z.ovN == 6', max: 10000 },
+			{ wahl: 6 },
+			{ warteAuf: `z.timer == 1 && z.ort == ${ORT_TEMPEL} && z.haupt == 1`, max: 20000 },
+			{ tipp: ['Aktionen', 252, 69] },                // Helden aufnehmen
+			{ warteAuf: 'z.ov == 1 && z.ovN > 0', max: 3000 },
+			{ bild: 'tempel' },
+			{ wahl: 'TESTHELD' },
+			{ warteAuf: 'z.helden == 1', max: 3000 },
+			// der neue Held liegt im Browser-Speicher und übersteht das Neuladen
+			{ neuLaden: true },
+			...spielBereit,
+			{ tipp: ['Aktionen', 252, 69] },
+			{ warteAuf: 'z.ov == 1 && z.ovN > 0', max: 3000 },
+			{ wahl: 'TESTHELD' },
+			{ warteAuf: 'z.helden == 1', max: 3000 },
 		],
 	},
 	{

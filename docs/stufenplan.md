@@ -10,7 +10,7 @@ Tempel, Helden aufnehmen/tauschen, Charakterbogen, Laufen in Thorwal, Kampf (Com
 
 Bisher behobene Fehler im nativen Port (je ein Commit im Branch `web`): Browser-Abgabe, Mausklick-Flags, Bildaktualisierung, Tastenreihenfolge, gesammeltes Zeichnen, `wait_for_vsync` mit Eingabeverarbeitung, Timer-Interrupt-Emulation, Kampf-Warteschleife, 16/32-Bit-Lesefehler bei der Reisekarte.
 
-Bekannte offene Punkte: kein Ton, kein Intro/Hauptmenü, keine Heldenerschaffung. Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
+Bekannte offene Punkte: kein Ton, Original-Intro (`INTRO.EXE`) nicht nachgebaut. Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
 
 ## Überblick
 
@@ -111,6 +111,15 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 **Abnahmekriterien:** Neue Gruppe erschaffen, im Tempel aufnehmen, losspielen – alles im Browser.
 
 **Risiken:** Der Generator ist ein eigenes Programm mit eigenem Zustand → zwei WASM-Module mit gemeinsamem Dateisystem (IndexedDB) statt Zusammenführung.
+
+**Stand (14.11.):**
+- Start wie `SCHICK.BAT`: Intro, Schwierigkeitsgrad, „Hauptprogramm / Generierung“, Spielstand laden oder „Keinen“. Kopierschutz aus.
+- Das animierte Original-Intro (`INTRO.EXE`, `INTRODAT.*`) hat BrightEyes nicht nachgebaut. Gezeigt wird das Logo-Intro der Heldenerschaffung (Attic, Fanpro, Titel), überspringbar. Das echte Intro bleibt eine eigene Aufgabe (Format entschlüsseln).
+- Heldenerschaffung: ngen als `gen.html` (zweites WASM-Modul) in einem iframe. Das Spiel wartet darauf wie auf `spawnl`. Neue CHR-Dateien kommen über IndexedDB `/spielstand` ins Spiel- und TEMP-Verzeichnis.
+- ngen-Korrekturen: Abgabe an den Browser (Namenseingabe fror sonst ein), Tastenreihenfolge (aus „TEST“ wurde „ETS“), Formatfrage im Web fest auf CD.
+- Overlays (`werkzeuge/dialog.js`, gemeinsam mit dem Spiel) für Menüs, Meldungen, Ja/Nein und Namenseingabe. Knopf „Menü“ ersetzt den Rechtsklick.
+- Szenarien: Start mit Intro; Heldenerschaffung bis zum neuen Helden im Tempel, auch nach dem Neuladen.
+- Offen: Tippen auf die Bildelemente der Erschaffung (Seitenpfeile, Geschlecht, Porträtwahl) auf dem Handy prüfen; die Erschaffungsseite ist im Hochformat klein.
 
 ## Stufe 3 – Dauerhafte Spielstände
 

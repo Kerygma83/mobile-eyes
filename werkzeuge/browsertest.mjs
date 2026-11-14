@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
 
-const wurzel = '/app/build/web';
+const wurzel = process.env.WURZEL || '/app/build/web';   // z. B. /app/build/web-test
 const ausgabe = '/app/build/screens';
 fs.rmSync(ausgabe, { recursive: true, force: true });
 fs.mkdirSync(ausgabe, { recursive: true });
@@ -33,7 +33,7 @@ const page = await browser.newPage(mobil
 	: { viewport: { width: 1300, height: 900 } });
 page.on('console', (m) => { if (!/WEATHER/.test(m.text())) log(`[${m.type()}] ${m.text()}`); });
 page.on('pageerror', (e) => log(`[pageerror] ${e.message}\n${e.stack}`));
-await page.goto('http://localhost:8080/');
+await page.goto('http://localhost:8080/' + (process.env.SEITE || ''));   // z. B. gen.html?intro
 await page.waitForTimeout(6000); // Start bis Tempel
 
 const canvas = page.locator('canvas');
@@ -70,7 +70,8 @@ for (const s of schritte) {
 		log(`[test] doppeltipp ${s.doppeltipp}`);
 	}
 	if (s.js) {
-		await page.evaluate(s.js);
+		const ergebnis = await page.evaluate(s.js);
+		if (ergebnis !== undefined) log(`[test] → ${JSON.stringify(ergebnis)}`);
 		await page.waitForTimeout(500);
 		log(`[test] js ${s.js}`);
 	}

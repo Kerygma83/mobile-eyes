@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Heldenerschaffung</title>
+<style>
+	:root {
+		--bg: #000;
+		--panel: #221d19;
+		--knopf: #3a312a;
+		--knopf-aktiv: #6b5636;
+		--rand: #5a4a3a;
+		--text: #e8dcc8;
+		--leise: #a39480;
+		--gold: #c9a45c;
+	}
+	* { box-sizing: border-box; }
+	html, body {
+		margin: 0; height: 100%;
+		background: var(--bg); color: var(--leise);
+		font: 16px/1.3 system-ui, sans-serif;
+		overscroll-behavior: none;
+		-webkit-user-select: none; user-select: none;
+		-webkit-touch-callout: none;
+	}
+	body {
+		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+		height: 100dvh;
+		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+	}
+	/* 320x200 mit DOS-Pixeln (1,2-mal so hoch wie breit), so groß wie möglich */
+	#canvas {
+		display: block;
+		width: min(100vw, calc((100dvh - 4.5rem) * 4 / 3));   /* Platz für die Leiste */
+		aspect-ratio: 4 / 3;
+		image-rendering: pixelated; image-rendering: crisp-edges;
+		touch-action: none; outline: none;
+	}
+	/* Standbild über der Canvas, solange ein Overlay offen ist (verdeckt die Box von ngen) */
+	#buehne { position: relative; }
+	#standbild { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; image-rendering: pixelated; image-rendering: crisp-edges; }
+	#standbild[hidden] { display: none; }
+	button {
+		font: inherit; color: var(--text);
+		background: var(--knopf);
+		border: 1px solid var(--rand); border-radius: 0.6rem;
+		-webkit-tap-highlight-color: transparent;
+		display: flex; align-items: center; justify-content: center;
+		padding: 0;
+	}
+	/* Leiste: das Menü der Heldenerschaffung öffnet im Original ein Rechtsklick */
+	#leiste { display: flex; gap: 0.6rem; justify-content: center; }
+	#leiste [hidden] { display: none; }
+	#leiste button { min-height: 2.8rem; padding: 0 1.4rem; font-size: 1rem; touch-action: manipulation; }
+	#status { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="status">Lade …</div>
+<div id="buehne">
+	<canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
+	<canvas id="standbild" hidden width="320" height="200"></canvas>
+</div>
+<div id="leiste">
+	<button type="button" id="menue" title="Menü der Heldenerschaffung (Rechtsklick)">Menü</button>
+	<button type="button" id="ueberspringen" hidden>Intro überspringen</button>
+</div>
+<script src="dialog.js"></script>
+<script>
+	const statusEl = document.getElementById('status');
+	var Module = {
+		canvas: document.getElementById('canvas'),
+		print: (t) => console.log(t),
+		printErr: (t) => console.warn(t),
+		setStatus: (t) => { statusEl.textContent = t; statusEl.style.display = t ? 'flex' : 'none'; },
+		onRuntimeInitialized: () => { statusEl.style.display = 'none'; },
+	};
+
+	document.getElementById('menue').addEventListener('click', () => Module._web_right_click?.());
+	// Intro: nur „Überspringen“ (meldet dem Spiel sofort „fertig“, das schließt den Rahmen)
+	if (location.search.startsWith('?intro')) {
+		document.getElementById('menue').hidden = true;
+		const weg = document.getElementById('ueberspringen');
+		weg.hidden = false;
+		weg.addEventListener('click', () => melden());
+	}
+
+	// Textboxen als Overlay wie im Spiel (nicht im Original-Layout: gen.html?…&original)
+	if (!new URLSearchParams(location.search).has('original')) {
+		const canvas = document.getElementById('canvas');
+		const standbild = document.getElementById('standbild');
+		textboxOverlay(Module, {
+			beimOeffnen: () => {
+				if (!standbild.hidden) return;   // schon eingefroren (verschachtelte Box)
+				standbild.getContext('2d').drawImage(canvas, 0, 0, 320, 200);
+				standbild.hidden = false;
+			},
+			beimSchliessen: (leer) => { if (leer) standbild.hidden = true; },
+		});
+	}
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>

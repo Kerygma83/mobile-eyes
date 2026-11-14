@@ -16,6 +16,9 @@ if [ "${SCHNELL:-0}" != 1 ]; then
 	echo "== Nativer Build"
 	./werkzeug.sh bash -c 'set -o pipefail; cmake -S BrightEyes/src/schick -B build/nativ -DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_CXX_FLAGS="-include /app/werkzeuge/compat.h" >/dev/null && cmake --build build/nativ -j"$(nproc)" 2>&1 | grep -E "error|Built target" '
+	echo "== Heldenerschaffung nativ übersetzen (ngen, ohne SDL2_mixer)"
+	./werkzeug.sh bash -c 'mkdir -p build/nativ-gen && cd BrightEyes/src/gen && for q in ngen cda_code vgalib ail_stub powerp20; do
+		gcc -O1 -fno-asm -Wno-unused-result -I /app/werkzeuge/gen-stubs -c $q.c -o /app/build/nativ-gen/$q.o || exit 1; done && echo "ngen ok"'
 fi
 
 echo "== Web-Test-Build"

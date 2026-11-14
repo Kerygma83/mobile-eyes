@@ -23,6 +23,8 @@ Die Schicksalsklinge (DSA 1) als Web-App. Spiellogik aus BrightEyes (`BrightEyes
 
 ## Nützlich
 
+- Start (Web): `main` in seg002 läuft wie im Original (Intro über `web_intro`, Startmenü, `call_gen` → `web_gen`). Die Heldenerschaffung ist ngen (`BrightEyes/src/gen`) als `gen.html` im iframe (`gen-shell.html`, `gen-pre.js`). Tests starten mit `?ohneIntro`; Schritte mit `imGen: true` gelten dem iframe.
+- Overlays: `werkzeuge/dialog.js` (`textboxOverlay`) für Spiel und Heldenerschaffung; die Programme melden Boxen per `Module.dialogAuf/dialogZu`.
 - Spielstände: `save/load_game_state` in seg026 sind nativ eigene Zweige (`*_native`). Der Spielzustand wird über `datseg_status.h` in das DOS-Format (ds:0x2d34–0x4474) gebracht. Nach Änderungen an `datseg.cpp` `python3 werkzeuge/status-tabelle.py` ausführen; der Compiler prüft jede Größe gegen DOS. Im Browser liegen `*.GAM`/`GAMES.NAM` zusätzlich in IDBFS `/spielstand` (`pre.js`).
 
 - Bildbereiche des Hauptbildschirms (320×200): Ansicht 0–239/0–135, Icons 241–318/57–134, Ortszeile y 136–156, Porträts y 157–199 (`g_action_table_playmask` in `datseg.cpp`).

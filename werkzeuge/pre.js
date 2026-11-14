@@ -2,11 +2,12 @@
 // Spielstände dauerhaft im Browser halten (IndexedDB).
 //
 // /spiel liegt nur im Arbeitsspeicher. Spielstände (*.GAM und GAMES.NAM mit den
-// Namen der 5 Plätze) liegen zusätzlich in /spielstand (IDBFS): beim Start von dort
+// Namen der 5 Plätze) und Helden (*.CHR, auch aus der Heldenerschaffung gen.html)
+// liegen zusätzlich in /spielstand (IDBFS): beim Start von dort
 // nach /spiel kopiert, nach jedem Speichern im Spiel zurück (Module.spielstaendeSichern,
 // aufgerufen aus save_game_state in seg026).
 const SPIELSTAND = '/spielstand';
-const istSpielstand = (name) => name === 'GAMES.NAM' || /\.GAM$/i.test(name);
+const istSpielstand = (name) => name === 'GAMES.NAM' || /\.(GAM|CHR)$/i.test(name);
 
 function kopiereSpielstaende(von, nach, aufraeumen) {
 	const dateien = FS.readdir(von).filter(istSpielstand);
@@ -32,6 +33,26 @@ Module.spielstaendeSichern = function () {
 		Module.spielstaendeGesichert?.(false);
 	}
 };
+
+// nach der Heldenerschaffung (eigene Seite, gleiche Datenbank): neue Helden holen,
+// ins Spielverzeichnis und nach TEMP (dort sucht der Tempel)
+Module.heldenNachladen = () => new Promise((fertig) => {
+	FS.syncfs(true, (fehler) => {
+		if (fehler) console.warn('Helden nicht geladen', fehler);
+		try {
+			for (const name of FS.readdir(SPIELSTAND).filter((n) => /\.CHR$/i.test(n))) {
+				let neu = true;
+				try { FS.stat(`/spiel/${name}`); neu = false; } catch (e) {}
+				if (!neu) continue;
+				const daten = FS.readFile(`${SPIELSTAND}/${name}`);
+				FS.writeFile(`/spiel/${name}`, daten);
+				FS.writeFile(`/spiel/TEMP/${name}`, daten);
+				console.log('neuer Held', name);
+			}
+		} catch (e) { console.warn('Helden nicht geladen', e); }
+		fertig();
+	});
+});
 
 Module.preRun = Module.preRun || [];
 Module.preRun.push(function () {

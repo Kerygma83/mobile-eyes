@@ -100,66 +100,8 @@
 	.aktionen button { font-size: 0.85rem; height: 2.3rem; padding: 0 0.7rem; }
 	button svg { width: 1.5rem; height: 1.5rem; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
-	/* ---------- Textboxen des Spiels als Overlay (nur mobil) ---------- */
-	#dialog {
-		position: fixed; inset: 0; z-index: 10;
-		display: flex; flex-direction: column; justify-content: flex-end;
-		background: rgb(0 0 0 / 0.45);
-		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-	}
-	#dialog[hidden], body:not(.mobil) #dialog { display: none; }
-	#dialog [hidden] { display: none !important; }
-	#dialog .karte {
-		display: flex; flex-direction: column; gap: 0.9rem;
-		max-height: 78dvh; overflow-y: auto; overscroll-behavior: contain;
-		margin: 0 0.5rem 0.5rem;
-		padding: 1.1rem 1.1rem 1rem;
-		background: var(--panel);
-		border: 1px solid var(--rand); border-radius: 0.9rem;
-		box-shadow: 0 -0.3rem 1.5rem rgb(0 0 0 / 0.5);
-		font: 1.12rem/1.45 Georgia, 'Times New Roman', serif;
-		letter-spacing: 0.02em;
-	}
-	#dialog .kopf { display: flex; align-items: center; gap: 0.8rem; }
-	#dialog .kopf:empty, #dialog .name:empty { display: none; }
-	#dialog .portraet { width: 4.5rem; height: auto; aspect-ratio: 32 / 38.4; border: 1px solid var(--rand); border-radius: 0.3rem; flex: none; }
-	#dialog .name { color: var(--gold); font-weight: bold; }
-	#dialog .text:empty { display: none; }
-	#dialog .zeile { display: flex; justify-content: space-between; gap: 1rem; min-height: 1.45em; }
-	#dialog .zeile > span:first-child { flex: 1; }
-	#dialog .f1 { color: var(--gold); }
-	#dialog .f2 { color: #e0906a; }
-	#dialog .f3 { color: #92b8dc; }
-	#dialog .optionen { display: flex; flex-direction: column; gap: 0.45rem; }
-	#dialog.janein .optionen { flex-direction: row; }
-	#dialog.janein .optionen button { flex: 1; }
-	#dialog .optionen button {
-		justify-content: flex-start; text-align: left;
-		min-height: 3rem; padding: 0.5rem 0.9rem;
-		font: inherit; letter-spacing: inherit;
-		touch-action: manipulation;
-	}
-	#dialog .optionen button .zeile { flex: 1; }
-	/* lange Menüs (z. B. Kampf mit 13 Einträgen) kompakter */
-	#dialog.dicht .optionen { gap: 0.3rem; }
-	#dialog.dicht .optionen button { min-height: 2.5rem; padding: 0.3rem 0.9rem; font-size: 1.02rem; }
-	#dialog .optionen button.vorwahl { border-color: var(--gold); }
-	#dialog .optionen button.hervor { color: var(--gold); }
-	#dialog .optionen button.frei { color: var(--leise); font-style: italic; }
-	#dialog .eingabe { display: flex; gap: 0.5rem; }
-	#dialog .eingabe input {
-		flex: 1; min-width: 0; font: inherit; text-transform: uppercase;
-		color: var(--text); background: var(--bg);
-		border: 1px solid var(--rand); border-radius: 0.6rem; padding: 0.5rem 0.7rem;
-	}
-	/* iOS: ohne user-select lässt sich in das Feld nichts eintippen (body sperrt Auswahl) */
-	#dialog .eingabe input { -webkit-user-select: text; user-select: text; }
-	#dialog .schnellwahl { display: grid; grid-template-columns: repeat(auto-fit, minmax(2.9rem, 1fr)); gap: 0.4rem; }
-	#dialog .schnellwahl button { min-height: 2.8rem; font: 1.05rem system-ui, sans-serif; touch-action: manipulation; }
-	#dialog .fuss { display: flex; justify-content: flex-end; gap: 0.5rem; }
-	#dialog .fuss button, #dialog .eingabe button { min-height: 2.8rem; padding: 0 1.1rem; font-size: 1rem; touch-action: manipulation; }
-	#dialog .hinweis { color: var(--leise); font: 0.85rem system-ui, sans-serif; align-self: center; margin-right: auto; }
-	#dialog.gesendet .karte { opacity: 0.6; }
+	/* Textboxen als Overlay (dialog.js) nur im mobilen Layout */
+	body:not(.mobil) #dialog { display: none; }
 
 	/* ---------- Spielstände ---------- */
 	#verwaltung {
@@ -185,6 +127,11 @@
 	#verwaltung .plaetze button, #verwaltung .fuss button { min-height: 2.5rem; padding: 0 0.8rem; font-size: 0.9rem; touch-action: manipulation; }
 	#verwaltung .fuss { display: flex; justify-content: flex-end; }
 	#verwaltung .meldung:empty { display: none; }
+
+	/* ---------- Heldenerschaffung / Intro ---------- */
+	#gen { position: fixed; inset: 0; z-index: 20; background: #000; }
+	#gen[hidden] { display: none; }
+	#gen iframe { width: 100%; height: 100%; border: 0; display: block; }
 
 	/* Querformat im Original-Layout: Leiste rechts */
 	@media (orientation: landscape) and (max-height: 600px) {
@@ -212,25 +159,6 @@
 	<canvas class="aus voll" data-aus="0,0,320,200" aria-label="Bildschirm"></canvas>
 </div>
 
-<!-- Textbox des Spiels (Meldung, Auswahl, Eingabe), gefüllt von Module.dialogAuf -->
-<div id="dialog" hidden role="dialog" aria-modal="true" aria-label="Spieltext">
-	<div class="karte">
-		<div class="kopf"></div>
-		<div class="text"></div>
-		<form class="eingabe" hidden>
-			<input type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="done" aria-label="Eingabe">
-			<button type="submit">OK</button>
-		</form>
-		<div class="schnellwahl" hidden></div>
-		<div class="optionen"></div>
-		<div class="fuss">
-			<span class="hinweis"></span>
-			<button type="button" class="abbrechen">Abbrechen</button>
-			<button type="button" class="weiter">Weiter</button>
-		</div>
-	</div>
-</div>
-
 <!-- Spielstände sichern: Export/Import der .GAM-Dateien (liegen sonst nur im Browser) -->
 <div id="verwaltung" hidden role="dialog" aria-modal="true" aria-label="Spielstände">
 	<div class="karte">
@@ -242,6 +170,9 @@
 	</div>
 	<input type="file" accept=".gam,.GAM" hidden>
 </div>
+
+<!-- Heldenerschaffung und Intro (gen.html, eigenes Programm wie GEN.EXE) -->
+<div id="gen" hidden><iframe title="Heldenerschaffung"></iframe></div>
 
 <div id="leiste">
 	<div id="icons-halter">
@@ -276,6 +207,7 @@
 	</div>
 </div>
 
+<script src="dialog.js"></script>
 <script>
 	// SDL-Tastencodes, die das Spiel in sdl_event_loop() auswertet
 	const TASTEN = {
@@ -312,13 +244,13 @@
 	}
 
 	// vom Spiel nach jedem geänderten Bild aufgerufen (RGBA, Alpha 0)
-	// Mauszeiger nur im Original-Layout; erst setzen, wenn das Spiel zeichnet (Maus initialisiert)
+	// Mauszeiger nur im Original-Layout: vor dem Start nur merken (onRuntimeInitialized),
+	// beim Layoutwechsel im laufenden Spiel sofort neu zeichnen
 	let zeigerGesetzt = false;
-	const zeigerSetzen = () => Module._web_mouse_cursor?.(document.body.classList.contains('mobil') ? 0 : 1);
+	const zeigerSetzen = (neuZeichnen) => Module._web_mouse_cursor?.(document.body.classList.contains('mobil') ? 0 : 1, neuZeichnen ? 1 : 0);
 
 	function neuesBild(heap, ptr, w, h) {
 		if (w !== 320 || h !== 200) return;
-		if (!zeigerGesetzt) { zeigerGesetzt = true; zeigerSetzen(); }
 		const quelle = heap.subarray(ptr, ptr + w * h * 4);
 		const ziel = ganzBild.data;
 		ziel.set(quelle);
@@ -340,157 +272,6 @@
 		}
 	}
 
-	// ---------- Textboxen als Overlay ----------
-	// Das Spiel meldet jede Textbox (seg097: web_dialog_auf/zu) und bleibt selbst zuständig für
-	// Ablauf und Ergebnis; das Overlay schickt nur Tasten oder wählt einen Eintrag.
-	const dialogEl = document.getElementById('dialog');
-	const dKopf = dialogEl.querySelector('.kopf');
-	const dText = dialogEl.querySelector('.text');
-	const dOptionen = dialogEl.querySelector('.optionen');
-	const dEingabe = dialogEl.querySelector('.eingabe');
-	const dFeld = dEingabe.querySelector('input');
-	const dWeiter = dialogEl.querySelector('.weiter');
-	const dAbbrechen = dialogEl.querySelector('.abbrechen');
-	const dHinweis = dialogEl.querySelector('.hinweis');
-	const dSchnell = dialogEl.querySelector('.schnellwahl');
-	// Tastendrücke im Eingabefeld nicht an SDL (lauscht am Fenster) weitergeben: sonst
-	// verhindert SDL das Tippen bzw. das Spiel bekommt die Zeichen doppelt
-	for (const typ of ['keydown', 'keyup', 'keypress']) dFeld.addEventListener(typ, (e) => e.stopPropagation());
-	const dialoge = [];   // Stapel, falls eine Box eine weitere öffnet
-	const DOS = { 0x8e: 'Ä', 0x99: 'Ö', 0x9a: 'Ü', 0x84: 'ä', 0x94: 'ö', 0x81: 'ü', 0xe1: 'ß' };
-	// Zeichen der Spielschrift (seg096 g_gui_char_width); andere ASCII-Zeichen zeichnet das Spiel
-	// als Lücke, z. B. „^“ in Geldbeträgen („3D^1S^5H“ → „3D 1S 5H“)
-	const SCHRIFT = new Set(" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,.-()!?0123456789':#&%<>/_+");
-	const zeichenText = (b) => DOS[b] ?? (b >= 0x20 && b < 0x7f
-		? (SCHRIFT.has(String.fromCharCode(b)) ? String.fromCharCode(b) : ' ') : '');
-
-	/** Spieltext (Bytes im DOS-Zeichensatz) als Zeilen: @ = Umbruch, ~ = Tabulator, 0xf0–f3 = Farbe */
-	function spieltext(bytes, ziel) {
-		ziel.replaceChildren();
-		if (!bytes) return;
-		let zeile, spalte, span = null, farbe = 0;
-		const neueSpalte = () => { spalte = document.createElement('span'); zeile.append(spalte); span = null; };
-		const neueZeile = () => { zeile = document.createElement('div'); zeile.className = 'zeile'; ziel.append(zeile); neueSpalte(); };
-		const zeichen = (z) => {
-			if (!span) { span = document.createElement('span'); if (farbe) span.className = 'f' + farbe; spalte.append(span); }
-			span.textContent += z;
-		};
-		neueZeile();
-		for (const b of bytes) {
-			if (b === 0x40) neueZeile();
-			else if (b === 0x7e) neueSpalte();
-			else if (b >= 0xf0 && b <= 0xf3) { farbe = b - 0xf0; span = null; }
-			else if (b === 0x0d || b === 0x0a) zeichen(' ');
-			else if (zeichenText(b)) zeichen(zeichenText(b));
-		}
-	}
-	const alsText = (bytes) => bytes ? bytes.map(zeichenText).join('') : '';
-
-	function senden(fn) {
-		const d = dialoge.at(-1);
-		// nur eine Antwort je Box, und nur wenn der Tipp auf dem Overlay begonnen hat: sonst
-		// schließt das Loslassen des Tipps, der die Box geöffnet hat, sie gleich wieder
-		if (!d || d.gesendet || !d.gedrueckt) return;   // nur eine Antwort je Box (sonst landen Tasten im nächsten Bildschirm)
-		d.gesendet = true;
-		dialogEl.classList.add('gesendet');
-		fn();
-	}
-	function portraetZeichnen() {
-		const d = dialoge.at(-1);
-		const c = dKopf.querySelector('canvas');
-		if (!d?.bildPos || !c) return;
-		c.getContext('2d').drawImage(ganz, d.bildPos[0], d.bildPos[1], 32, 32, 0, 0, 32, 32);
-	}
-	function zeigeDialog() {
-		const d = dialoge.at(-1);
-		dialogEl.hidden = !d;
-		if (!d) return;
-		dialogEl.classList.toggle('gesendet', !!d.gesendet);
-		dialogEl.classList.toggle('janein', d.art === 3);
-		dialogEl.classList.toggle('dicht', d.optionen.length > 7);
-		dKopf.replaceChildren();
-		if (d.bild) {
-			const c = document.createElement('canvas');
-			c.width = c.height = 32; c.className = 'portraet';
-			dKopf.append(c);
-		}
-		if (d.name) { const n = document.createElement('div'); n.className = 'name'; spieltext(d.name, n); dKopf.append(n); }
-		spieltext(d.text, dText);
-		dOptionen.replaceChildren(...d.optionen.map((o, i) => {
-			const b = document.createElement('button');
-			b.type = 'button';
-			spieltext(o, b);
-			if (!alsText(o).trim()) { b.classList.add('frei'); b.textContent = 'frei'; }   // z. B. leerer Spielstandplatz
-			b.classList.toggle('vorwahl', i === d.vorwahl);
-			b.classList.toggle('hervor', i === d.hervor);
-			b.addEventListener('click', () => senden(() => Module._web_menu_select(i + 1)));
-			return b;
-		}));
-		const eingabe = d.art === 1 || d.art === 4;
-		dEingabe.hidden = !eingabe;
-		dSchnell.replaceChildren();
-		dSchnell.hidden = true;
-		if (eingabe) {
-			const zahl = d.art === 4;
-			dFeld.maxLength = d.zeichen;
-			dFeld.value = alsText(d.vorgabe);
-			dFeld.inputMode = zahl ? 'numeric' : 'text';
-			dFeld.pattern = zahl ? '[0-9]*' : '.*';
-			dFeld.autocapitalize = zahl ? 'off' : 'characters';
-			// Bereich im Text, z. B. „(0-50)“: Werte zum Antippen
-			const bereich = zahl && /\((\d+)\s*-\s*(\d+)\)/.exec(alsText(d.text));
-			if (bereich) {
-				const von = +bereich[1], bis = Math.min(+bereich[2], 10 ** d.zeichen - 1);
-				const schritt = bis - von <= 10 ? 1 : Math.ceil((bis - von) / 6 / 5) * 5;
-				const werte = [];
-				for (let v = von; v < bis; v += schritt) werte.push(v);
-				werte.push(bis);
-				dSchnell.replaceChildren(...werte.map((v) => {
-					const b = document.createElement('button');
-					b.type = 'button';
-					b.textContent = v;
-					b.addEventListener('click', () => { dFeld.value = String(v); dEingabe.requestSubmit(); });
-					return b;
-				}));
-				dSchnell.hidden = false;
-			} else {
-				setTimeout(() => dFeld.focus(), 0);   // ohne Schnellwahl gleich die Tastatur
-			}
-		}
-		dWeiter.hidden = d.art !== 0;
-		dAbbrechen.hidden = d.art === 0;
-		dHinweis.textContent = d.art === 0 ? 'Tippen zum Weiterlesen' : '';
-		portraetZeichnen();
-	}
-	dialogEl.addEventListener('pointerdown', () => { const d = dialoge.at(-1); if (d) d.gedrueckt = true; });
-	// Meldung: Tippen irgendwo schließt (wie eine Taste im Original)
-	dialogEl.addEventListener('click', () => {
-		if (dialoge.at(-1)?.art === 0) senden(() => taste('enter'));
-	});
-	dAbbrechen.addEventListener('click', () => {
-		const d = dialoge.at(-1);
-		senden(() => (d.art === 1 || d.art === 4) ? Module._web_key(TASTEN.esc) : Module._web_right_click());
-	});
-	dEingabe.addEventListener('submit', (e) => {
-		e.preventDefault();
-		const d = dialoge.at(-1);
-		let text = dFeld.value.toUpperCase().replace(/ß/g, 'SS');
-		if (d.art === 4) text = text.replace(/[^0-9]/g, '');
-		text = text.slice(0, d.zeichen);
-		if (!text) { dFeld.focus(); return; }   // leer schließt das Spiel nicht, also gar nicht erst senden
-		d.gedrueckt = true;   // Eingabe per Tastatur (Enter) ohne Tipp
-		const codes = { Ä: 0x84, Ö: 0x94, Ü: 0x81 };
-		dFeld.blur();
-		senden(() => {
-			for (let i = 0; i < d.zeichen; i++) Module._web_key(8);   // Vorgabe des Spiels löschen
-			for (const z of text) {
-				const c = codes[z] ?? z.toLowerCase().charCodeAt(0);
-				if (c >= 0x20 && c <= 0x7a || c in { 0x81: 1, 0x84: 1, 0x94: 1 }) Module._web_key(c);
-			}
-			Module._web_key(13);
-		});
-	});
-
 	var Module = {
 		canvas: document.getElementById('canvas'),
 		print: (t) => console.log(t),
@@ -499,20 +280,18 @@
 			statusEl.textContent = t;
 			statusEl.style.display = t ? 'flex' : 'none';
 		},
-		onRuntimeInitialized: () => { statusEl.style.display = 'none'; },
+		onRuntimeInitialized: () => {
+			statusEl.style.display = 'none';
+			zeigerSetzen(false);   // läuft vor main()
+			zeigerGesetzt = true;
+		},
 		onFrame: neuesBild,
-		dialogAuf: (d) => {
-			dialoge.push(d);
-			alleLoslassen();
-			zeigeDialog();
-		},
-		// danach zeigt das nächste Bild des Spiels wieder alles (Box dort schon entfernt)
-		dialogZu: () => { dialoge.pop(); zeigeDialog(); },
-		dialogBild: (x, y) => {
-			const d = dialoge.at(-1);
-			if (d) { d.bildPos = [x, y]; portraetZeichnen(); }
-		},
 	};
+
+	// Textboxen als Overlay (dialog.js); nach dem Schließen zeigt das nächste Bild des
+	// Spiels wieder alles (die Box ist dort schon entfernt)
+	const overlay = textboxOverlay(Module, { portraetQuelle: () => ganz, beimOeffnen: alleLoslassen });
+	const { dialoge, alsText, portraetZeichnen } = overlay;
 	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
 
 	function taste(name) {
@@ -675,10 +454,32 @@
 	// Browser bitten, die Spielstände nicht bei Speicherknappheit zu löschen
 	navigator.storage?.persist?.().catch(() => {});
 
+	// ---------- Heldenerschaffung / Intro ----------
+	// Das Spiel ruft sie wie spawnl("gen.exe") auf (seg120 call_gen, Intro in main) und wartet.
+	const genEl = document.getElementById('gen');
+	const genFrame = genEl.querySelector('iframe');
+	const ohneIntro = new URLSearchParams(location.search).has('ohneIntro');   // Tests
+	Module.genStarten = (parameter) => new Promise((fertig) => {
+		if (parameter === 'intro' && ohneIntro) { fertig(); return; }
+		alleLoslassen();
+		const ende = async (e) => {
+			if (e.source !== genFrame.contentWindow || e.data?.gen !== 'fertig') return;
+			window.removeEventListener('message', ende);
+			genEl.hidden = true;
+			genFrame.src = 'about:blank';
+			if (parameter !== 'intro') await Module.heldenNachladen();
+			fertig();
+		};
+		window.addEventListener('message', ende);
+		genFrame.src = 'gen.html?' + parameter + (document.body.classList.contains('mobil') ? '' : '&original');
+		genEl.hidden = false;
+		genFrame.focus();
+	});
+
 	// Layout umschalten (wird im Browser gemerkt)
 	function setzeLayout(mobil) {
 		document.body.classList.toggle('mobil', mobil);
-		if (zeigerGesetzt) zeigerSetzen();
+		if (zeigerGesetzt) zeigerSetzen(true);
 		try { localStorage.setItem('layout', mobil ? 'mobil' : 'original'); } catch (e) {}
 	}
 	try { if (localStorage.getItem('layout') === 'original') setzeLayout(false); } catch (e) {}
