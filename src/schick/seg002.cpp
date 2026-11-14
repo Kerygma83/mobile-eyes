@@ -41,6 +41,9 @@
 
 #include "seg001.h"
 #include "seg002.h"
+#if defined(WEB_TESTHOOKS)
+#include "seg032.h"
+#endif
 #include "seg004.h"
 #include "seg006.h"
 #include "seg007.h"
@@ -1868,6 +1871,45 @@ extern "C" EMSCRIPTEN_KEEPALIVE int web_screen_mode(void)
 		!g_dialogbox_lock && !g_in_fight && !gs_show_travel_map;
 }
 
+#if defined(WEB_TESTHOOKS)
+/* ---- Nur im Test-Build (TESTHOOKS=1): Abkürzungen und Zustand für Browser-Tests ---- */
+static int g_web_test_fight = 0;	/* Kampf-ID, wird in game_loop() gestartet */
+static int g_web_test_sign = 0;		/* Wegweiser-Typindex, wird in game_loop() gesetzt */
+
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_fight(const int fight_id) { g_web_test_fight = fight_id; }
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_sign(const int typeindex) { g_web_test_sign = typeindex; }
+
+extern "C" int web_screen_mode(void);
+
+/* Spielzustand als JSON für die Tests */
+extern "C" EMSCRIPTEN_KEEPALIVE const char* web_test_state(void)
+{
+	static char buf[512];
+	snprintf(buf, sizeof(buf),
+		"{\"timer\":%d,\"stadt\":%d,\"ort\":%d,\"dungeon\":%d,\"x\":%d,\"y\":%d,"
+		"\"richtung\":%d,\"helden\":%d,\"kampf\":%d,\"dialog\":%d,\"menue\":%d,"
+		"\"karte\":%d,\"haupt\":%d,\"spielzustand\":%d}",
+		g_native_timer_active, gs_town_id, gs_town_loc_type, gs_dungeon_id, gs_x_target, gs_y_target,
+		gs_direction, gs_total_hero_counter, g_in_fight, g_dialogbox_lock, g_menu_input_busy,
+		gs_show_travel_map, web_screen_mode(), g_game_state);
+	return buf;
+}
+
+static void web_test_hooks(void)
+{
+	if (g_web_test_sign) {
+		gs_town_loc_type = LOCTYPE_SIGNPOST;
+		gs_town_typeindex = g_web_test_sign;
+		g_web_test_sign = 0;
+	}
+	if (g_web_test_fight) {
+		const int id = g_web_test_fight;
+		g_web_test_fight = 0;
+		do_fight(id);
+	}
+}
+#endif
+
 /* Rechtsklick (schließt Dialoge, bricht ab) für die Touch-Steuerleiste */
 extern "C" EMSCRIPTEN_KEEPALIVE void web_right_click(void)
 {
@@ -2358,6 +2400,9 @@ static void game_loop(void)
 	signed int answer;
 
 	while (g_game_state == GAME_STATE_MAIN) {
+#if defined(__EMSCRIPTEN__) && defined(WEB_TESTHOOKS)
+		web_test_hooks();
+#endif
 #if defined(__EMSCRIPTEN__)
 #endif
 #if defined(__EMSCRIPTEN__)
