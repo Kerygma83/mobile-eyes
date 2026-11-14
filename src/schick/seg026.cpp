@@ -22,7 +22,13 @@
 #else
 #include <unistd.h>
 #include <dirent.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <sys/stat.h>
 #endif
+#endif
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
 #endif
 
 #include "v302de.h"
@@ -622,6 +628,529 @@ void prepare_sg_name(char *dst, char *src)
 	dst[8] = '\0';
 }
 
+#if !defined(__BORLANDC__) && !defined(_WIN32)
+/* ---- Spielstände nativ ----
+ * Das Original schreibt den Spielzustand als einen Block des DOS-Datensegments
+ * (ds:0x2d34-0x4474) in die Datei. Nativ liegen diese Variablen einzeln im Speicher;
+ * datseg_status.h (erzeugt aus datseg.cpp) nennt für jede ihren Platz im Block.
+ * Das Dateiformat bleibt so dasselbe wie unter DOS. */
+
+/* Größe jeder Variable = ihr Platz unter DOS, sonst stimmt das Dateiformat nicht */
+#define STATUS_VAR(off, len, var) static_assert(sizeof(var) == (len), "Größe von " #var " weicht von DOS ab");
+#define STATUS_DUMMY STATUS_VAR
+#define STATUS_PTR(off, len, var)
+#define STATUS_SKIP(off, len, var)
+#include "datseg_status.h"
+#undef STATUS_VAR
+#undef STATUS_DUMMY
+#undef STATUS_PTR
+#undef STATUS_SKIP
+
+struct status_entry {
+	unsigned short offset;
+	unsigned short length;
+	void *var;
+};
+
+static const struct status_entry g_status_table[] = {
+#define STATUS_VAR(off, len, var) { (off), (len), (void*)&(var) },
+#define STATUS_DUMMY STATUS_VAR
+#define STATUS_PTR(off, len, var)
+#define STATUS_SKIP(off, len, var)
+#include "datseg_status.h"
+#undef STATUS_VAR
+#undef STATUS_DUMMY
+#undef STATUS_PTR
+#undef STATUS_SKIP
+};
+
+/* Zeiger auf einen Helden: im Spielstand als Heldennummer + 1 (0 = keiner).
+ * Spielstände aus DOS enthalten hier eine Speicheradresse; die passt nicht und
+ * wird zu Held 1, damit das Spiel nicht über einen ungültigen Zeiger stolpert. */
+static uint32_t hero_ptr_to_save(const uint8_t *ptr)
+{
+	if (ptr == NULL) return 0;
+	return (uint32_t)((ptr - (uint8_t*)get_hero(0)) / sizeof(struct struct_hero)) + 1;
+}
+
+static uint8_t* hero_ptr_from_save(const uint32_t v)
+{
+	if (v == 0) return NULL;
+	return (uint8_t*)get_hero((v >= 1 && v <= 7) ? v - 1 : 0);
+}
+
+static void status_to_dos(uint8_t *buf)
+{
+	unsigned int i;
+	memset(buf, 0, STATUS_DOS_LENGTH);
+	for (i = 0; i < sizeof(g_status_table) / sizeof(g_status_table[0]); i++)
+		memcpy(buf + g_status_table[i].offset, g_status_table[i].var, g_status_table[i].length);
+
+#define STATUS_VAR(off, len, var)
+#define STATUS_DUMMY STATUS_VAR
+#define STATUS_PTR(off, len, var) { const uint32_t v = hero_ptr_to_save(var); memcpy(buf + (off), &v, 4); }
+#define STATUS_SKIP(off, len, var)
+#include "datseg_status.h"
+#undef STATUS_VAR
+#undef STATUS_DUMMY
+#undef STATUS_PTR
+#undef STATUS_SKIP
+}
+
+static void status_from_dos(const uint8_t *buf)
+{
+	unsigned int i;
+	for (i = 0; i < sizeof(g_status_table) / sizeof(g_status_table[0]); i++)
+		memcpy(g_status_table[i].var, buf + g_status_table[i].offset, g_status_table[i].length);
+
+#define STATUS_VAR(off, len, var)
+#define STATUS_DUMMY STATUS_VAR
+#define STATUS_PTR(off, len, var) { uint32_t v; memcpy(&v, buf + (off), 4); var = hero_ptr_from_save(v); }
+#define STATUS_SKIP(off, len, var)
+#include "datseg_status.h"
+#undef STATUS_VAR
+#undef STATUS_DUMMY
+#undef STATUS_PTR
+#undef STATUS_SKIP
+}
+
+static signed int create_file(const char *path)
+{
+	return open(path, (O_TRUNC | O_CREAT | O_WRONLY), (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH));
+}
+
+/* Dateiname (8.3) mit Endung suffix? Groß-/Kleinschreibung egal */
+static signed int has_suffix(const char *name, const char *suffix)
+{
+	const size_t n = strlen(name), s = strlen(suffix);
+	return (n <= 12) && (n > s) && !strcasecmp(name + n - s, suffix);
+}
+
+/* alle Dateien in TEMP löschen (Original: findfirst("TEMP\\*.*")) */
+static void temp_delete_all(void)
+{
+	DIR *dir = opendir(g_str_temp_dir);
+	const struct dirent *dp;
+	char path[40];
+
+	if (dir == NULL) return;
+
+	while ((dp = readdir(dir)) != NULL) {
+		if (dp->d_name[0] == '.') continue;
+		snprintf(path, sizeof(path), g_str_temp_fmt, dp->d_name);
+		unlink(path);
+	}
+	closedir(dir);
+}
+
+static signed int load_game_state_native(void)
+{
+	signed int handle_sg;
+	signed int i;
+	signed int handle;
+	signed int answer;
+	signed int sl_bak;
+	signed int length_hero;
+	signed int retval = 0;
+	signed int ani_bak;
+	struct struct_hero* hero_i;
+	char name[20];
+	char path[40];
+	uint8_t header[20];
+	uint8_t *status;
+
+	/* select a game state */
+	answer = GUI_radio(get_ttx(0), 6, g_savegame_names[0],
+			g_savegame_names[1], g_savegame_names[2],
+			g_savegame_names[3], g_savegame_names[4],
+			get_ttx(737)) - 1;
+
+	if (answer == -2 || answer == 5) return 0;
+
+	prepare_sg_name(g_text_output_buf, g_savegame_names[answer]);
+	strcat(g_text_output_buf, g_savegame_suffix);
+
+	if ((handle_sg = open(g_text_output_buf, O_RDONLY)) == -1) {
+		GUI_output(get_ttx(635));
+		return -1;
+	}
+
+	/* Spielzustand prüfen, bevor etwas überschrieben wird */
+	status = (uint8_t*)malloc(STATUS_DOS_LENGTH);
+	if ((status == NULL) ||
+		(_read(handle_sg, header, 20) != 20) ||
+		(_read(handle_sg, status, STATUS_DOS_LENGTH) != STATUS_DOS_LENGTH))
+	{
+		free(status);
+		close(handle_sg);
+		GUI_output(get_ttx(635));
+		return -1;
+	}
+
+	call_mouse_bg();
+
+	sl_bak = g_update_statusline;
+	g_update_statusline = 0;
+
+	ani_bak = g_ani_enabled;
+	g_ani_enabled = 0;
+
+	temp_delete_all();
+
+	g_saved_files_buf = (uint32_t*)g_dtp2;
+	memset(g_saved_files_buf, 0, 286 * sizeof(uint32_t));
+
+	status_from_dos(status);
+	free(status);
+
+	g_special_screen = 1;
+
+	/* read file table */
+	_read(handle_sg, g_saved_files_buf, 286 * sizeof(uint32_t));
+
+	/* create for each saved file in gam a file in TEMP */
+	for (i = 0; i < 286; i++) {
+
+		if (g_saved_files_buf[i]) {
+
+			snprintf(path, sizeof(path), g_str_temp_fmt, g_fnames_v302de[i]);
+			handle = create_file(path);
+
+			_read(handle_sg, g_renderbuf_ptr, (uint16_t)g_saved_files_buf[i]);
+			write(handle, g_renderbuf_ptr, (uint16_t)g_saved_files_buf[i]);
+			close(handle);
+		}
+	}
+
+	/* clear the heroes */
+	hero_i = get_hero(0);
+	for (i = 0; i <= 6; i++, hero_i++) {
+		memset(hero_i, 0, sizeof(struct struct_hero));
+	}
+
+	hero_i = (struct struct_hero*)g_renderbuf_ptr;
+
+	do {
+		length_hero = _read(handle_sg, (uint8_t*)hero_i, sizeof(struct struct_hero));
+
+		if (length_hero == sizeof(struct struct_hero)) {
+
+			prepare_chr_name(name, (char*)hero_i);
+
+			snprintf(path, sizeof(path), g_str_temp_fmt, name);
+			handle = create_file(path);
+			write(handle, (uint8_t*)hero_i, sizeof(struct struct_hero));
+			close(handle);
+
+			if (hero_i->slot_pos != 0) {
+				prepare_chr_name(name, (char*)hero_i);
+				read_chr_temp(name, hero_i->slot_pos - 1, hero_i->group_id);
+			}
+		}
+
+	} while (length_hero == sizeof(struct struct_hero));
+
+	close(handle_sg);
+
+	/* CHR-Dateien des Spielverzeichnisses, die nicht im Spielstand sind, nach TEMP */
+	{
+		DIR *dir = opendir(".");
+		const struct dirent *dp;
+
+		if (dir != NULL) {
+			while ((dp = readdir(dir)) != NULL) {
+
+				if (!has_suffix(dp->d_name, g_chr_file_suffix)) continue;
+
+				snprintf(path, sizeof(path), g_str_temp_fmt, dp->d_name);
+
+				if ((handle_sg = open(path, O_RDWR)) == -1) {
+					handle = open(dp->d_name, O_RDONLY);
+					_read(handle, g_renderbuf_ptr, sizeof(struct struct_hero));
+					close(handle);
+
+					handle_sg = create_file(path);
+					write(handle_sg, g_renderbuf_ptr, sizeof(struct struct_hero));
+				}
+				close(handle_sg);
+			}
+			closedir(dir);
+		}
+	}
+
+	for (i = ARCHIVE_FILE_NPCS; i <= (ARCHIVE_FILE_NPCS+5); i++) {
+
+		load_npc(i);
+
+		if (get_hero(6)->slot_pos != 7) {
+			memset(get_hero(6), 0, sizeof(struct struct_hero));
+		} else {
+			break;
+		}
+	}
+
+	g_area_prepared = AREA_TYPE_NONE;
+	g_request_refresh = retval = 1;
+	g_check_disease = 0;
+	g_check_poison = 0;
+	g_fading_state = 3;
+
+	if (gs_town_loc_type != LOCTYPE_TEMPLE) {
+		g_new_menu_icons[6] = g_new_menu_icons[7] = g_new_menu_icons[8] = MENU_ICON_NONE;
+	}
+
+	load_area_description(2);
+
+	g_update_statusline = sl_bak;
+	g_ani_enabled = ani_bak;
+
+	call_mouse();
+
+	return retval;
+}
+
+static signed int save_game_state_native(void)
+{
+	signed int handle_sg;
+	signed int handle;
+	signed int tw_bak;
+	signed int slot;
+	uint32_t filepos;
+	uint32_t filepos2;
+	signed int flag;
+	uint32_t len;
+	char path[40];
+	uint8_t *status;
+
+	tw_bak = g_textbox_width;
+	g_textbox_width = 5;
+
+	/* prepare the header for the radio box */
+	if (g_game_state == GAME_STATE_VICTORY) {
+
+		/* game won. creating savegame for import in DSA2 */
+		strcpy(g_text_output_buf, get_ttx(810));
+
+	} else {
+
+#ifndef M302de_FEATURE_MOD
+		if ((gs_town_loc_type != LOCTYPE_TEMPLE) && (g_game_state != GAME_STATE_VICTORY)) {
+
+			/* create savegame not in a temple */
+			sprintf(g_dtp2, get_ttx(813), 1, get_ttx(392), "");
+			sprintf(g_text_output_buf, get_ttx(1), g_dtp2);
+		} else {
+#endif
+			/* create savegame inside a temple */
+			sprintf(g_text_output_buf, get_ttx(1), "");
+#ifndef M302de_FEATURE_MOD
+		}
+#endif
+	}
+
+	/* get the slot number */
+	slot = GUI_radio(g_text_output_buf, 6, g_savegame_names[0], g_savegame_names[1],
+					g_savegame_names[2], g_savegame_names[3],
+					g_savegame_names[4], get_ttx(737)) - 1;
+
+	g_textbox_width = tw_bak;
+
+	g_saved_files_buf = (uint32_t*)g_dtp2;
+	memset(g_saved_files_buf, 0, 286 * sizeof(uint32_t));
+
+	if (slot == -2 || slot == 5) return 0;
+
+	do {
+		/* ask for filename */
+		g_gui_entering_savegame = 1;
+		strcpy(g_text_input_buf, g_savegame_names[slot]);
+		GUI_input(get_ttx(634), 8);
+		g_gui_entering_savegame = 0;
+
+		if (*g_text_input_buf == '\0') {
+			return 0;
+		}
+
+		flag = 0;
+
+		prepare_sg_name(g_text_output_buf, g_text_input_buf);
+
+		for (tw_bak = 0; tw_bak < 5; tw_bak++) {
+
+			prepare_sg_name(g_text_output_buf + 50, g_savegame_names[tw_bak]);
+
+			if ((slot != tw_bak) && !strcmp(g_text_output_buf, g_text_output_buf + 50)) {
+
+				GUI_output(get_ttx(806));
+				flag = 1;
+			}
+		}
+	} while (flag != 0);
+
+	/* delete the previous file of that slot */
+	prepare_sg_name(g_text_output_buf, g_savegame_names[slot]);
+	strcat(g_text_output_buf, g_savegame_suffix);
+	unlink(g_text_output_buf);
+	strcpy(g_savegame_names[slot], g_text_input_buf);
+
+	/* create a CHR-file for each hero in TEMP */
+	for (tw_bak = 0; tw_bak < 6; tw_bak++) {
+
+		if (get_hero(tw_bak)->typus != HERO_TYPE_NONE) {
+
+			/* save position on the playmask */
+			get_hero(tw_bak)->slot_pos = tw_bak + 1;
+
+#ifndef M302de_FEATURE_MOD
+			/* Feature mod 4: in the original game, saving outside a temple costs 1 AP */
+			if ((g_game_state != GAME_STATE_VICTORY) && (gs_town_loc_type != LOCTYPE_TEMPLE) && (get_hero(tw_bak)->ap > 0))
+			{
+				add_hero_ap(get_hero(tw_bak), -1L);
+			}
+#endif
+
+			write_chr_temp(tw_bak);
+		}
+	}
+
+	/* save the current NPC in TEMP */
+	if (get_hero(6)->typus != HERO_TYPE_NONE) {
+
+		get_hero(6)->slot_pos = 7;
+		save_npc(get_hero(6)->npc_id + 225);
+	}
+
+	load_area_description(1);
+
+	prepare_sg_name(g_text_output_buf, g_savegame_names[slot]);
+	strcat(g_text_output_buf, g_savegame_suffix);
+
+	if ((handle_sg = create_file(g_text_output_buf)) == -1) {
+		GUI_output(get_ttx(348));
+		return 0;
+	}
+
+	time(&g_last_save_time);
+
+	filepos = 0;
+
+	/* write version identifier 16 bytes */
+	filepos += write(handle_sg, &g_dsa_version_string, 12);
+	filepos += write(handle_sg, &g_version_token4, 1);
+	filepos += write(handle_sg, &g_version_token3, 1);
+	filepos += write(handle_sg, &g_version_token1, 1);
+	filepos += write(handle_sg, &g_version_token2, 1);
+
+	/* write fileposition 4 bytes, updated later to find the data of the CHR files */
+	filepos += write(handle_sg, &filepos, 4);
+
+	/* save the status section 5952 bytes, assembled like the DOS data segment */
+	status = (uint8_t*)malloc(STATUS_DOS_LENGTH);
+	if (status == NULL) {
+		GUI_output(get_ttx(348));
+		close(handle_sg);
+		return 0;
+	}
+	status_to_dos(status);
+	filepos += write(handle_sg, status, STATUS_DOS_LENGTH);
+	free(status);
+
+	if (STATUS_DOS_LENGTH + 16 + 4L != filepos) {
+		GUI_output(get_ttx(348));
+		close(handle_sg);
+		return 0;
+	}
+
+	filepos2 = filepos;
+	len = (uint16_t)write(handle_sg, g_saved_files_buf, 286 * sizeof(uint32_t));
+	filepos += len;
+
+	if (len != 4 * 286) {
+		GUI_output(get_ttx(348));
+		close(handle_sg);
+		return 0;
+	}
+
+	/* save all changed files from SCHICK.DAT */
+	for (tw_bak = 0; tw_bak < 286; tw_bak++) {
+
+		snprintf(path, sizeof(path), g_str_temp_fmt, g_fnames_v302de[tw_bak]);
+
+		/* wie findfirst() unter DOS nur echte Dateien: Eintrag 154 hat keinen Namen,
+		 * dann wäre der Pfad das Verzeichnis TEMP selbst */
+		struct stat st;
+		if ((stat(path, &st) == 0) && S_ISREG(st.st_mode)) {
+
+			handle = load_archive_file(tw_bak + 0x8000);
+			g_saved_files_buf[tw_bak] = get_readlength2(handle);
+			_read(handle, g_renderbuf_ptr, (uint16_t)g_saved_files_buf[tw_bak]);
+			close(handle);
+
+			len = (uint16_t)write(handle_sg, g_renderbuf_ptr, (uint16_t)g_saved_files_buf[tw_bak]);
+			filepos += len;
+
+			if ((uint16_t)g_saved_files_buf[tw_bak] != len) {
+				GUI_output(get_ttx(348));
+				close(handle_sg);
+				return 0;
+			}
+		}
+	}
+
+	/* skip back to the start of the offset of the CHR data */
+	lseek(handle_sg, 16, 0);
+	write(handle_sg, &filepos, 4);
+
+	/* write the file table */
+	lseek(handle_sg, filepos2, 0);
+	write(handle_sg, g_saved_files_buf, 286 * sizeof(uint32_t));
+
+	/* append all CHR files */
+	lseek(handle_sg, filepos, 0);
+	{
+		DIR *dir = opendir(g_str_temp_dir);
+		const struct dirent *dp;
+
+		if (dir != NULL) {
+			while ((dp = readdir(dir)) != NULL) {
+
+				if (!has_suffix(dp->d_name, g_chr_file_suffix)) continue;
+
+				snprintf(path, sizeof(path), g_str_temp_fmt, dp->d_name);
+
+				handle = open(path, O_RDONLY);
+				_read(handle, g_renderbuf_ptr, sizeof(struct struct_hero));
+				close(handle);
+
+				len = write(handle_sg, g_renderbuf_ptr, sizeof(struct struct_hero));
+
+				if (len != sizeof(struct struct_hero)) {
+					GUI_output(get_ttx(348));
+					closedir(dir);
+					close(handle_sg);
+					return 0;
+				}
+			}
+			closedir(dir);
+		}
+	}
+
+	close(handle_sg);
+
+	/* rewrite GAMES.NAM */
+	handle_sg = create_file(g_fnames_v302de[207]);
+	write(handle_sg, &g_savegame_names[0][0], 45);
+	close(handle_sg);
+
+#if defined(__EMSCRIPTEN__)
+	/* Browser: Spielstände dauerhaft sichern (IndexedDB), siehe pre.js */
+	EM_ASM({ if (Module.spielstaendeSichern) Module.spielstaendeSichern(); });
+#endif
+
+	return 1;
+}
+#endif
+
 signed int load_game_state(void)
 {
 #if defined(__BORLANDC__)
@@ -828,6 +1357,8 @@ signed int load_game_state(void)
 	}
 
 	return retval;
+#elif !defined(_WIN32)
+	return load_game_state_native();
 #else
 	return 0;
 #endif
@@ -1090,6 +1621,8 @@ signed int save_game_state(void)
 
 		return 1;
 	}
+#elif !defined(_WIN32)
+	return save_game_state_native();
 #endif
 
 	return 0;
