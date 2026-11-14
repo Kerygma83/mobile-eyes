@@ -678,7 +678,12 @@ void startup_equipment(struct struct_hero *hero)
 	}
 
 	i = 0;
+#if defined(__BORLANDC__)
 	while ((g_hero_startup_items[hero->typus - 1][i] != -1) && (i < 4)) {
+#else
+	/* native: check the bound first (the original reads one entry past the row) */
+	while ((i < 4) && (g_hero_startup_items[hero->typus - 1][i] != -1)) {
+#endif
 
 		give_new_item_to_hero(hero, g_hero_startup_items[hero->typus - 1][i++], 1, 1);
 
