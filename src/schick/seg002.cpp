@@ -1839,6 +1839,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_key(const int sym)
 	SDL_PushEvent(&e);
 }
 
+
 /* Rechtsklick (schließt Dialoge, bricht ab) für die Touch-Steuerleiste */
 extern "C" EMSCRIPTEN_KEEPALIVE void web_right_click(void)
 {
@@ -1851,9 +1852,40 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_right_click(void)
 }
 #endif
 
+/**
+ * \brief   Emulation des DOS-Timer-Interrupts (INT 8, 18,2 Hz).
+ *
+ * Das Original ließ timer_isr() per Interrupt laufen: Spielzeit, Animationen,
+ * Statusbalken und die Kampf-Timer (g_fig_star_timer, g_delay_timer) hängen
+ * daran. Hier wird timer_isr() an den Stellen aufgerufen, an denen das Spiel
+ * Eingaben abfragt, so oft, wie es der verstrichenen Zeit entspricht.
+ */
+static void sdl_timer_emulation(void)
+{
+	static double next = 0.0;
+	static int in_timer = 0;
+	const double period = 1000.0 / 18.2065;
+	const double now = (double)SDL_GetTicks();
+	int ticks = 0;
+
+	if (!g_native_timer_active || in_timer) return;
+
+	if (next == 0.0 || now - next > 10 * period) next = now; /* Start oder lange Pause */
+
+	in_timer = 1;
+	while (now >= next && ticks < 4) {
+		timer_isr();
+		next += period;
+		ticks++;
+	}
+	in_timer = 0;
+}
+
 static int sdl_event_loop(const int cmd)
 {
 	SDL_Event event;
+
+	sdl_timer_emulation();
 
 #if defined(__EMSCRIPTEN__)
 	web_yield();
@@ -2298,6 +2330,8 @@ static void game_loop(void)
 	signed int answer;
 
 	while (g_game_state == GAME_STATE_MAIN) {
+#if defined(__EMSCRIPTEN__)
+#endif
 
 		if (gs_town_loc_type != LOCTYPE_NONE) {
 			do_location();

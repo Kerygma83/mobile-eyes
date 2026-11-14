@@ -7,6 +7,9 @@ void init_ani_busy_loop(const signed int);
 void clear_ani(void);
 #if defined(__BORLANDC__)
 void interrupt timer_isr(void);
+#else
+void timer_isr(void);
+extern signed int g_native_timer_active;
 #endif
 void update_status_bars(void);
 void draw_bar(const signed int, const signed int, const signed int, const signed int, const signed int);

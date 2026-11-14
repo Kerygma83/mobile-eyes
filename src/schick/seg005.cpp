@@ -1011,6 +1011,10 @@ to the DOSBox-CPU and may run the timer.
 			/* REMARK: SPEEDFIX
 			wait_for_vsync();
 			*/
+#if !defined(__BORLANDC__)
+			/* nativ: hier läuft die Timer-Emulation (g_fig_star_timer) */
+			wait_for_vsync();
+#endif
 			if (fight_printer()) {
 				g_pic_copy.x1 = 0;
 				g_pic_copy.y1 = 0;

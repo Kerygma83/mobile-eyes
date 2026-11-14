@@ -61,12 +61,19 @@ static void interrupt far (*g_bc_timer)(...);	// ds:0xe274
 void interrupt timer_isr(void);
 #endif
 
+#if !defined(__BORLANDC__)
+/* nativ: Timer-Emulation ist aktiv zwischen save_and_set_timer() und reset_timer() */
+signed int g_native_timer_active = 0;
+#endif
+
 void save_and_set_timer(void)
 {
 #if defined(__BORLANDC__)
 	g_bc_timer = getvect(8);
 	setvect(8, (void interrupt far(*)(...))timer_isr);
 	/* REMARK: for C-compilation replace (...) with (void) */
+#else
+	g_native_timer_active = 1;
 #endif
 }
 
@@ -74,6 +81,8 @@ void set_timer(void)
 {
 #if defined(__BORLANDC__)
 	setvect(8, (void interrupt far(*)(...))timer_isr);
+#else
+	g_native_timer_active = 1;
 #endif
 }
 
@@ -81,6 +90,8 @@ void reset_timer(void)
 {
 #if defined(__BORLANDC__)
 	setvect(8, (void interrupt far(*)(...))g_bc_timer);
+#else
+	g_native_timer_active = 0;
 #endif
 }
 
@@ -157,6 +168,10 @@ void init_ani_busy_loop(const signed int v1)
 		 * enter emulation mode frequently, that the timer can reset this variable
 		wait_for_vsync();
 		 * */
+#if !defined(__BORLANDC__)
+		/* nativ: hier läuft die Timer-Emulation, die g_ani_busy zurücksetzt */
+		wait_for_vsync();
+#endif
 	 }
 }
 
@@ -195,6 +210,10 @@ void clear_ani(void)
 
 #if defined(__BORLANDC__)
 void interrupt timer_isr(void)
+#else
+/* nativ: wird von der Timer-Emulation (seg002.cpp) mit 18,2 Hz aufgerufen */
+void timer_isr(void)
+#endif
 {
 	signed int i;
 	signed int areacount;
@@ -217,7 +236,9 @@ void interrupt timer_isr(void)
 		g_mouse1_event2 = 0;
 	}
 
+#if defined(__BORLANDC__)
 	start_midi_playback_IRQ();
+#endif
 
 	if (g_delay_timer) {
 		g_delay_timer--;
@@ -240,8 +261,10 @@ void interrupt timer_isr(void)
 
 	if (g_ani_enabled) {
 
+#if defined(__BORLANDC__)
 		/* disable interrupts */
 		asm { cli; }
+#endif
 
 		g_pic_copy_rect.y1 = g_ani_posy;
 		g_pic_copy_rect.x1 = g_ani_posx;
@@ -326,14 +349,19 @@ void interrupt timer_isr(void)
 		g_pic_copy_rect.y2 = 200 - 1;
 		g_pic_copy_rect.x2 = 320 - 1;
 
+#if defined(__BORLANDC__)
 		/* enable interrupts */
 		asm { sti; }
+#endif
 	}
 
+#if defined(__BORLANDC__)
 	/* call the old timer ISR */
 	((void interrupt far(*)(...))g_bc_timer)();
+#endif
 }
 
+#if defined(__BORLANDC__)
 static void unused_gfx_spinlock(void)
 {
 	int32_t v = g_gfx_spinlock;
