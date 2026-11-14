@@ -1898,9 +1898,16 @@ static int sdl_event_loop(const int cmd)
 			if (cmd == 1) {
 				// check if a key was pressed
 				int pressed = (event.type == SDL_KEYDOWN) ? 1 : 0;
-				SDL_Delay(10);
 				//fprintf(stdout, "%s(%d) = %d %d\n", __func__, cmd, pressed, key_cnt);
-				SDL_PushEvent(&event);
+				/* Taste wieder VORNE in die Warteschlange setzen. SDL_PushEvent()
+				 * hängt hinten an; bei mehreren wartenden Tasten änderte sich
+				 * dadurch die Reihenfolge (z.B. "vor, rechts" -> "rechts, vor"). */
+				{
+					SDL_Event rest[128];
+					const int n = SDL_PeepEvents(rest, 128, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT);
+					SDL_PeepEvents(&event, 1, SDL_ADDEVENT, 0, 0);
+					if (n > 0) SDL_PeepEvents(rest, n, SDL_ADDEVENT, 0, 0);
+				}
 				return pressed;
 			} else {
 

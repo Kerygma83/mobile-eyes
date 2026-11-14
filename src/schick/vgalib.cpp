@@ -294,11 +294,21 @@ void sdl_update_rect_window(const int x_in, const int y_in, const int width_in, 
 	}
 }
 
-void sdl_forced_update(void)
+static void sdl_forced_update_now(void)
 {
 	forced_update = 1;
 	sdl_update_rect_window(0, 0, O_WIDTH, O_HEIGHT);
 	forced_update = 0;
+}
+
+void sdl_forced_update(void)
+{
+#if defined(__EMSCRIPTEN__)
+	/* Browser: nicht sofort anzeigen (wird nach jedem Bildstück aufgerufen),
+	 * sondern gesammelt in sdl_present_if_changed(). */
+#else
+	sdl_forced_update_now();
+#endif
 }
 
 /**
@@ -322,7 +332,7 @@ void sdl_present_if_changed(void)
 	{
 		memcpy(shown_vga, g_vga_memstart, sizeof(shown_vga));
 		memcpy(shown_pal, palette, sizeof(shown_pal));
-		sdl_forced_update();
+		sdl_forced_update_now();
 	}
 }
 
