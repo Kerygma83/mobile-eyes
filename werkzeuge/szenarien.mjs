@@ -52,7 +52,9 @@ function heldenAufnehmen(n, bild) {
 	const schritte = [{ tipp: ['Aktionen', 252, 69] }, { warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 }];
 	if (bild) schritte.push({ bild });
 	for (let i = 1; i <= n; i++) {
-		schritte.push({ wahl: 1 }, { warteAuf: `z.helden == ${i} && z.ov == 1`, max: 3000 }, { warte: 300 });
+		schritte.push({ wahl: 1 }, { warteAuf: `z.helden == ${i} && z.ov == 1`, max: 3000 }, { warte: 300 },
+			// gemeldet (iOS): beim erneuten Öffnen der Liste stand die Box des Spiels hinter dem Overlay
+			{ erwarte: 'z.ansichtAktuell == 0', text: `Liste nach Held ${i}: Ansicht festgehalten, ohne Box des Spiels` });
 	}
 	schritte.push({ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 });
 	return schritte;
@@ -91,7 +93,7 @@ export const szenarien = [
 	},
 	{
 		name: 'Helden aufnehmen',
-		schritte: [...spielBereit, ...heldenAufnehmen(3, 'heldenliste'), { erwarte: 'z.helden == 3' }],
+		schritte: [...spielBereit, ...heldenAufnehmen(5, 'heldenliste'), { erwarte: 'z.helden == 5' }],
 	},
 	{
 		name: 'Heldentausch und Charakterbogen',

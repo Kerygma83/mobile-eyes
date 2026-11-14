@@ -80,7 +80,7 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 			// Ansicht zeigt dasselbe wie das aktuelle Spielbild? (0 = festgehalten, z. B. ohne die Box des Spiels)
 			const ans = document.querySelector('canvas[aria-label="Ansicht"]');
 			const a = ans.getContext('2d').getImageData(0, 0, 240, 136).data;
-			const g = ganz.getContext('2d').getImageData(0, 0, 240, 136).data;
+			const g = lebend.getContext('2d').getImageData(0, 0, 240, 136).data;   // aktuelles Spielbild
 			let gleich = 1;
 			for (let i = 0; i < a.length; i++) if (a[i] !== g[i]) { gleich = 0; break; }
 			z.ansichtAktuell = gleich;
@@ -89,7 +89,7 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 			for (let i = 0; i < g.length; i += 4) if (!g[i] && !g[i + 1] && !g[i + 2]) schwarz++;
 			z.schwarz = Math.round(schwarz / (240 * 136) * 100);
 			// weiße Pixel (Farbe des Mauszeigers) um die letzte Tippstelle in den Icons (306,124)
-			const um = ganz.getContext('2d').getImageData(296, 114, 24, 24).data;
+			const um = lebend.getContext('2d').getImageData(296, 114, 24, 24).data;
 			let weiss = 0;
 			for (let i = 0; i < um.length; i += 4) if (um[i] >= 235 && um[i + 1] >= 235 && um[i + 2] >= 235) weiss++;   // Zeiger: Farbe 0xff = 240,240,240
 			z.zeiger = weiss;

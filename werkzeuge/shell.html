@@ -249,10 +249,17 @@
 		ctx.imageSmoothingEnabled = false;
 		return { c, ctx, x, y, w, h };
 	});
+	// ganz: Quelle der Ausschnitte, bleibt bei offenem Overlay unverändert.
+	// lebend: immer das aktuelle Spielbild (Porträt im Overlay, Tests).
+	// Getrennt, weil Safari (iOS) drawImage aus einer Canvas verzögert ausführt und dann deren
+	// späteren Inhalt nimmt: die Box des Spiels erschien so trotz Festhalten in den Ausschnitten.
 	const ganz = document.createElement('canvas');
 	ganz.width = 320; ganz.height = 200;
 	const ganzCtx = ganz.getContext('2d');
 	const ganzBild = ganzCtx.createImageData(320, 200);
+	const lebend = document.createElement('canvas');
+	lebend.width = 320; lebend.height = 200;
+	const lebendCtx = lebend.getContext('2d');
 
 	// Antippen eines Ausschnitts -> Klick an der Originalkoordinate
 	for (const a of ausschnitte) {
@@ -278,7 +285,7 @@
 		const ziel = ganzBild.data;
 		ziel.set(quelle);
 		for (let i = 3; i < ziel.length; i += 4) ziel[i] = 255;
-		ganzCtx.putImageData(ganzBild, 0, 0);
+		lebendCtx.putImageData(ganzBild, 0, 0);
 
 		const haupt = Module._web_screen_mode?.() === 1;
 		if (!haupt) alleLoslassen();   // Meldung/Dialog: gehaltene Bewegung sofort beenden
@@ -288,6 +295,7 @@
 			if (dialoge.at(-1).bildPos) portraetZeichnen();
 			return;
 		}
+		ganzCtx.putImageData(ganzBild, 0, 0);
 		mobilEl.classList.toggle('vollbild', !haupt);
 		for (const a of ausschnitte) {
 			if (a.c.offsetParent === null) continue; // ausgeblendet
@@ -313,7 +321,7 @@
 
 	// Textboxen als Overlay (dialog.js); nach dem Schließen zeigt das nächste Bild des
 	// Spiels wieder alles (die Box ist dort schon entfernt)
-	const overlay = textboxOverlay(Module, { portraetQuelle: () => ganz, beimOeffnen: alleLoslassen });
+	const overlay = textboxOverlay(Module, { portraetQuelle: () => lebend, beimOeffnen: alleLoslassen });
 	const { dialoge, alsText, portraetZeichnen } = overlay;
 	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
 
