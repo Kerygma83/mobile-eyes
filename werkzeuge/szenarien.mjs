@@ -77,7 +77,9 @@ function wege(folge) {
 export const szenarien = [
 	{
 		name: 'Start im Tempel',
-		schritte: [...spielBereit, { erwarte: 'z.helden == 0 && z.stadt == 1', text: 'leere Gruppe in Thorwal' }],
+		schritte: [...spielBereit, { erwarte: 'z.helden == 0 && z.stadt == 1', text: 'leere Gruppe in Thorwal' },
+			// gemeldet (iOS): über der Ortszeile stand ein Streifen mit „versetzten Zeichen“ (Zeilen 136–138)
+			{ erwarte: 'z.ortRand == 0', text: 'Ortszeile beginnt mit ihrer Rahmenlinie' }],
 	},
 	{
 		// Start wie SCHICK.BAT: Logo-Intro (gen.html?intro im iframe, überspringbar), danach das Startmenü
@@ -478,7 +480,8 @@ export const szenarien = [
 			{ js: 'Module._web_test_talk(2, 15, 0)' },             // Kräuterhändler (talk_merchant)
 			{ warteAuf: 'z.ov == 1', max: 5000 },
 			{ bild: 'haendler' },
-			{ erwarte: 'z.ovN == 3 && /WILLKOMMEN IN MEINER BESCHEIDENEN/.test(z.ovText)', text: 'Begrüßung des Händlers mit drei Antworten' },
+			// Begrüßung ist eine von vier Varianten (Zufall): wörtliche Rede und drei Antworten
+			{ erwarte: 'z.ovN == 3 && /^<[A-ZÄÖÜ ,.!?]+>$/.test(z.ovText)', text: 'Begrüßung des Händlers mit drei Antworten' },
 			{ abbrechen: true },
 			{ warte: 1000 },
 			{ js: 'Module._web_test_talk(1, 6, 1)' },              // Hjore in Thorwal (do_talk)

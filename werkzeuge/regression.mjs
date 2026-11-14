@@ -90,6 +90,10 @@ for (const sz of auswahl) {
 			let gleich = 1;
 			for (let i = 0; i < a.length; i++) if (a[i] !== g[i]) { gleich = 0; break; }
 			z.ansichtAktuell = gleich;
+			// oberste Zeile der Ortszeile: dunkle Pixel zwischen x 3 und 299 (0 = durchgehende Rahmenlinie)
+			const oz = document.querySelector('canvas[aria-label="Ortszeile"]').getContext('2d').getImageData(3, 0, 297, 1).data;
+			z.ortRand = 0;
+			for (let i = 0; i < oz.length; i += 4) if (oz[i] < 40 && oz[i + 1] < 40 && oz[i + 2] < 40) z.ortRand++;
 			// Anteil rein schwarzer Pixel in der Ansicht (aktuelles Spielbild), in Prozent
 			let schwarz = 0;
 			for (let i = 0; i < g.length; i += 4) if (!g[i] && !g[i + 1] && !g[i + 2]) schwarz++;
