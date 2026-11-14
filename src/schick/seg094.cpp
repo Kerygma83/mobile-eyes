@@ -248,7 +248,12 @@ void set_textbox_positions(const signed int town_id)
 
 
 	x = g_current_town_anix = g_town_positions[town_id - 1].x;
+#if defined(__BORLANDC__)
 	y = g_current_town_aniy = *(signed int*)((uint8_t*)g_town_positions + 4 * (town_id - 1) + 2);
+#else
+	/* int ist nativ 32 Bit: der Zeigerzugriff las 2 Bytes der nächsten Stadt mit */
+	y = g_current_town_aniy = g_town_positions[town_id - 1].y;
+#endif
 
 	r_dx = (x >= 0 && x <= 159) ? (y >= 0 && y <= 99 ? 3 : 1) : (y >= 0 && y <= 99 ? 2 : 0);
 

@@ -1840,6 +1840,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_key(const int sym)
 }
 
 
+
 /* Rechtsklick (schließt Dialoge, bricht ab) für die Touch-Steuerleiste */
 extern "C" EMSCRIPTEN_KEEPALIVE void web_right_click(void)
 {
@@ -2330,6 +2331,8 @@ static void game_loop(void)
 	signed int answer;
 
 	while (g_game_state == GAME_STATE_MAIN) {
+#if defined(__EMSCRIPTEN__)
+#endif
 #if defined(__EMSCRIPTEN__)
 #endif
 
@@ -3655,6 +3658,13 @@ void update_travelmap(void)
 	p1 = g_buffer6_ptr + 2000;
 	p2 = g_buffer6_ptr + 2100;
 	p3 = g_buffer6_ptr + 1000;
+
+#if !defined(__BORLANDC__)
+	/* Die Funktion läuft im Timer-Interrupt und zeichnet auf den Bildschirm,
+	 * übernahm aber g_pic_copy.dst vom gerade unterbrochenen Code. Im Original
+	 * schrieb das dann still in fremden Speicher, nativ stürzt es ab. */
+	g_pic_copy.dst = g_vga_memstart;
+#endif
 
 	if (g_trv_menu_selection && gs_show_travel_map) {
 
