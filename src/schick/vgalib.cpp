@@ -24,7 +24,12 @@
 
 extern unsigned char *g_vga_memstart;
 
+#if defined(__EMSCRIPTEN__)
+/* Browser: in Originalgröße zeichnen, der Browser skaliert per CSS */
+enum { DEF_RATIO = 1 };
+#else
 enum { DEF_RATIO = 4 };
+#endif
 static int RATIO = DEF_RATIO;
 static int W_WIDTH = DEF_RATIO * O_WIDTH;
 static int W_HEIGHT = DEF_RATIO * O_HEIGHT;
@@ -121,7 +126,11 @@ void sdl_init_video(void)
 	renderer = SDL_CreateRenderer(
 		window,
 		-1,
+#if defined(__EMSCRIPTEN__)
+		SDL_RENDERER_ACCELERATED
+#else
 		SDL_RENDERER_SOFTWARE
+#endif
 	);
 
 	texture = SDL_CreateTexture(
@@ -223,6 +232,12 @@ void sdl_update_rect_window(const int x_in, const int y_in, const int width_in, 
 {
 	calls++;
 	if (pixels == NULL) return;
+
+#if defined(__EMSCRIPTEN__)
+	/* Browser: nicht nach jedem Zeichen anzeigen, das übernimmt
+	 * sdl_present_if_changed() bei der nächsten Abgabe an den Browser. */
+	if (!forced_update) return;
+#endif
 
 
 

@@ -1824,6 +1824,33 @@ static void web_yield(void)
 }
 #endif
 
+#if defined(__EMSCRIPTEN__)
+/* Von der HTML-Oberfläche aufgerufen (Touch-Steuerleiste): Tastendruck einspeisen. */
+extern "C" EMSCRIPTEN_KEEPALIVE void web_key(const int sym)
+{
+	SDL_Event e;
+	memset(&e, 0, sizeof(e));
+	e.type = SDL_KEYDOWN;
+	e.key.state = SDL_PRESSED;
+	e.key.keysym.sym = sym;
+	SDL_PushEvent(&e);
+	e.type = SDL_KEYUP;
+	e.key.state = SDL_RELEASED;
+	SDL_PushEvent(&e);
+}
+
+/* Rechtsklick (schließt Dialoge, bricht ab) für die Touch-Steuerleiste */
+extern "C" EMSCRIPTEN_KEEPALIVE void web_right_click(void)
+{
+	SDL_Event e;
+	memset(&e, 0, sizeof(e));
+	e.type = SDL_MOUSEBUTTONDOWN;
+	e.button.button = 3;
+	e.button.state = SDL_PRESSED;
+	SDL_PushEvent(&e);
+}
+#endif
+
 static int sdl_event_loop(const int cmd)
 {
 	SDL_Event event;
