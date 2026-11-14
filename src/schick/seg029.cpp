@@ -236,7 +236,13 @@ void draw_status_line(void)
 			}
 
 			/* TODO: j < 4, otherwise g_diseases_healer_price gets invalidated */
+#if defined(__BORLANDC__)
 			for (j = 0; j < 6; j++) {
+#else
+			/* native: stay inside the row (the original overwrites the next hero's LE bars
+			 * and, for the last slot, whatever follows the array) */
+			for (j = 0; j < 4; j++) {
+#endif
 				g_char_status_bars[i][j] = -1;
 			}
 		}
