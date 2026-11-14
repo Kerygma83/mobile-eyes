@@ -35,6 +35,44 @@
 #include "seg096.h"
 #include "seg097.h"
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+
+/* Mobile Oberfläche: Textboxen zusätzlich als HTML-Overlay zeigen.
+ * Das Spiel zeichnet seine Box weiter selbst und bleibt für Eingabe, Zeitablauf
+ * und Ergebnis zuständig; die Seite schickt nur Tasten bzw. wählt einen Eintrag.
+ * Texte liegen roh im DOS-Zeichensatz vor und werden in JS umgesetzt; sie müssen
+ * vor GUI_count_lines() gelesen werden, das Zeilenumbrüche hineinschreibt.
+ *   art: 0 = Meldung, 1 = Eingabe (zeichen = Länge), 2 = Auswahl, 3 = Ja/Nein */
+EM_JS(void, web_dialog_auf, (int art, const char *name, const char *text, int n, const char **optionen,
+	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild), {
+	if (!Module.dialogAuf) return;
+	const s = (p) => {
+		if (!p) return null;
+		const b = [];
+		while (HEAPU8[p]) b.push(HEAPU8[p++]);
+		return b;
+	};
+	const opt = [];
+	for (let i = 0; i < n; i++) opt.push(s(HEAPU32[(optionen >> 2) + i]));
+	Module.dialogAuf({ art, name: s(name), text: s(text), optionen: opt, zeichen, vorwahl, hervor,
+		vorgabe: s(vorgabe), bild });
+});
+EM_JS(void, web_dialog_bild, (int x, int y), { Module.dialogBild?.(x, y); });
+EM_JS(void, web_dialog_zu, (void), { Module.dialogZu?.(); });
+
+extern "C" void web_key(const int sym);	/* seg002.cpp */
+
+/* Von der Seite: Eintrag n (1-basiert) der offenen Auswahl wählen */
+extern "C" EMSCRIPTEN_KEEPALIVE void web_menu_select(const int n)
+{
+	if (g_menu_input_busy && n >= 1) {
+		g_menu_selected = n;
+		web_key(13);
+	}
+}
+#endif
+
 static const struct struct_char_height g_gui_char_height[67] = {
 	{        ' ',  0, 8 },
 	{        'A',  1, 8 },
@@ -407,6 +445,11 @@ signed int GUI_input(char *str, const signed int digits)
 	if (!str || !(*str) || g_autofight != 0)
 		return -1;
 
+#if defined(__EMSCRIPTEN__)
+	web_dialog_auf(digits ? 1 : 0, NULL, str, 0, NULL, digits, 0, -1,
+		(digits && g_gui_entering_savegame) ? g_text_input_buf : NULL, 0);
+#endif
+
 	l6 = g_wallclock_update;
 	g_wallclock_update = 0;
 	g_dialogbox_lock = 1;
@@ -483,6 +526,9 @@ signed int GUI_input(char *str, const signed int digits)
 	g_gui_text_centered = 0;
 	g_update_statusline = usl_bak;
 
+#if defined(__EMSCRIPTEN__)
+	web_dialog_zu();
+#endif
 	return retval;
 }
 
@@ -559,6 +605,17 @@ signed int GUI_dialogbox(uint8_t* picture, char *name, char *text, signed int op
 	usl_bak = g_update_statusline;
 	g_update_statusline = 0;
 
+#if defined(__EMSCRIPTEN__)
+	{
+		const char *opt[20];
+		const signed int n = ((signed char)options > 20) ? 20 : (signed char)options;
+		va_start(arguments, options);
+		for (i = 0; i < n; i++) opt[i] = va_arg(arguments, char*);
+		va_end(arguments);
+		web_dialog_auf(n ? 2 : 0, name, text, n, opt, 0, g_menu_default_select, -1, NULL, picture != 0);
+	}
+#endif
+
 	disable_ani();
 
 	wc_bak = g_wallclock_update;
@@ -610,6 +667,9 @@ signed int GUI_dialogbox(uint8_t* picture, char *name, char *text, signed int op
 		g_pic_copy.src = picture;
 
 		do_pic_copy(0);
+#if defined(__EMSCRIPTEN__)
+		web_dialog_bild(g_textbox_pos_x + 6, g_textbox_pos_y + 7);
+#endif
 	}
 
 	if (name) {
@@ -668,6 +728,9 @@ signed int GUI_dialogbox(uint8_t* picture, char *name, char *text, signed int op
 	if (ani_bak != 0)
 		init_ani(2);
 
+#if defined(__EMSCRIPTEN__)
+	web_dialog_zu();
+#endif
 	return retval;
 }
 
@@ -817,6 +880,18 @@ signed int GUI_radio(char *header, const signed int options, ...)
 		return 0;
 	}
 
+#if defined(__EMSCRIPTEN__)
+	{
+		const char *opt[20];
+		const signed int n = (options > 20) ? 20 : options;
+		va_start(arguments, options);
+		for (i = 0; i < n; i++) opt[i] = va_arg(arguments, char*);
+		va_end(arguments);
+		web_dialog_auf(g_gui_bool_flag ? 3 : 2, NULL, header, n, opt, 0, g_menu_default_select,
+			(g_game_mode == GAME_MODE_BEGINNER) ? g_talented_hero_pos : -1, NULL, 0);
+	}
+#endif
+
 	g_dialogbox_lock = 1;
 	x_bak = g_textline_posx;
 	y_bak = g_textline_posy;
@@ -874,6 +949,9 @@ signed int GUI_radio(char *header, const signed int options, ...)
 	g_action = g_dialogbox_lock = 0;
 	g_update_statusline = usl_bak;
 
+#if defined(__EMSCRIPTEN__)
+	web_dialog_zu();
+#endif
 	return retval;
 }
 
