@@ -1,0 +1,25 @@
+# Mobile Eyes – Hinweise für Claude
+
+Die Schicksalsklinge (DSA 1) als Web-App. Spiellogik aus BrightEyes (`BrightEyes/`, Untermodul), übersetzt mit Emscripten; mobile Oberfläche in `werkzeuge/shell.html`. Plan: `docs/stufenplan.md`.
+
+## Regeln
+
+- **Spieldaten nie einchecken oder ausliefern.** `spieldaten/`, `spiel/`, `build/` sind ignoriert. Builds mit `SPIELDATEN=1` nur im LAN (Port 8180).
+- Auf dem Host gibt es keinen Compiler: alles über `./werkzeug.sh …` (Image `schick-werkzeug`, emsdk + g++/SDL2). Browser-Tests im Playwright-Image über `werkzeuge/test.sh`.
+- Änderungen an BrightEyes im Untermodul, Branch `web` (Remote-Branch `brighteyes-web`), je Korrektur ein Commit mit Begründung. Upstream-Remote heißt `henne`.
+- Abweichungen vom DOS-Original nur nativ: `#if !defined(__BORLANDC__)`; der Borland-Build muss unverändert bleiben. Web-Spezifisches unter `#if defined(__EMSCRIPTEN__)`.
+- Neue Fehlerklasse gefunden → im ganzen Code nach demselben Muster suchen.
+- Test-Auslöser (z. B. Kampf starten) nur vorübergehend und mit `/* TESTHOOK */` markiert; vor dem Commit entfernen.
+
+## Typische Fehler im nativen Port
+
+- **Warteschleifen auf Interrupt-Variablen:** Das Original ließ Maus (`mouse_isr`) und Timer (`timer_isr`, 18,2 Hz) per Interrupt laufen. Nativ werden beide in `sdl_event_loop()` nachgebildet (`sdl_timer_emulation`, `sdl_wait_vsync`). Schleifen ohne Eingabeabfrage hängen → `wait_for_vsync()` einbauen (oft als „SPEEDFIX“ auskommentiert).
+- **16 vs. 32 Bit:** `int` war 16 Bit. Zeigerzugriffe wie `*(signed int*)` auf Spieldaten lesen nativ zu viel.
+- **Unsichtbare Meldungen:** `GUI_output` wartet auf Eingabe; Fehlermeldungen beim Start blockieren sonst den ersten Klick.
+- **Browser blockiert:** Jede Schleife muss irgendwann `sdl_event_loop()` erreichen (dort gibt `web_yield` an den Browser ab).
+
+## Nützlich
+
+- Bildbereiche des Hauptbildschirms (320×200): Ansicht 0–239/0–135, Icons 241–318/57–134, Ortszeile y 136–156, Porträts y 157–199 (`g_action_table_playmask` in `datseg.cpp`).
+- Schnittstellen Seite ↔ Spiel: `web_key`, `web_right_click`, `web_click`, `web_screen_mode`, `Module.onFrame`.
+- Fehlersuche: `PROFIL=1` beim Build behält Funktionsnamen (Stacktraces, CPU-Profile mit `werkzeuge/profil-auswerten.mjs`).

@@ -1,0 +1,11 @@
+# Testbereitstellung im Heimnetz. build/web enthält bei SPIELDATEN=1 die GOG-Daten:
+# nur im LAN betreiben, nicht ins Internet freigeben.
+services:
+  web:
+    image: nginx:1.29-alpine
+    restart: unless-stopped
+    ports:
+      - "8180:80"
+    volumes:
+      - ./build/web:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro

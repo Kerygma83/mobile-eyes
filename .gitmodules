@@ -1,0 +1,4 @@
+[submodule "BrightEyes"]
+	path = BrightEyes
+	url = ../mobile-eyes.git
+	branch = brighteyes-web

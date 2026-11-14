@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#14110f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Schicksalsklinge</title>
+<style>
+	:root {
+		--bg: #14110f;
+		--panel: #221d19;
+		--knopf: #3a312a;
+		--knopf-aktiv: #6b5636;
+		--rand: #5a4a3a;
+		--text: #e8dcc8;
+		--leise: #a39480;
+		--gold: #c9a45c;
+		--leiste: 13.5rem;
+	}
+	* { box-sizing: border-box; }
+	html, body {
+		margin: 0; height: 100%;
+		background: var(--bg); color: var(--text);
+		font: 16px/1.3 system-ui, sans-serif;
+		overscroll-behavior: none;
+		-webkit-user-select: none; user-select: none;
+		-webkit-touch-callout: none;
+	}
+	body {
+		display: flex; flex-direction: column;
+		height: 100dvh;
+		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+	}
+	canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; touch-action: none; outline: none; }
+	#status {
+		position: fixed; inset: 0; z-index: 5;
+		display: flex; align-items: center; justify-content: center;
+		color: var(--leise); font-size: 0.95rem; text-align: center; padding: 1rem;
+		pointer-events: none;
+	}
+
+	/* ---------- Layout „Original“: das ganze 320x200-Bild ---------- */
+	#buehne {
+		flex: 1; min-height: 0;
+		display: flex; align-items: center; justify-content: center;
+	}
+	#bild {
+		aspect-ratio: 4 / 3;
+		width: min(100%, calc((100dvh - var(--leiste) - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 4 / 3));
+		background: #000;
+	}
+	#canvas { width: 100%; height: 100%; }
+	body.mobil #buehne { display: none; }
+	/* SDL braucht die Canvas weiterhin, im mobilen Layout unsichtbar */
+	body.mobil #canvas { position: absolute; left: 0; top: 0; width: 1px; height: 1px; visibility: hidden; }
+	body.mobil #canvas-halter { position: absolute; }
+
+	/* ---------- Layout „Mobil“: Ausschnitte frei angeordnet ---------- */
+	#mobil { display: none; flex: 1; min-height: 0; flex-direction: column; gap: 3px; overflow: hidden; }
+	body.mobil #mobil { display: flex; }
+	/* DOS-Pixel sind 1,2-mal so hoch wie breit */
+	canvas.aus { width: 100%; height: auto; background: #000; }
+	#mobil .voll { display: none; }
+	#mobil.vollbild .teil { display: none; }
+	#mobil.vollbild .voll { display: block; }
+
+	/* ---------- Steuerleiste ---------- */
+	#leiste {
+		display: flex; align-items: center; justify-content: center; gap: 1rem;
+		padding: 0.6rem 0.8rem;
+		background: var(--panel);
+		border-top: 1px solid var(--rand);
+	}
+	body:not(.mobil) #leiste { height: var(--leiste); }
+	#icons-halter { width: 9.5rem; flex: none; }
+	#mobil.vollbild ~ #leiste #icons-halter { display: none; }
+	body:not(.mobil) #icons-halter { display: none; }
+	#icons { border: 1px solid var(--rand); border-radius: 0.4rem; }
+	.rechts { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+	.kreuz {
+		display: grid; gap: 0.35rem;
+		grid-template-columns: repeat(3, 3.3rem);
+		grid-template-rows: repeat(2, 3.3rem);
+	}
+	.aktionen { display: flex; flex-wrap: wrap; gap: 0.35rem; justify-content: center; max-width: 11rem; }
+	button {
+		font: inherit; color: var(--text);
+		background: var(--knopf);
+		border: 1px solid var(--rand); border-radius: 0.6rem;
+		touch-action: none;
+		-webkit-tap-highlight-color: transparent;
+		display: flex; align-items: center; justify-content: center;
+		padding: 0;
+	}
+	button.aktiv { background: var(--knopf-aktiv); border-color: var(--gold); }
+	.kreuz button { font-size: 1.5rem; }
+	.kreuz .leer { visibility: hidden; }
+	.aktionen button { font-size: 0.85rem; height: 2.3rem; padding: 0 0.7rem; }
+	button svg { width: 1.5rem; height: 1.5rem; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+	/* Querformat im Original-Layout: Leiste rechts */
+	@media (orientation: landscape) and (max-height: 600px) {
+		body:not(.mobil) { flex-direction: row; }
+		body:not(.mobil) #bild { width: min(100%, calc(100dvh * 4 / 3)); }
+		body:not(.mobil) #leiste { height: auto; width: 15rem; flex-direction: column; border-top: 0; border-left: 1px solid var(--rand); }
+	}
+</style>
+</head>
+<body class="mobil">
+<div id="status">Lade …</div>
+
+<!-- Original: SDL zeichnet hierhin -->
+<div id="buehne">
+	<div id="bild">
+		<canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
+	</div>
+</div>
+
+<!-- Mobil: Ausschnitte aus dem 320x200-Bild (x, y, Breite, Höhe) -->
+<div id="mobil">
+	<canvas class="aus teil" data-aus="0,0,240,136" aria-label="Ansicht"></canvas>
+	<canvas class="aus teil" data-aus="0,136,320,21" aria-label="Ortszeile"></canvas>
+	<canvas class="aus teil" data-aus="0,157,320,43" aria-label="Gruppe"></canvas>
+	<canvas class="aus voll" data-aus="0,0,320,200" aria-label="Bildschirm"></canvas>
+</div>
+
+<div id="leiste">
+	<div id="icons-halter">
+		<canvas id="icons" class="aus" data-aus="241,57,78,78" aria-label="Aktionen"></canvas>
+	</div>
+	<div class="rechts">
+		<div class="kreuz" aria-label="Bewegung">
+			<button data-key="left" data-wdh aria-label="Links drehen" title="Links drehen (←)">
+				<svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+			</button>
+			<button data-key="up" data-wdh aria-label="Vorwärts" title="Vorwärts (↑)">
+				<svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+			</button>
+			<button data-key="right" data-wdh aria-label="Rechts drehen" title="Rechts drehen (→)">
+				<svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+			</button>
+			<span class="leer"></span>
+			<button data-key="down" data-wdh aria-label="Umdrehen / zurück" title="Zurück (↓)">
+				<svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+			</button>
+			<span class="leer"></span>
+		</div>
+		<div class="aktionen" aria-label="Aktionen">
+			<button data-key="enter" title="Bestätigen (Enter)">OK</button>
+			<button data-key="rechtsklick" title="Abbrechen / Dialog schließen / Menü (Rechtsklick)">Zurück</button>
+			<button data-key="j" title="Ja (J)">Ja</button>
+			<button data-key="n" title="Nein (N)">Nein</button>
+			<button id="layout" title="Zwischen mobilem und originalem Layout wechseln">Layout</button>
+			<button id="vollbild" title="Vollbild">Vollbild</button>
+		</div>
+	</div>
+</div>
+
+<script>
+	// SDL-Tastencodes, die das Spiel in sdl_event_loop() auswertet
+	const TASTEN = {
+		up: 0x40000052, down: 0x40000051, left: 0x40000050, right: 0x4000004F,
+		enter: 13, esc: 27, j: 106, n: 110,
+	};
+	const statusEl = document.getElementById('status');
+	const mobilEl = document.getElementById('mobil');
+
+	// ---------- Ausschnitte ----------
+	const ausschnitte = [...document.querySelectorAll('canvas.aus')].map((c) => {
+		const [x, y, w, h] = c.dataset.aus.split(',').map(Number);
+		c.width = w; c.height = h;
+		c.style.aspectRatio = `${w} / ${h * 1.2}`;
+		const ctx = c.getContext('2d');
+		ctx.imageSmoothingEnabled = false;
+		return { c, ctx, x, y, w, h };
+	});
+	const ganz = document.createElement('canvas');
+	ganz.width = 320; ganz.height = 200;
+	const ganzCtx = ganz.getContext('2d');
+	const ganzBild = ganzCtx.createImageData(320, 200);
+
+	// Antippen eines Ausschnitts -> Klick an der Originalkoordinate
+	for (const a of ausschnitte) {
+		a.c.addEventListener('pointerdown', (e) => {
+			e.preventDefault();
+			const r = a.c.getBoundingClientRect();
+			const x = Math.floor(a.x + (e.clientX - r.left) / r.width * a.w);
+			const y = Math.floor(a.y + (e.clientY - r.top) / r.height * a.h);
+			Module._web_click?.(Math.min(319, x), Math.min(199, y), e.button === 2 ? 3 : 1);
+		});
+		a.c.addEventListener('contextmenu', (e) => e.preventDefault());
+	}
+
+	// vom Spiel nach jedem geänderten Bild aufgerufen (RGBA, Alpha 0)
+	function neuesBild(heap, ptr, w, h) {
+		if (w !== 320 || h !== 200) return;
+		const quelle = heap.subarray(ptr, ptr + w * h * 4);
+		const ziel = ganzBild.data;
+		ziel.set(quelle);
+		for (let i = 3; i < ziel.length; i += 4) ziel[i] = 255;
+		ganzCtx.putImageData(ganzBild, 0, 0);
+
+		const haupt = Module._web_screen_mode?.() === 1;
+		mobilEl.classList.toggle('vollbild', !haupt);
+		for (const a of ausschnitte) {
+			if (a.c.offsetParent === null) continue; // ausgeblendet
+			a.ctx.drawImage(ganz, a.x, a.y, a.w, a.h, 0, 0, a.w, a.h);
+		}
+	}
+
+	var Module = {
+		canvas: document.getElementById('canvas'),
+		print: (t) => console.log(t),
+		printErr: (t) => console.warn(t),
+		setStatus: (t) => {
+			statusEl.textContent = t;
+			statusEl.style.display = t ? 'flex' : 'none';
+		},
+		onRuntimeInitialized: () => { statusEl.style.display = 'none'; },
+		onFrame: neuesBild,
+	};
+	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
+
+	function taste(name) {
+		if (name === 'rechtsklick') { Module._web_right_click?.(); return; }
+		if (Module._web_key) Module._web_key(TASTEN[name]);
+	}
+
+	// Knöpfe: sofort beim Antippen auslösen, Bewegung beim Halten wiederholen
+	for (const b of document.querySelectorAll('button[data-key]')) {
+		let wdh = null;
+		const ende = () => {
+			b.classList.remove('aktiv');
+			clearTimeout(wdh); clearInterval(wdh); wdh = null;
+		};
+		b.addEventListener('pointerdown', (e) => {
+			e.preventDefault();
+			b.setPointerCapture(e.pointerId);
+			b.classList.add('aktiv');
+			taste(b.dataset.key);
+			if (b.hasAttribute('data-wdh')) {
+				wdh = setTimeout(() => { wdh = setInterval(() => taste(b.dataset.key), 220); }, 380);
+			}
+		});
+		b.addEventListener('pointerup', ende);
+		b.addEventListener('pointercancel', ende);
+		b.addEventListener('contextmenu', (e) => e.preventDefault());
+	}
+
+	// Layout umschalten (wird im Browser gemerkt)
+	function setzeLayout(mobil) {
+		document.body.classList.toggle('mobil', mobil);
+		try { localStorage.setItem('layout', mobil ? 'mobil' : 'original'); } catch (e) {}
+	}
+	try { if (localStorage.getItem('layout') === 'original') setzeLayout(false); } catch (e) {}
+	document.getElementById('layout').addEventListener('click', () => setzeLayout(!document.body.classList.contains('mobil')));
+
+	document.getElementById('vollbild').addEventListener('click', () => {
+		if (document.fullscreenElement) document.exitFullscreen();
+		else document.documentElement.requestFullscreen?.().catch(() => {});
+	});
+</script>
+{{{ SCRIPT }}}
+</body>
+</html>

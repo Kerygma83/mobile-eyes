@@ -1,0 +1,7 @@
+# Spieldaten (GOG) – urheberrechtlich geschützt, niemals einchecken
+spieldaten/
+spiel/
+
+# Build-Ausgaben und Testergebnisse
+build/
+*.log
