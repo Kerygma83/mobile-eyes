@@ -1888,6 +1888,10 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_test_no_city_events(const int an) { g_w
 
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_fight(const int fight_id) { g_web_test_fight = fight_id; }
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_sign(const int typeindex) { g_web_test_sign = typeindex; }
+/* Eingabefeld (GUI_input) mit n Stellen öffnen; Ergebnis in web_test_state() "eingabe" */
+static int g_web_test_input = 0;
+static int g_web_test_input_result = -2;
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_input(const int digits) { g_web_test_input = digits; }
 
 extern "C" int web_screen_mode(void);
 
@@ -1898,15 +1902,23 @@ extern "C" EMSCRIPTEN_KEEPALIVE const char* web_test_state(void)
 	snprintf(buf, sizeof(buf),
 		"{\"timer\":%d,\"stadt\":%d,\"ort\":%d,\"dungeon\":%d,\"x\":%d,\"y\":%d,"
 		"\"richtung\":%d,\"helden\":%d,\"kampf\":%d,\"dialog\":%d,\"menue\":%d,"
-		"\"karte\":%d,\"haupt\":%d,\"spielzustand\":%d}",
+		"\"karte\":%d,\"haupt\":%d,\"spielzustand\":%d,\"eingabe\":%d}",
 		g_native_timer_active, gs_town_id, gs_town_loc_type, gs_dungeon_id, gs_x_target, gs_y_target,
 		gs_direction, gs_total_hero_counter, g_in_fight, g_dialogbox_lock, g_menu_input_busy,
-		gs_show_travel_map, web_screen_mode(), g_game_state);
+		gs_show_travel_map, web_screen_mode(), g_game_state, g_web_test_input_result);
 	return buf;
 }
 
 static void web_test_hooks(void)
 {
+	if (g_web_test_input) {
+		/* GUI_count_lines() schreibt in den Text, deshalb ein beschreibbarer Puffer */
+		static char text[80];
+		const int digits = g_web_test_input;
+		g_web_test_input = 0;
+		strcpy(text, "TESTEINGABE: WIEVIEL PROZENT (0-50)?");
+		g_web_test_input_result = GUI_input(text, digits);
+	}
 	if (g_web_test_sign) {
 		gs_town_loc_type = LOCTYPE_SIGNPOST;
 		gs_town_typeindex = g_web_test_sign;

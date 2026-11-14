@@ -44,7 +44,9 @@
  * und Ergebnis zuständig; die Seite schickt nur Tasten bzw. wählt einen Eintrag.
  * Texte liegen roh im DOS-Zeichensatz vor und werden in JS umgesetzt; sie müssen
  * vor GUI_count_lines() gelesen werden, das Zeilenumbrüche hineinschreibt.
- *   art: 0 = Meldung, 1 = Eingabe (zeichen = Länge), 2 = Auswahl, 3 = Ja/Nein */
+ *   art: 0 = Meldung, 1 = Texteingabe (zeichen = Länge), 2 = Auswahl, 3 = Ja/Nein,
+ *        4 = Zahleneingabe (alle Zahlenabfragen des Spiels haben höchstens 3 Stellen,
+ *            Texteingaben wie Spielstandnamen oder Rätsellösungen 8 und mehr) */
 EM_JS(void, web_dialog_auf_js, (int art, const char *name, const char *text, int n, const char **optionen,
 	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild), {
 	if (!Module.dialogAuf) return;
@@ -455,7 +457,7 @@ signed int GUI_input(char *str, const signed int digits)
 		return -1;
 
 #if defined(__EMSCRIPTEN__)
-	web_dialog_auf(digits ? 1 : 0, NULL, str, 0, NULL, digits, 0, -1,
+	web_dialog_auf(!digits ? 0 : (digits <= 3 && !g_gui_entering_savegame) ? 4 : 1, NULL, str, 0, NULL, digits, 0, -1,
 		(digits && g_gui_entering_savegame) ? g_text_input_buf : NULL, 0);
 #endif
 
