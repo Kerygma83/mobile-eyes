@@ -64,6 +64,19 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 			z.gOv = gd && !gd.hidden ? 1 : 0;
 			z.gText = z.gOv ? gd.querySelector('.text').textContent : '';
 			z.gN = z.gOv ? gd.querySelectorAll('.optionen button').length : 0;
+			// Prüfsumme des Bildes der Heldenerschaffung (Canvas), um eine sichtbare Box zu erkennen
+			z.gBild = 0;
+			if (z.gen) {
+				const gc = gen.querySelector('iframe').contentDocument?.getElementById('canvas');
+				if (gc) {
+					const t = document.createElement('canvas'); t.width = 320; t.height = 200;
+					const tc = t.getContext('2d'); tc.drawImage(gc, 0, 0, 320, 200);
+					const px = tc.getImageData(0, 0, 320, 200).data;
+					let h = 0;
+					for (let i = 0; i < px.length; i += 4) h = (h * 31 + px[i] + px[i + 1] * 7 + px[i + 2] * 13) | 0;
+					z.gBild = h;
+				}
+			}
 			// Ansicht zeigt dasselbe wie das aktuelle Spielbild? (0 = festgehalten, z. B. ohne die Box des Spiels)
 			const ans = document.querySelector('canvas[aria-label="Ansicht"]');
 			const a = ans.getContext('2d').getImageData(0, 0, 240, 136).data;
