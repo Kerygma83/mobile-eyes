@@ -8,6 +8,9 @@
 */
 #if !defined(__BORLANDC__)
 #include <SDL2/SDL.h>
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
 #endif
 
 #if defined(__linux__)
@@ -299,6 +302,10 @@ static void sdl_forced_update_now(void)
 	forced_update = 1;
 	sdl_update_rect_window(0, 0, O_WIDTH, O_HEIGHT);
 	forced_update = 0;
+#if defined(__EMSCRIPTEN__)
+	/* fertiges Bild (RGBA, Alpha 0) an die HTML-Oberfläche geben */
+	EM_ASM({ if (Module.onFrame) Module.onFrame(HEAPU8, $0, $1, $2); }, pixels, W_WIDTH, W_HEIGHT);
+#endif
 }
 
 void sdl_forced_update(void)

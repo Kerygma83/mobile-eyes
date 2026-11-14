@@ -1841,6 +1841,33 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_key(const int sym)
 
 
 
+/* Klick an eine Spielkoordinate (320x200), z.B. aus einem Bildausschnitt
+ * des mobilen Layouts. button: 1 = links, 3 = rechts */
+extern "C" EMSCRIPTEN_KEEPALIVE void web_click(const int x, const int y, const int button)
+{
+	SDL_Event e;
+	memset(&e, 0, sizeof(e));
+	e.type = SDL_MOUSEMOTION;
+	e.motion.x = x * sdl_get_ratio();
+	e.motion.y = y * sdl_get_ratio();
+	SDL_PushEvent(&e);
+	memset(&e, 0, sizeof(e));
+	e.type = SDL_MOUSEBUTTONDOWN;
+	e.button.button = button;
+	e.button.state = SDL_PRESSED;
+	e.button.x = x * sdl_get_ratio();
+	e.button.y = y * sdl_get_ratio();
+	SDL_PushEvent(&e);
+}
+
+/* Bildschirmart für das mobile Layout:
+ * 1 = Hauptbildschirm (Ansicht, Icons, Porträts) ohne offenen Dialog, 0 = sonst */
+extern "C" EMSCRIPTEN_KEEPALIVE int web_screen_mode(void)
+{
+	return (g_action_table_primary == &g_action_table_playmask[0]) &&
+		!g_dialogbox_lock && !g_in_fight && !gs_show_travel_map;
+}
+
 /* Rechtsklick (schließt Dialoge, bricht ab) für die Touch-Steuerleiste */
 extern "C" EMSCRIPTEN_KEEPALIVE void web_right_click(void)
 {
