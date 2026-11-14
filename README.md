@@ -55,6 +55,7 @@ Ergebnisse und Screenshots in `build/regression/`):
 ./pruefen.sh            # alles, ca. 3 Minuten
 ./pruefen.sh kampf      # nur Szenarien mit „kampf“ im Namen
 SCHNELL=1 ./pruefen.sh  # ohne nativen Build
+BROWSER=webkit ./pruefen.sh  # mit der Safari-Engine statt Chromium
 ```
 
 Einzelner Ad-hoc-Browsertest (Screenshots nach `build/screens/`):

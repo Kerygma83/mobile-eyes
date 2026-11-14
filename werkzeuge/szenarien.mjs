@@ -9,6 +9,8 @@
 //   { wahl: 2 } / { wahl: 'Text' }  Eintrag im Overlay antippen (Nummer ab 1 oder Textteil)
 //   { weiter: true }                 Meldung im Overlay antippen
 //   { eingabe: '12' }                Text im Overlay eingeben und bestätigen
+//   { schnellwahl: 20 }              Wert der Schnellwahl im Overlay antippen
+//   { tippen: '37' }                 ins Eingabefeld tippen (echte Tasten) und Enter
 //   { taste: 'n' }                   Tastendruck
 //   { js: 'Module._web_test_fight(213)' }
 //   { warte: ms }
@@ -163,6 +165,30 @@ export const szenarien = [
 			{ erwarte: 'z.x <= 9 && z.y == 7', text: 'mindestens drei Schritte beim Halten' },
 			{ warte: 1500 },
 			{ erwarte: 'z.x == m.danach.x', text: 'nach dem Loslassen stehen geblieben' },
+		],
+	},
+	{
+		// gemeldet: beim Feilschen ließ sich nichts eingeben (iOS, Prozentfeld mit 2 Stellen)
+		name: 'Eingabe: Zahl wählen, tippen, Text, abbrechen',
+		schritte: [
+			...spielBereit, ...ohneZufall, ...heldenAufnehmen(1), ...tempelVerlassen,
+			{ js: 'Module._web_test_input(2)' },
+			{ warteAuf: 'z.ov == 1 && z.dialog == 1', max: 3000 },
+			{ bild: 'zahl' },
+			{ schnellwahl: 20 },
+			{ warteAuf: 'z.eingabe == 20 && z.ov == 0', max: 3000 },
+			{ js: 'Module._web_test_input(2)' },
+			{ warteAuf: 'z.ov == 1', max: 3000 },
+			{ tippen: '37' },
+			{ warteAuf: 'z.eingabe == 37 && z.ov == 0', max: 3000 },
+			{ js: 'Module._web_test_input(10)' },
+			{ warteAuf: 'z.ov == 1', max: 3000 },
+			{ tippen: '123' },
+			{ warteAuf: 'z.eingabe == 123 && z.ov == 0', max: 3000 },
+			{ js: 'Module._web_test_input(2)' },
+			{ warteAuf: 'z.ov == 1', max: 3000 },
+			{ abbrechen: true },
+			{ warteAuf: 'z.eingabe == -1 && z.ov == 0 && z.haupt == 1', max: 3000 },
 		],
 	},
 	{

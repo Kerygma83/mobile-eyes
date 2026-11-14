@@ -4,7 +4,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 import { szenarien } from './szenarien.mjs';
 
 const wurzel = process.env.WURZEL || '/app/build/web-test';
@@ -23,7 +23,8 @@ const server = http.createServer((req, res) => {
 	});
 }).listen(8080);
 
-const browser = await chromium.launch();
+// BROWSER=webkit: Safari-Engine (iOS-Verhalten), Standard Chromium
+const browser = await (process.env.BROWSER === 'webkit' ? webkit : chromium).launch();
 const ergebnisse = [];
 
 /** führt fn aus, scheitert nach ms mit „Seite blockiert“ */
@@ -102,6 +103,19 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 				// Eintrag im Overlay: Nummer (1-basiert) oder Textteil
 				const opt = page.locator('#dialog .optionen button');
 				await (typeof s.wahl === 'number' ? opt.nth(s.wahl - 1) : opt.filter({ hasText: s.wahl }).first()).tap();
+				await page.waitForTimeout(250);
+			}
+			if (s.schnellwahl !== undefined) {
+				await page.locator('#dialog .schnellwahl button').filter({ hasText: new RegExp(`^${s.schnellwahl}$`) }).tap();
+				await page.waitForTimeout(250);
+			}
+			if (s.tippen !== undefined) {
+				// echte Tastendrücke ins Feld (prüft, dass SDL sie nicht abfängt), dann Enter
+				await page.locator('#dialog input').tap();
+				await page.keyboard.type(s.tippen, { delay: 40 });
+				const wert = await page.locator('#dialog input').inputValue();
+				if (wert !== s.tippen) throw new Error(`Eingabefeld enthält „${wert}“ statt „${s.tippen}“ (Tasten abgefangen?)`);
+				await page.keyboard.press('Enter');
 				await page.waitForTimeout(250);
 			}
 			if (s.abbrechen) { await page.locator('#dialog .abbrechen').tap(); await page.waitForTimeout(250); }

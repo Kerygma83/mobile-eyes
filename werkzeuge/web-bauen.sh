@@ -20,7 +20,7 @@ out=build/web
 if [ "${TESTHOOKS:-0}" = 1 ]; then
 	out=build/web-test
 	cflags+=(-DWEB_TESTHOOKS)
-	exports+=,_web_test_fight,_web_test_sign,_web_test_no_city_events,_web_test_state
+	exports+=,_web_test_fight,_web_test_sign,_web_test_no_city_events,_web_test_state,_web_test_input
 	runtime+=,UTF8ToString
 fi
 if [ "${PRUEF:-0}" = 1 ]; then
