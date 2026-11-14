@@ -73,6 +73,15 @@ for (const sz of szenarien.filter((s) => s.name.toLowerCase().includes(filter.to
 				await page.touchscreen.tap(x, y); await page.waitForTimeout(60); await page.touchscreen.tap(x, y);
 				await page.waitForTimeout(250);
 			}
+			if (s.halten) {
+				// Knopf drücken und nie loslassen (iOS Safari verliert das Loslassen bei Layoutwechsel)
+				await knopf(s.halten).dispatchEvent('pointerdown', { pointerId: 77, pointerType: 'touch', isPrimary: true, bubbles: true });
+				await page.waitForTimeout(250);
+			}
+			if (s.loslassen) {
+				await knopf(s.loslassen).dispatchEvent('pointerup', { pointerId: 77, pointerType: 'touch', isPrimary: true, bubbles: true });
+				await page.waitForTimeout(250);
+			}
 			if (s.knopf) { await knopf(s.knopf).tap(); await page.waitForTimeout(250); }
 			if (s.schnell) { for (const k of s.schnell) await knopf(k).tap(); }
 			if (s.taste) { await page.keyboard.press(s.taste); await page.waitForTimeout(250); }

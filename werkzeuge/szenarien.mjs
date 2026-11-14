@@ -32,11 +32,19 @@ function heldenAufnehmen(n) {
 	return schritte;
 }
 
+const ohneZufall = [{ js: 'Module._web_test_no_city_events(1)' }];
+
 const tempelVerlassen = [
 	{ tipp: ['Aktionen', 306, 124] },
 	{ warteAuf: `z.ort == 0 && z.stadt == ${THORWAL} && z.haupt == 1`, max: 5000 },
 	{ warte: 500 },
 ];
+
+/** Weg aus Buchstaben: V = vorwärts, L/R = drehen, Z = zurück; wartet nach jedem Schritt */
+function wege(folge) {
+	const name = { V: 'Vorwärts', L: 'Links drehen', R: 'Rechts drehen', Z: 'Umdrehen / zurück' };
+	return [...folge.replace(/\s+/g, '')].flatMap((c) => [{ knopf: name[c] }, { warte: 350 }]);
+}
 
 export const szenarien = [
 	{
@@ -108,6 +116,45 @@ export const szenarien = [
 			{ warte: 20000 },
 			{ bild: 'kampf' },
 			{ warteAuf: 'z.kampf == 0', max: 300000 },
+		],
+	},
+	{
+		// gemeldet auf iOS: nach der Meldung im Haus lief die Gruppe endlos weiter gegen das Haus
+		name: 'Haus mit Meldung betreten',
+		schritte: [
+			...spielBereit, ...ohneZufall, ...heldenAufnehmen(1), ...tempelVerlassen,
+			// Weg aus der Meldung, ab (9,9) mit Blick nach Süden → (2,6), Blick nach Westen
+			...wege('L VVV L VV L VVVVVVVVVV R V L'),
+			{ warteAuf: 'z.x == 2 && z.y == 6 && z.richtung == 3 && z.haupt == 1', max: 3000 },
+			{ merke: 'vorHaus' },
+			// Vorwärts gedrückt halten, ohne dass je ein Loslassen ankommt (wie auf iOS)
+			{ halten: 'Vorwärts' },
+			{ warteAuf: 'z.dialog == 1 && z.ort == 17', max: 5000 },   // Ottaskin: „werdet ihr abgewiesen“
+			{ warte: 2500 },
+			{ erwarte: 'z.dialog == 1', text: 'Meldung bleibt stehen (nicht von der Wiederholung weggeklickt)' },
+			{ knopf: 'OK' },
+			{ warteAuf: 'z.haupt == 1 && z.ort == 0', max: 5000 },
+			{ merke: 'zurueck' },
+			{ warte: 3000 },
+			{ erwarte: 'z.x == m.zurueck.x && z.y == m.zurueck.y && z.ort == 0', text: 'Gruppe bleibt auf der Straße stehen' },
+			{ bild: 'danach' },
+		],
+	},
+	{
+		name: 'Vorwärts halten läuft mehrere Schritte',
+		schritte: [
+			...spielBereit, ...ohneZufall, ...heldenAufnehmen(1), ...tempelVerlassen,
+			// freie Straße von (12,7) zehn Felder nach Westen
+			...wege('L VVV L VV L'),
+			{ warteAuf: 'z.x == 12 && z.y == 7 && z.richtung == 3 && z.haupt == 1', max: 3000 },
+			{ halten: 'Vorwärts' },
+			{ warte: 1500 },
+			{ loslassen: 'Vorwärts' },
+			{ warte: 600 },
+			{ merke: 'danach' },
+			{ erwarte: 'z.x <= 9 && z.y == 7', text: 'mindestens drei Schritte beim Halten' },
+			{ warte: 1500 },
+			{ erwarte: 'z.x == m.danach.x', text: 'nach dem Loslassen stehen geblieben' },
 		],
 	},
 	{

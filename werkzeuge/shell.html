@@ -203,6 +203,7 @@
 		ganzCtx.putImageData(ganzBild, 0, 0);
 
 		const haupt = Module._web_screen_mode?.() === 1;
+		if (!haupt) alleLoslassen();   // Meldung/Dialog: gehaltene Bewegung sofort beenden
 		mobilEl.classList.toggle('vollbild', !haupt);
 		for (const a of ausschnitte) {
 			if (a.c.offsetParent === null) continue; // ausgeblendet
@@ -228,24 +229,60 @@
 		if (Module._web_key) Module._web_key(TASTEN[name]);
 	}
 
-	// Knöpfe: sofort beim Antippen auslösen, Bewegung beim Halten wiederholen
+	// Knöpfe: sofort beim Antippen auslösen, Bewegung beim Halten wiederholen.
+	// Die Wiederholung muss sicher enden: iOS Safari meldet das Loslassen nicht
+	// zuverlässig, wenn sich währenddessen das Layout ändert (Meldung erscheint).
+	// Sonst läuft die Gruppe endlos weiter (z. B. immer wieder gegen ein Haus).
+	const MAX_WDH = 40;            // ca. 9 s Dauerlauf
+	const laufende = new Set();    // Enden-Funktionen der gerade gehaltenen Knöpfe
+	function alleLoslassen() { for (const ende of [...laufende]) ende(); }
+	function gruppe() {
+		const v = Module._web_party_state?.();
+		if (v === undefined) return null;
+		return { x: v & 0xff, y: (v >> 8) & 0xff, richtung: (v >> 16) & 3, ort: (v >> 18) & 0xff };
+	}
+	for (const typ of ['pointerup', 'pointercancel', 'touchend', 'touchcancel']) {
+		window.addEventListener(typ, alleLoslassen, true);
+	}
+	window.addEventListener('blur', alleLoslassen);   // nur das Fenster, nicht Elemente
+	document.addEventListener('visibilitychange', alleLoslassen);
+
 	for (const b of document.querySelectorAll('button[data-key]')) {
 		let wdh = null;
 		const ende = () => {
 			b.classList.remove('aktiv');
 			clearTimeout(wdh); clearInterval(wdh); wdh = null;
+			laufende.delete(ende);
 		};
 		b.addEventListener('pointerdown', (e) => {
 			e.preventDefault();
-			b.setPointerCapture(e.pointerId);
+			ende();
+			try { b.setPointerCapture(e.pointerId); } catch (_) { /* nicht überall möglich */ }
 			b.classList.add('aktiv');
 			taste(b.dataset.key);
 			if (b.hasAttribute('data-wdh')) {
-				wdh = setTimeout(() => { wdh = setInterval(() => taste(b.dataset.key), 220); }, 380);
+				laufende.add(ende);
+				const schritt = b.dataset.key === 'up' || b.dataset.key === 'down';
+				const start = gruppe();
+				let vorher = start;
+				let n = 0;
+				wdh = setTimeout(() => {
+					wdh = setInterval(() => {
+						// Nur weiterlaufen, solange das Spiel normal Schritte macht: Abbruch bei
+						// Dialog/Meldung, Ortswechsel, vom Spiel geänderter Richtung (z. B. aus
+						// einem Haus zurückgesetzt), Stillstand (Wand) und nach MAX_WDH Wiederholungen.
+						const jetzt = gruppe();
+						const abbruch = Module._web_screen_mode?.() !== 1 || ++n > MAX_WDH || !jetzt ||
+							jetzt.ort !== start.ort ||
+							(schritt && (jetzt.richtung !== start.richtung || (jetzt.x === vorher.x && jetzt.y === vorher.y)));
+						if (abbruch) { ende(); return; }
+						vorher = jetzt;
+						taste(b.dataset.key);
+					}, 220);
+				}, 380);
 			}
 		});
-		b.addEventListener('pointerup', ende);
-		b.addEventListener('pointercancel', ende);
+		b.addEventListener('lostpointercapture', ende);
 		b.addEventListener('contextmenu', (e) => e.preventDefault());
 	}
 

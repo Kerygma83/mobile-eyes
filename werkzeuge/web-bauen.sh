@@ -13,14 +13,14 @@ src=BrightEyes/src/schick
 
 cflags=(-O2 -fno-asm -Wno-register -Wno-unused-result -sUSE_SDL=2)
 lflags=()
-exports=_main,_web_key,_web_right_click,_web_click,_web_screen_mode
+exports=_main,_web_key,_web_right_click,_web_click,_web_screen_mode,_web_party_state
 runtime=FS,callMain
 out=build/web
 
 if [ "${TESTHOOKS:-0}" = 1 ]; then
 	out=build/web-test
 	cflags+=(-DWEB_TESTHOOKS)
-	exports+=,_web_test_fight,_web_test_sign,_web_test_state
+	exports+=,_web_test_fight,_web_test_sign,_web_test_no_city_events,_web_test_state
 	runtime+=,UTF8ToString
 fi
 if [ "${PRUEF:-0}" = 1 ]; then
