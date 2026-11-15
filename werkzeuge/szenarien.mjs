@@ -111,15 +111,19 @@ export const szenarien = [
 	},
 	{
 		// Textboxen in normaler Groß-/Kleinschreibung (schreibung.js, Wörterbuch aus den Spieldaten);
-		// der Knopf „Aa“ schaltet auf Großbuchstaben wie im Original und zurück
-		name: 'Schreibung: normal und wie im Original',
+		// die Einstellungen schalten auf Großbuchstaben wie im Original und zurück und ändern die Schriftgröße
+		name: 'Schreibung: normal und wie im Original, Schriftgröße',
 		schreibung: true,
 		schritte: [
 			{ warteAuf: 'z.ov == 1 && /Schwierigkeitsgrad/.test(z.ovText)', max: 20000 },
 			{ erwarte: '/^Wählen Sie den/.test(z.ovText)', text: 'Satzanfang groß, Anrede „Sie“, sonst klein' },
-			{ js: "document.getElementById('schreibung').click()" },
+			// das Overlay deckt die Leiste ab: Einstellungen über die Seite öffnen
+			{ js: "document.getElementById('einstellungen-knopf').click()" },
+			{ knopf: 'GROSS (Original)' }, { knopf: 'Schrift sehr groß' },
 			{ warteAuf: 'z.ov == 1 && /^WÄHLEN SIE DEN/.test(z.ovText)', max: 2000 },
-			{ js: "document.getElementById('schreibung').click()" },
+			{ warteAuf: "getComputedStyle(document.getElementById('dialog')).getPropertyValue('--schrift') == '1.3'", seite: true, max: 2000 },
+			{ bild: 'einstellungen' },
+			{ knopf: 'Normal' }, { knopf: 'Schrift normal' }, { knopf: 'Schließen' },
 			{ warteAuf: 'z.ov == 1 && /^Wählen Sie den/.test(z.ovText)', max: 2000 },
 			{ wahl: 1 },
 			{ warteAuf: 'z.ov == 1 && /gestartet/.test(z.ovText)', max: 3000 },
@@ -180,9 +184,9 @@ export const szenarien = [
 			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen,
 			{ warte: 800 },
 			{ merke: 'mobil' },
-			{ knopf: 'Layout' }, { warte: 800 },
+			{ knopf: 'Einstellungen' }, { knopf: 'Original' }, { knopf: 'Schließen' }, { warte: 800 },
 			{ merke: 'original' },
-			{ knopf: 'Layout' }, { warte: 800 },
+			{ knopf: 'Einstellungen' }, { knopf: 'Mobil' }, { knopf: 'Schließen' }, { warte: 800 },
 			{ merke: 'wieder' },
 			{ erwarte: 'm.original.zeiger > m.mobil.zeiger', text: 'im Original-Layout ist der Zeiger zu sehen' },
 			{ erwarte: 'm.wieder.zeiger == m.mobil.zeiger', text: 'zurück im mobilen Layout wieder verschwunden' },
@@ -317,7 +321,8 @@ export const szenarien = [
 			{ erwarte: 'z.x == m.gespeichert.x && z.y == m.gespeichert.y && z.ort == m.gespeichert.ort', text: 'Position wie beim Speichern' },
 			{ bild: 'geladen' },
 			// Export und Import als Datei
-			{ knopf: 'Spielstände' },
+			{ knopf: 'Einstellungen' },
+			{ knopf: 'Spielstände exportieren und importieren …' },
 			{ bild: 'verwaltung' },
 			{ exportiere: 'TEST', datei: 'KOPIE.GAM' },
 			{ importiere: 2, datei: 'KOPIE.GAM' },

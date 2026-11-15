@@ -16,7 +16,8 @@
 //         overlay.schreibungBereit (Promise: Wörterbuch geladen?)
 //
 // Schreibung (schreibung.js): mit schreibung.json (nur in Builds mit Spieldaten) erscheinen die
-// Texte in normaler Groß-/Kleinschreibung; localStorage 'schreibung' = 'original' schaltet ab.
+// Texte in normaler Groß-/Kleinschreibung; localStorage 'schreibung' = 'original' schaltet ab,
+// 'schriftgroesse' (Faktor, z. B. 1.15) vergrößert die Schrift.
 'use strict';
 
 function textboxOverlay(Module, optionen = {}) {
@@ -38,7 +39,7 @@ function textboxOverlay(Module, optionen = {}) {
 		background: var(--panel); color: var(--text);
 		border: 1px solid var(--rand); border-radius: 0.9rem;
 		box-shadow: 0 -0.3rem 1.5rem rgb(0 0 0 / 0.5);
-		font: 1.12rem/1.45 Georgia, 'Times New Roman', serif;
+		font: calc(1.12rem * var(--schrift, 1))/1.45 Georgia, 'Times New Roman', serif;
 		letter-spacing: 0.02em;
 	}
 	#dialog .kopf { display: flex; align-items: center; gap: 0.8rem; }
@@ -63,7 +64,7 @@ function textboxOverlay(Module, optionen = {}) {
 	#dialog .optionen button .zeile { flex: 1; }
 	/* lange Menüs (z. B. Kampf mit 13 Einträgen) kompakter */
 	#dialog.dicht .optionen { gap: 0.3rem; }
-	#dialog.dicht .optionen button { min-height: 2.5rem; padding: 0.3rem 0.9rem; font-size: 1.02rem; }
+	#dialog.dicht .optionen button { min-height: 2.5rem; padding: 0.3rem 0.9rem; font-size: calc(1.02rem * var(--schrift, 1)); }
 	#dialog .optionen button.vorwahl { border-color: var(--gold); }
 	#dialog .optionen button.hervor { color: var(--gold); }
 	#dialog .optionen button.frei { color: var(--leise); font-style: italic; }
@@ -200,6 +201,10 @@ function textboxOverlay(Module, optionen = {}) {
 			dialogEl.hidden = !d;
 			if (!d) return;
 			dialogEl.classList.toggle('gesendet', !!d.gesendet);
+			// Schriftgröße aus den Einstellungen (shell.html), Stufen 0.9–1.3
+			let schrift = 1;
+			try { schrift = Math.min(1.5, Math.max(0.7, +localStorage.getItem('schriftgroesse') || 1)); } catch (e) {}
+			dialogEl.style.setProperty('--schrift', schrift);
 			dialogEl.classList.toggle('janein', d.art === 3);
 			dialogEl.classList.toggle('dicht', d.optionen.length > 7);
 			dKopf.replaceChildren();
