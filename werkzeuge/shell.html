@@ -261,6 +261,13 @@
 			</div>
 		</section>
 		<section>
+			<h3>Autokampf</h3>
+			<div class="wahl" data-einstellung="autokampf" aria-label="Autokampf">
+				<button type="button" data-wert="normal">Normal</button>
+				<button type="button" data-wert="schnell">Schnell</button>
+			</div>
+		</section>
+		<section>
 			<h3>Würfelprotokoll</h3>
 			<div class="wahl" data-einstellung="wurflog" aria-label="Würfelprotokoll">
 				<button type="button" data-wert="an">Knopf zeigen</button>
@@ -423,6 +430,7 @@
 			statusEl.style.display = 'none';
 			zeigerSetzen(false);   // läuft vor main()
 			zeigerGesetzt = true;
+			autokampfSetzen();
 		},
 		onFrame: neuesBild,
 		onExit: () => Module.spielEnde(),   // exit() im Spiel (Strg+Q, Sieg)
@@ -700,9 +708,13 @@
 			setze: (v) => { merke('schriftgroesse', v); overlay.neuZeichnen(); } },
 		layout: { lies: () => document.body.classList.contains('mobil') ? 'mobil' : 'original',
 			setze: (v) => setzeLayout(v === 'mobil') },
+		// schnell: Autokampf ohne Animationen und Wartezeiten (seg005), Würfe stehen im Protokoll
+		autokampf: { lies: () => lies('autokampf') === 'schnell' ? 'schnell' : 'normal',
+			setze: (v) => { merke('autokampf', v); autokampfSetzen(); } },
 		wurflog: { lies: () => lies('wurflog') === 'aus' ? 'aus' : 'an',
 			setze: (v) => { merke('wurflog', v); wurflogKnopfZeigen(); } },
 	};
+	function autokampfSetzen() { Module._web_fast_autofight?.(einstellung.autokampf.lies() === 'schnell' ? 1 : 0); }
 	// Protokoll läuft immer mit; die Einstellung blendet nur den Knopf aus
 	const wurflogKnopfZeigen = () => { document.getElementById('wurflog-knopf').hidden = einstellung.wurflog.lies() === 'aus'; };
 	wurflogKnopfZeigen();

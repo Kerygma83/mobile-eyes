@@ -123,7 +123,7 @@ export const szenarien = [
 			{ warteAuf: 'z.ov == 1 && /^WÄHLEN SIE DEN/.test(z.ovText)', max: 2000 },
 			{ warteAuf: "getComputedStyle(document.getElementById('dialog')).getPropertyValue('--schrift') == '1.3'", seite: true, max: 2000 },
 			{ bild: 'einstellungen' },
-			{ knopf: 'Normal' }, { knopf: 'Schrift normal' }, { knopf: 'Schließen' },
+			{ js: "document.querySelector('[data-einstellung=schreibung] [data-wert=normal]').click()", seite: true }, { knopf: 'Schrift normal' }, { knopf: 'Schließen' },
 			{ warteAuf: 'z.ov == 1 && /^Wählen Sie den/.test(z.ovText)', max: 2000 },
 			{ wahl: 1 },
 			{ warteAuf: 'z.ov == 1 && /gestartet/.test(z.ovText)', max: 3000 },
@@ -234,6 +234,26 @@ export const szenarien = [
 			{ js: 'wurfLog.oeffnen()', seite: true },
 			{ warteAuf: "document.querySelectorAll('#wurflog .eintrag').length > 3", seite: true, max: 2000 },
 			{ bild: 'wurflog' },
+		],
+	},
+	{
+		// Einstellung „Autokampf: Schnell“ (seg005/seg032 fast_autofight): ohne Animationen und
+		// Wartezeiten; derselbe Kampf dauert normal rund 50 s
+		name: 'Schneller Autokampf',
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(3), ...tempelVerlassen,
+			{ knopf: 'Einstellungen' }, { knopf: 'Schnell' }, { knopf: 'Schließen' },
+			{ warteAuf: "localStorage.getItem('autokampf') === 'schnell'", seite: true, max: 2000 },
+			{ js: `Module._web_test_fight(${KAMPF_THOR8})` },   // startet in game_loop() ohne Schritt
+			{ warteAuf: 'z.kampf == 1 && z.menue == 1', max: 15000 },
+			{ warteAuf: 'z.ov == 1 && /WAS WILLST DU TUN/.test(z.ovText)', max: 3000 },
+			{ wahl: 'COMPUTERKAMPF' },
+			{ warteAuf: 'z.menue == 1 && z.ov == 1 && z.ovN == 2', max: 3000 },
+			{ wahl: 2 },
+			{ warte: 1000 },
+			{ bild: 'schnellkampf' },
+			{ warteAuf: 'z.kampf == 0', max: 15000 },   // gemessen rund 3 s
+			{ warteAuf: "wurfLog.alsText().some(([t, r, d]) => / greift .* an$/.test(t) && r)", seite: true, max: 2000 },
 		],
 	},
 	{
