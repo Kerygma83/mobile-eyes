@@ -1946,8 +1946,12 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_click(const int x, const int y, const i
  * 1 = Hauptbildschirm (Ansicht, Icons, Porträts) ohne offenen Dialog, 0 = sonst */
 extern "C" EMSCRIPTEN_KEEPALIVE int web_screen_mode(void)
 {
+	/* Sonderbildschirme (Infobildschirm, Tagebuch, Kartenteile) behalten die Aktionstabelle des
+	 * Hauptbildschirms, laden aber ein eigenes Bild. g_special_screen allein genügt nicht: es bleibt
+	 * nach manchen Bildschirmen stehen, bis die Ansicht neu gezeichnet ist (Automap: PLAYM_UK). */
 	return (g_action_table_primary == &g_action_table_playmask[0]) &&
-		!g_dialogbox_lock && !g_in_fight && !gs_show_travel_map;
+		!g_dialogbox_lock && !g_in_fight && !gs_show_travel_map &&
+		!(g_special_screen && g_pp20_index != ARCHIVE_FILE_PLAYM_UK);
 }
 
 /* Gruppe für die Steuerleiste (Wiederholung beim Halten):
