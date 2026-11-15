@@ -491,6 +491,15 @@ void FIG_do_round(void)
 			g_autofight = 0;
 		}
 
+#if !defined(__BORLANDC__)
+		/* schneller Autokampf: einmal je Aktionsphase warten, damit Eingaben ankommen
+		 * (Tippen beendet den Autokampf), das Bild erscheint und der Browser zum Zug kommt.
+		 * Ein Kampf hat leicht über hundert Phasen, mehr Pause zieht ihn spürbar in die Länge. */
+		if (fast_autofight()) {
+			wait_for_vsync();
+		}
+#endif
+
 		/* decide if heroes or enemies are next */
 		if (nr_action_phases_left_in_turn == 0) {
 

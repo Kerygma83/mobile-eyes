@@ -32,6 +32,9 @@
 #include "seg005.h"
 #include "seg006.h"
 #include "seg027.h"
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
 #include "seg032.h"
 #include "seg096.h"
 
@@ -67,6 +70,25 @@ static signed int g_figobj_unkn_y2_bak;		// ds:0xe2ca
 static signed int g_figobj_unkn_x2;		// ds:0xe2cc
 static signed int g_figobj_unkn_x2_bak;		// ds:0xe2ce
 signed int g_delay_timer;			// ds:0xe2d0
+
+#if !defined(__BORLANDC__)
+/* Schneller Autokampf (nur nativ, im Browser eine Einstellung): Kampflogik und Würfe
+ * bleiben unverändert, nur die Darstellung entfällt – keine Zwischenbilder der
+ * Animationen, keine Wartezeit je Bild (fight_delay) und je Meldung (g_fig_star_timer).
+ * Das Bild wird nach jeder Aktion einmal gezeigt (seg032 wartet dort kurz). */
+signed int g_fast_autofight = 0;
+
+signed int fast_autofight(void)
+{
+	return g_fast_autofight && g_autofight;
+}
+#endif
+#if defined(__EMSCRIPTEN__)
+extern "C" EMSCRIPTEN_KEEPALIVE void web_fast_autofight(int on)
+{
+	g_fast_autofight = on ? 1 : 0;
+}
+#endif
 
 /* static prototypes */
 static void set_delay_timer(void);
@@ -204,7 +226,11 @@ static signed int fight_printer(void)
 
 		g_fig_star_printed = 0;
 
+#if !defined(__BORLANDC__)
+		g_fig_star_timer = fast_autofight() ? 0 : g_autofight ? 10 : g_delay_factor * 6;
+#else
 		g_fig_star_timer = g_autofight ? 10 : g_delay_factor * 6;
+#endif
 
 		if (!g_fig_msg_data[g_fig_star_counter].f_action) {
 			g_fig_continue_print = 0;
@@ -317,7 +343,11 @@ static signed int fight_printer(void)
 	} else {
 		g_fig_star_counter = 0;
 
+#if !defined(__BORLANDC__)
+		g_fig_star_timer = fast_autofight() ? 0 : g_autofight ? 10 : g_delay_factor * 6;
+#else
 		g_fig_star_timer = g_autofight ? 10 : g_delay_factor * 6;
+#endif
 
 		g_fig_star_last_count = -1;
 
@@ -974,6 +1004,10 @@ void draw_fight_screen(const signed int val)
 
 		fight_delay();
 
+#if !defined(__BORLANDC__)
+		/* schneller Autokampf: Zwischenbild nicht zeigen (das Endbild folgt unten) */
+		if (!fast_autofight())
+#endif
 		do_pic_copy(0);
 
 		g_pic_copy.dst = g_renderbuf_ptr;
@@ -1054,6 +1088,13 @@ static void set_delay_timer(void)
 static void fight_delay(void)
 {
 	CD_enable_repeat();
+
+#if !defined(__BORLANDC__)
+	if (fast_autofight()) {
+		g_delay_timer = 0;
+		return;
+	}
+#endif
 
 	while (g_delay_timer > 0) {
 		g_delay_timer--;
