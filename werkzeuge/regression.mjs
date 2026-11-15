@@ -252,6 +252,8 @@ for (const sz of auswahl) {
 			if (laufzeitfehler) throw laufzeitfehler;
 			if (s.warte) await page.waitForTimeout(s.warte);
 			if (s.tipp) { const [x, y] = await punkt(...s.tipp); await page.touchscreen.tap(x, y); await page.waitForTimeout(250); }
+			// Antippen an einer Seitenposition, die ein Ausdruck in der Seite liefert ([x, y])
+			if (s.tippBei) { const [x, y] = await page.evaluate(s.tippBei); await page.touchscreen.tap(x, y); await page.waitForTimeout(250); }
 			if (s.doppeltipp) {
 				const [x, y] = await punkt(...s.doppeltipp);
 				await page.touchscreen.tap(x, y); await page.waitForTimeout(60); await page.touchscreen.tap(x, y);

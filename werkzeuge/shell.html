@@ -72,6 +72,31 @@
 	#mobil .voll { display: none; }
 	#mobil.vollbild .teil { display: none; }
 	#mobil.vollbild .voll { display: block; }
+	/* Reisekarte (karte.js): statt des ganzen Bildschirms zoom- und verschiebbar, darunter die Ziele */
+	#karte { display: none; flex: 1; min-height: 0; flex-direction: column; gap: 0.5rem; }
+	#mobil.karte .voll { display: none; }
+	#mobil.karte #karte { display: flex; }
+	#karte #datum { display: block; flex: none; }
+	#karte .flaeche { position: relative; flex: 1; min-height: 8rem; overflow: hidden; background: #000; touch-action: none; }
+	#karte .inhalt { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+	#karte .inhalt canvas { display: block; }
+	#karte .namen { position: absolute; inset: 0; pointer-events: none; }
+	#karte .namen div {
+		position: absolute; white-space: nowrap; transform: translateY(-50%);
+		font: 600 0.72rem/1 system-ui, sans-serif; color: #fff;
+		text-shadow: 0 0 2px #000, 0 0 2px #000, 0 0 3px #000;
+	}
+	#karte .namen .gebiet { transform: translate(-50%, -50%); font: italic 0.7rem/1 Georgia, serif; color: #f3e6c4; opacity: 0.85; }
+	#karte .namen .ort.ziel { color: var(--gold); font-size: 0.85rem; }
+	#karte .zoom { position: absolute; right: 0.5rem; top: 0.5rem; display: flex; flex-direction: column; gap: 0.35rem; }
+	#karte .zoom button { width: 2.4rem; height: 2.4rem; font-size: 1.3rem; background: rgb(36 28 21 / 0.85); touch-action: manipulation; }
+	#karte .ziele { flex: none; display: flex; flex-direction: column; gap: 0.4rem; padding: 0 0.5rem; max-height: 40%; overflow-y: auto; }
+	#karte .ziele:empty { display: none; }
+	#karte .ziele h3 { margin: 0; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--leise); }
+	#karte .ziele p { margin: 0; color: var(--leise); }
+	#karte .ziele .knoepfe { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+	#karte .ziele button { min-height: 2.6rem; padding: 0 0.6rem; font-size: 0.95rem; touch-action: manipulation; }
+	#karte .ziele button.zurueck { grid-column: 1 / -1; color: var(--leise); }
 
 	/* ---------- Steuerleiste ---------- */
 	#leiste {
@@ -225,6 +250,14 @@
 	<!-- Datum und Uhrzeit (im Original per Klick oben rechts über den Icons), vom Spiel gezeichnet -->
 	<canvas id="datum" class="teil" width="320" height="18" aria-label="Datum und Uhrzeit"></canvas>
 	<canvas class="aus voll" data-aus="0,0,320,200" aria-label="Bildschirm"></canvas>
+	<!-- Reisekarte (karte.js) -->
+	<div id="karte" aria-label="Reisekarte">
+		<div class="flaeche">
+			<div class="inhalt"><canvas width="320" height="200"></canvas><div class="namen"></div></div>
+			<div class="zoom"><button type="button" data-zoom="+" aria-label="Karte vergrößern">+</button><button type="button" data-zoom="-" aria-label="Karte verkleinern">−</button></div>
+		</div>
+		<div class="ziele"></div>
+	</div>
 </div>
 
 <!-- Spielstände sichern: Export/Import der .GAM-Dateien (liegen sonst nur im Browser) -->
@@ -361,6 +394,7 @@
 <script src="ton.js"></script>
 <script src="wurflog.js"></script>
 <script src="questlog.js"></script>
+<script src="karte.js"></script>
 <script>
 	// SDL-Tastencodes, die das Spiel in sdl_event_loop() auswertet
 	const TASTEN = {
@@ -408,9 +442,21 @@
 	const datumEl = document.getElementById('datum');
 	datumEl.style.aspectRatio = `320 / ${18 * 1.2}`;
 	const datumCtx = datumEl.getContext('2d');
+	const datumHilf = document.createElement('canvas');
+	datumHilf.width = 320; datumHilf.height = 18;
+	const datumHilfCtx = datumHilf.getContext('2d');
+	let datumMitRahmen = true;
+	// auf der Reisekarte steht die Zeile zwischen Karte und Zielen (die Uhr des Spiels liegt im Zoom oft außerhalb)
+	function datumZeichnen(aufKarte) {
+		const karteEl = document.getElementById('karte');
+		if (aufKarte && datumEl.parentNode !== karteEl) karteEl.insertBefore(datumEl, karteEl.querySelector('.ziele'));
+		if (!aufKarte && datumEl.parentNode === karteEl) mobilEl.insertBefore(datumEl, mobilEl.querySelector('canvas.voll'));
+		datumMitRahmen = !aufKarte;
+		Module._web_datum_zeile?.(aufKarte ? 0 : 1);
+	}
 	datumEl.addEventListener('pointerdown', (e) => {
 		e.preventDefault();
-		Module._web_click?.(280, 38, 1);
+		if (datumMitRahmen) Module._web_click?.(280, 38, 1);   // auf der Reisekarte läge dort ein Gebiet
 	});
 	datumEl.addEventListener('contextmenu', (e) => e.preventDefault());
 
@@ -438,11 +484,14 @@
 		}
 		ganzCtx.putImageData(ganzBild, 0, 0);
 		mobilEl.classList.toggle('vollbild', !haupt);
+		const mitKarte = !haupt && document.body.classList.contains('mobil') && karte.pruefen();
+		mobilEl.classList.toggle('karte', mitKarte);
+		if (mitKarte) { karte.zeichnen(); datumZeichnen(true); }
 		for (const a of ausschnitte) {
 			if (a.c.offsetParent === null) continue; // ausgeblendet
 			a.ctx.drawImage(ganz, a.x, a.y, a.w, a.h, 0, 0, a.w, a.h);
 		}
-		if (haupt && document.body.classList.contains('mobil')) Module._web_datum_zeile?.();
+		if (haupt && document.body.classList.contains('mobil')) datumZeichnen(false);
 	}
 
 	var Module = {
@@ -462,7 +511,13 @@
 		},
 		onFrame: neuesBild,
 		datumZeile: (heap, ptr, w, h) => {
-			datumCtx.putImageData(new ImageData(new Uint8ClampedArray(heap.subarray(ptr, ptr + w * h * 4)), w, h), 0, 0);
+			const bild = new ImageData(new Uint8ClampedArray(heap.subarray(ptr, ptr + w * h * 4)), w, h);
+			if (datumMitRahmen) { datumCtx.putImageData(bild, 0, 0); return; }
+			// Reisekarte: nur Text, der Rahmen bleibt vom letzten Hauptbildschirm (Innenfläche wie clear_loc_line)
+			datumCtx.fillStyle = '#000';
+			datumCtx.fillRect(3, 1, 314, 14);
+			datumHilfCtx.putImageData(bild, 0, 0);
+			datumCtx.drawImage(datumHilf, 0, 0);
 		},
 		onExit: () => Module.spielEnde(),   // exit() im Spiel (Strg+Q, Sieg)
 	};
@@ -501,6 +556,9 @@
 	const questLog = questLogEinrichten(Module, { spielText: overlay.spielText, beimOeffnen: alleLoslassen,
 		knopf: document.getElementById('questlog-knopf') });
 	document.getElementById('questlog-knopf').addEventListener('click', () => questLog.oeffnen());
+	// Reisekarte (karte.js): zoom- und verschiebbar, Namen, Ziele als Knöpfe
+	const karte = karteEinrichten(Module, { el: document.getElementById('karte'), spielText: overlay.spielText,
+		quelle: () => ganz, dialogOffen: () => dialoge.length > 0 });
 	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
 
 	function taste(name) {

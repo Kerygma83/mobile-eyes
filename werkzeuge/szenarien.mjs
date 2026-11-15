@@ -7,6 +7,7 @@
 //   { tipp: [ausschnitt, x, y] }     Antippen im mobilen Layout, x/y in Spielkoordinaten (320x200);
 //                                    ausschnitt = aria-label: Ansicht, Ortszeile, Gruppe, Aktionen, Bildschirm
 //   { doppeltipp: [ausschnitt, x, y] }
+//   { tippBei: 'karte.punkt(120, 80)' } Antippen an der Seitenposition [x, y], die der Ausdruck liefert
 //   { knopf: 'Vorwärts' }            Knopf der Steuerleiste (aria-label oder Text)
 //   { schnell: ['…', '…'] }          mehrere Knöpfe ohne Pause
 //   { wahl: 2 } / { wahl: 'Text' }  Eintrag im Overlay antippen (Nummer ab 1 oder Textteil)
@@ -609,8 +610,26 @@ export const szenarien = [
 			{ js: 'Module._web_test_sign(1)' },
 			{ knopf: 'Vorwärts' },
 			{ warteAuf: 'z.karte == 1', max: 5000 },
-			{ warte: 5000 },                               // Timer zeichnet die Gruppenmarkierung
+			// mobil: eigene Kartenansicht (karte.js) mit Namen und den Zielen des Wegweisers als Knöpfe
+			{ warteAuf: "karte.aktiv() && karte.zustand().namen > 60 && document.querySelectorAll('#karte .ziele button').length >= 2", seite: true, max: 5000 },
+			{ warteAuf: "(() => { const r = document.querySelector('#karte .flaeche').getBoundingClientRect(); return r.height > window.innerHeight * 0.4 && /^thorwal$/i.test(document.querySelector('#karte [data-ort=\"1\"]').textContent); })()", seite: true, max: 1000 },
+			{ warte: 3000 },                               // Timer zeichnet die Gruppenmarkierung
 			{ bild: 'reisekarte' },
+			{ js: "window.massstab = karte.zustand().s; document.querySelector('#karte [data-zoom=\"+\"]').click()" },
+			{ warteAuf: 'karte.zustand().s > window.massstab * 1.4', seite: true, max: 1000 },
+			// Antippen eines Orts: Beschreibung wie im Original (Klick an der Kartenposition)
+			{ tippBei: "(() => { const o = [...document.querySelectorAll('#karte .ziel')][0]; return karte.punkt(...o.dataset.pos.split(',').map(Number)); })()" },
+			{ warteAuf: 'z.ov == 1 && z.dialog == 1', max: 3000 },
+			{ weiter: true },
+			{ warteAuf: 'z.ov == 0 && z.karte == 1', max: 3000 },
+			// erstes Ziel per Knopf: die Reise beginnt ohne Menü
+			{ js: "document.querySelector('#karte .ziele button').click()" },
+			{ warteAuf: "karte.zustand().reise == 1 && /Unterwegs nach/.test(document.querySelector('#karte .ziele').textContent)", seite: true, max: 5000 },
+			{ erwarte: 'z.ov == 0', text: 'kein Menü beim Wählen per Knopf' },
+			// Datumszeile zwischen Karte und Zielen (die Uhr des Spiels liegt im Zoom oft außerhalb)
+			{ warteAuf: "(() => { const c = document.getElementById('datum'); if (c.parentNode.id != 'karte' || !c.offsetParent) return false; const d = c.getContext('2d').getImageData(6, 4, 300, 7).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 128) n++; return n > 150; })()", seite: true, max: 3000 },
+			{ warte: 3000 },
+			{ bild: 'unterwegs' },
 		],
 	},
 	{
