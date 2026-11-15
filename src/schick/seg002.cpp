@@ -1995,6 +1995,26 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_test_ruesten(void)
 	g_web_test_ruesten = 1;
 }
 
+/* Questlog (questlog.cpp): Spielstand mit Fortschritt nachstellen, sofort (nur Daten).
+ * stufe 0: alles zurück; 1: Ausruf gehört; 2: Auftrag, Isleif besucht, Karten, Nebenquests */
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_quest(const int stufe)
+{
+	memset(gs_informer_flags, 0, sizeof(gs_informer_flags));
+	memset(gs_treasure_maps, 0, sizeof(gs_treasure_maps));
+	gs_heard_announce = stufe >= 1 ? (stufe >= 2 ? 3 : 1) : 0;
+	gs_got_main_quest = gs_got_letter_het = stufe >= 2;
+	gs_quest_ugdalf = gs_quest_deadship = gs_tevent100_flag = gs_umbrik_quest_gorah = 0;
+	if (stufe >= 2) {
+		gs_informer_flags[INFORMER_ID_ISLEIF] = 2;
+		gs_informer_flags[INFORMER_ID_JURGE] = gs_informer_flags[INFORMER_ID_UMBRIK] = 1;
+		gs_treasure_maps[2] = 1;	/* von Isleif */
+		gs_treasure_maps[5] = 2;	/* vom Einhorn */
+		gs_quest_ugdalf = 1;
+		gs_quest_deadship = 1;
+		gs_tevent100_flag = 1;		/* Ruine des Schwarzmagiers */
+	}
+}
+
 /* Gegenstand in den Rucksack legen und am Körper anlegen wie im Inventar (move_item: Boni, BE);
  * 1 = angelegt */
 static int web_test_anlegen(struct struct_hero *hero, const int slot, const int item_id)
