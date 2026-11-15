@@ -15,6 +15,9 @@
 #include "seg002.h"
 #include "seg007.h"
 #include "seg047.h"
+#if !defined(__BORLANDC__)
+#include "wurflog.h"
+#endif
 #include "seg097.h"
 
 signed char g_hero_sel_exclude = -1; // ds:0x64a2
@@ -187,7 +190,7 @@ void hero_gets_diseased(struct struct_hero *hero, const signed int disease_id)
 #endif
 
 #if !defined(__BORLANDC__)
-		D1_INFO("%s erkrankt an %s\n", hero->alias, get_ttx(disease_id + 0x193));
+		wlog_note(WLOG_SONST, WLOG_SCHLECHT, "%s erkrankt an %s", wlog_spiel(hero->alias), wlog_spiel(get_ttx(disease_id + 0x193)));
 #endif
 
 		hero->disease[disease_id].status = DISEASE_STATUS_DISEASED;
@@ -257,8 +260,8 @@ signed int check_heroes_KK(const signed int val)
 	}
 
 #if !defined(__BORLANDC__)
-	D1_INFO("Pruefe KK der ersten beiden Helden (%d) >= %d: ", sum, val);
-	D1_INFO("%s\n", sum >= val ? "gelungen" : "mislungen");
+	wlog_note(WLOG_PROBE, sum >= val ? WLOG_GUT : WLOG_SCHLECHT, "KK der ersten beiden Helden: %d gegen %d, %s",
+		sum, val, sum >= val ? "gelungen" : "misslungen");
 #endif
 
 	return (sum >= val) ? 1 : 0;

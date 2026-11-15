@@ -126,6 +126,7 @@ set(SCHICK_SOURCES
     seg121.cpp
     seg122.cpp
     vgalib.cpp
+    wurflog.cpp
 )
 
 # Define header files
@@ -247,6 +248,7 @@ set(SCHICK_HEADERS
     symbols.h
     v302de.h
     vgalib.h
+    wurflog.h
     ./AIL/AIL.H
 )
 

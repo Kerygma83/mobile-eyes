@@ -18,6 +18,9 @@
 #include "seg038.h"
 #include "seg039.h"
 #include "seg041.h"
+#if !defined(__BORLANDC__)
+#include "wurflog.h"
+#endif
 #include "seg097.h"
 #include "seg103.h"
 #include "seg105.h"
@@ -284,6 +287,13 @@ signed int FIG_get_hero_weapon_attack_damage(struct struct_hero* hero, struct st
 		weapon = &g_weapons_table[item_p_rh->table_index];
 
 		damage = dice_roll(weapon->damage_d6, 6, weapon->damage_const);
+#if !defined(__BORLANDC__)
+		if (weapon->damage_const) {
+			wlog_detail("Trefferpunkte: %dW6%+d = %d", weapon->damage_d6, weapon->damage_const, damage);
+		} else {
+			wlog_detail("Trefferpunkte: %dW6 = %d", weapon->damage_d6, damage);
+		}
+#endif
 
 		if (weapon->ranged_index != -1) {
 
@@ -336,6 +346,11 @@ signed int FIG_get_hero_weapon_attack_damage(struct struct_hero* hero, struct st
 			if (damage_mod != 0) { /* test is redundant */
 				damage += damage_mod;
 			}
+#if !defined(__BORLANDC__)
+			if (damage > 0) {
+				wlog_detail("Entfernung/Größe: %+d TP", damage_mod);
+			}
+#endif
 			/* If the talent test was not successful, damage == 0 by now. */
 
 		} else {
@@ -344,11 +359,20 @@ signed int FIG_get_hero_weapon_attack_damage(struct struct_hero* hero, struct st
 			damage_mod = hero->attrib[ATTRIB_KK].current + hero->attrib[ATTRIB_KK].mod - weapon->damage_kk_bonus;
 			if (damage_mod > 0) {
 				damage += damage_mod;
+#if !defined(__BORLANDC__)
+				wlog_detail("KK-Zuschlag: +%d TP (KK über %d)", damage_mod, weapon->damage_kk_bonus);
+#endif
 			}
 		}
 	} else {
 		damage = random_schick(6);
+#if !defined(__BORLANDC__)
+		wlog_detail("Trefferpunkte: 1W6 = %d (ohne Waffe)", damage);
+#endif
 	}
+#if !defined(__BORLANDC__)
+	const signed int wlog_tp = damage;
+#endif
 
 	if (!attack_hero) {
 
@@ -438,16 +462,31 @@ signed int FIG_get_hero_weapon_attack_damage(struct struct_hero* hero, struct st
 		damage++;
 	}
 
+#if !defined(__BORLANDC__)
+	if (damage != wlog_tp) {
+		wlog_detail("Waffe, Gift, Zauber u. a.: %+d TP", damage - wlog_tp);
+	}
+	{
+		const signed int wlog_rs = attack_hero ? target->rs_bonus : enemy_p->rs;
+		wlog_detail("RS %d: %d SP", wlog_rs, damage > wlog_rs ? damage - wlog_rs : 0);
+	}
+#endif
 	if (!attack_hero) {
 
 		damage -= enemy_p->rs;
 
 		if (enemy_p->flags.petrified) {
 			damage = 0;
+#if !defined(__BORLANDC__)
+			wlog_detail("Ziel versteinert: kein Schaden");
+#endif
 		}
 
 		if (enemy_p->magic && !hero->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].flags.magic) {
 			damage = 0;
+#if !defined(__BORLANDC__)
+			wlog_detail("nur mit magischen Waffen verwundbar");
+#endif
 		}
 
 		if (enemy_p->le < damage) {
@@ -492,6 +531,9 @@ signed int FIG_get_enemy_attack_damage(const struct enemy_sheet *attacker, struc
 	}
 
 	damage = dice_template(dice);
+#if !defined(__BORLANDC__)
+	wlog_detail("Trefferpunkte: %s = %d", wlog_formel(dice), damage);
+#endif
 
 	if (!is_enemy) {
 
@@ -500,6 +542,9 @@ signed int FIG_get_enemy_attack_damage(const struct enemy_sheet *attacker, struc
 
 		/* subtract RS */
 		damage -= hero->rs_bonus;
+#if !defined(__BORLANDC__)
+		wlog_detail("RS %d: %d SP", hero->rs_bonus, damage > 0 ? damage : 0);
+#endif
 
 		/* armor bonus against skeletons and zombies */
 		if (hero->inventory[HERO_INVENTORY_SLOT_BODY].item_id == ITEM_KETTENHEMD__CURSED && ((attacker->gfx_id == 0x22) || (attacker->gfx_id == 0x1c)))
@@ -529,6 +574,9 @@ signed int FIG_get_enemy_attack_damage(const struct enemy_sheet *attacker, struc
 
 		/* subtract RS */
 		damage -= target->rs;
+#if !defined(__BORLANDC__)
+		wlog_detail("RS %d: %d SP", target->rs, damage > 0 ? damage : 0);
+#endif
 
 		if (target->flags.petrified)
 			damage = 0;
@@ -545,6 +593,14 @@ signed int FIG_get_enemy_attack_damage(const struct enemy_sheet *attacker, struc
 	/* half damage */
 	if (attacker->weapon_broken)
 		damage /= 2;
+#if !defined(__BORLANDC__)
+	if (attacker->saftkraft) {
+		wlog_detail("Saft, Kraft, Monstermacht: %+d", attacker->saftkraft);
+	}
+	if (attacker->weapon_broken) {
+		wlog_detail("Waffe zerbrochen: halber Schaden");
+	}
+#endif
 
 	return damage;
 }

@@ -31,6 +31,9 @@
 #include "seg027.h"
 #include "seg028.h"
 #include "seg032.h"
+#if !defined(__BORLANDC__)
+#include "wurflog.h"
+#endif
 #include "seg033.h"
 #include "seg034.h"
 #include "seg035.h"
@@ -400,7 +403,8 @@ void FIG_do_round(void)
 	}
 
 #if !defined(__BORLANDC__)
-	D1_INFO("Kampfrunde %d beginnt\n", g_fight_round);
+	wlog_flush();
+	wlog_note(WLOG_RUNDE, WLOG_NEUTRAL, "Kampfrunde %d", g_fight_round + 1);	/* zählt ab 0 */
 #endif
 
 	nr_hero_act_phases_left_in_round = 0;
@@ -801,7 +805,7 @@ void FIG_do_round(void)
 	}
 
 #if !defined(__BORLANDC__)
-	D1_INFO("Kampfrunde %d endet\n", g_fight_round);
+	wlog_flush();
 #endif
 
 }

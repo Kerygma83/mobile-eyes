@@ -20,6 +20,9 @@
 #include "seg041.h"
 #include "seg096.h"
 #include "seg102.h"
+#if !defined(__BORLANDC__)
+#include "wurflog.h"
+#endif
 
 static signed int g_mspell_ae_cost = -1; // ds:0xaccc
 
@@ -172,10 +175,12 @@ signed int MON_test_attrib3(const struct enemy_sheet *enemy, const signed int at
 	attrib[2] = enemy->attrib[2 * attrib3 + 1];
 
 #if !defined(__BORLANDC__)
-	D1_INFO(" (%s %d/%s %d/%s %d) ->",
-		names_attrib[attrib1], attrib[0],
-		names_attrib[attrib2], attrib[1],
-		names_attrib[attrib3], attrib[2]);
+	const signed int ids[3] = { attrib1, attrib2, attrib3 };
+	const int wlog_offen = wlog_active() ? WLOG_WEITER : wlog_begin(WLOG_ZAUBER, "%s: Probe (%s/%s/%s) %+d",
+		wlog_monster(enemy->monster_id), names_attrib[attrib1], names_attrib[attrib2], names_attrib[attrib3], handicap);
+	wlog_detail("%s %d, %s %d, %s %d; %s %d", names_attrib[attrib1], attrib[0],
+		names_attrib[attrib2], attrib[1], names_attrib[attrib3], attrib[2],
+		handicap > 0 ? "Erschwernis" : "Ausgleich", handicap > 0 ? handicap : -handicap);
 #endif
 
 	for (i = 0; i < 3; i++) {
@@ -183,13 +188,15 @@ signed int MON_test_attrib3(const struct enemy_sheet *enemy, const signed int at
 		randval = random_schick(20);
 
 #if !defined(__BORLANDC__)
-		D1_INFO(" W20 = %d;", randval);
+		const signed int wlog_wurf = randval;
 #endif
 
 		if (randval == 20) {
 			if (++nr_rolls_20 == 2) {
 #if !defined(__BORLANDC__)
-				D1_INFO(" -> UNGLUECKLICH nicht bestanden\n");
+				wlog_detail("W20 = 20 gegen %s %d", names_attrib[ids[i]], attrib[i]);
+				wlog_result(WLOG_GLUECK, "Patzer (zweimal 20)");
+				wlog_end(wlog_offen);
 #endif
 				return -99;
 			}
@@ -198,49 +205,75 @@ signed int MON_test_attrib3(const struct enemy_sheet *enemy, const signed int at
 		if (randval == 1) {
 			if (++nr_rolls_1 == 2) {
 #if !defined(__BORLANDC__)
-				D1_INFO(" -> GLUECKLICH bestanden\n");
+				wlog_detail("W20 = 1 gegen %s %d", names_attrib[ids[i]], attrib[i]);
+				wlog_result(WLOG_PATZER, "glücklich gelungen (zweimal 1)");
+				wlog_end(wlog_offen);
 #endif
 				return 99;
 			}
 		}
 
 		if (!fail) {
+#if !defined(__BORLANDC__)
+			const signed int wlog_vorher = handicap;
+#endif
 			randval -= attrib[i];
 			if (handicap <= 0) {
 				if (randval > 0) {
 					if (randval > -handicap) {
 						fail = 1;
 #if !defined(__BORLANDC__)
-						D1_INFO(" zu hoch!");
+						wlog_detail("W20 = %d gegen %s %d: %d zu hoch, nur %d Ausgleich", wlog_wurf,
+							names_attrib[ids[i]], attrib[i], randval, -handicap);
 #endif
 					} else  {
 						handicap += randval;
+#if !defined(__BORLANDC__)
+						wlog_detail("W20 = %d gegen %s %d: %d ausgeglichen, noch %d", wlog_wurf,
+							names_attrib[ids[i]], attrib[i], randval, -handicap);
+#endif
 					}
 				}
+#if !defined(__BORLANDC__)
+				else {
+					wlog_detail("W20 = %d gegen %s %d: gelungen", wlog_wurf, names_attrib[ids[i]], attrib[i]);
+				}
+#endif
 			}
 			if (handicap > 0) {
 				if (randval > 0) {
 					fail = 1;
 #if !defined(__BORLANDC__)
-					D1_INFO(" zu hoch!");
+					wlog_detail("W20 = %d gegen %s %d: %d zu hoch", wlog_wurf, names_attrib[ids[i]], attrib[i], randval);
 #endif
 				} else {
 					handicap += randval;
 					if (handicap < 0) {
 						handicap = 0;
 					}
+#if !defined(__BORLANDC__)
+					wlog_detail("W20 = %d gegen %s %d: %d Punkte gegen die Erschwernis, noch %d", wlog_wurf,
+						names_attrib[ids[i]], attrib[i], wlog_vorher - handicap, handicap);
+#endif
 				}
 			}
 		}
+#if !defined(__BORLANDC__)
+		else {
+			wlog_detail("W20 = %d", wlog_wurf);
+		}
+#endif
 	}
 	if (fail || (handicap > 0)) {
 #if !defined(__BORLANDC__)
-		D1_INFO(" -> nicht bestanden.\n");
+		wlog_result(WLOG_GUT, "misslungen");
+		wlog_end(wlog_offen);
 #endif
 		return 0;
 	} else {
 #if !defined(__BORLANDC__)
-		D1_INFO(" -> bestanden mit %d.\n",-handicap);
+		wlog_result(WLOG_SCHLECHT, "gelungen (%d übrig)", -handicap);
+		wlog_end(wlog_offen);
 #endif
 		return 1 - handicap;
 	}
@@ -264,11 +297,15 @@ signed int MON_test_talent(const struct enemy_sheet *enemy, const signed int msp
 	if ((mspell_id >= 1) && (mspell_id <= 14)) {
 
 #if !defined(__BORLANDC__)
-		D1_INFO("Gegnerischer Zauber %s Probe %+d", names_mspell[mspell_id], handicap);
-#endif
-
+		const int wlog_offen = wlog_begin(WLOG_ZAUBER, "%s: %s %+d", wlog_monster(enemy->monster_id),
+			names_mspell[mspell_id - 1], handicap);
+		const signed int wlog_ergebnis = MON_test_attrib3(enemy, desc->attrib1, desc->attrib2, desc->attrib3, handicap);
+		wlog_end(wlog_offen);
+		return wlog_ergebnis;
+#else
 		/* TODO: balancing problem: enemy spells are always cast with talent value 0 */
 		return MON_test_attrib3(enemy, desc->attrib1, desc->attrib2, desc->attrib3, handicap);
+#endif
 	}
 
 	return 0;

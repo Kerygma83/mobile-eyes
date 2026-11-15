@@ -44,6 +44,9 @@
 
 #include "seg001.h"
 #include "seg002.h"
+#if !defined(__BORLANDC__)
+#include "wurflog.h"
+#endif
 #if defined(WEB_TESTHOOKS)
 #include "seg032.h"
 #endif
@@ -2521,6 +2524,10 @@ static void game_loop(void)
 	signed int answer;
 
 	while (g_game_state == GAME_STATE_MAIN) {
+#if !defined(__BORLANDC__)
+		/* Würfel-Log: einen versehentlich offen gebliebenen Eintrag abschließen */
+		wlog_flush();
+#endif
 #if defined(__EMSCRIPTEN__) && defined(WEB_TESTHOOKS)
 		web_test_hooks();
 #endif
@@ -5391,14 +5398,15 @@ signed int test_attrib(const struct struct_hero* hero, const signed int attrib_i
 {
 	signed int randval = random_schick(20);
 	signed int att_val;
-
 #if !defined(__BORLANDC__)
-	D1_INFO("Eigenschaftsprobe %s auf %s %+d: W20 = %d", hero->alias, names_attrib[attrib_id], handicap, randval);
+	const int wlog_offen = wlog_begin(WLOG_PROBE, "%s: Probe auf %s %+d", wlog_spiel(hero->alias), names_attrib[attrib_id], handicap);
 #endif
 
 	if (randval == 20) {
 #if !defined(__BORLANDC__)
-		D1_INFO("Ungluecklich\n");
+		wlog_detail("W20 = 20");
+		wlog_result(WLOG_PATZER, "Patzer (20)");
+		wlog_end(wlog_offen);
 #endif
 		return -99;
 	} else {
@@ -5409,7 +5417,13 @@ signed int test_attrib(const struct struct_hero* hero, const signed int attrib_i
 	att_val = hero->attrib[attrib_id].current + hero->attrib[attrib_id].mod;
 
 #if !defined(__BORLANDC__)
-	D1_INFO(" -> %s mit %d\n", (att_val - randval + 1) > 0 ? "bestanden" : "nicht bestanden", (att_val - randval + 1));
+	wlog_detail("W20 = %d %+d = %d gegen %s %d", randval - handicap, handicap, randval, names_attrib[attrib_id], att_val);
+	if (att_val - randval + 1 > 0) {
+		wlog_result(WLOG_GUT, "bestanden (%d übrig)", att_val - randval);
+	} else {
+		wlog_result(WLOG_SCHLECHT, "nicht bestanden (um %d)", randval - att_val);
+	}
+	wlog_end(wlog_offen);
 #endif
 
 	return att_val - randval + 1;
@@ -5453,7 +5467,9 @@ signed int test_attrib3(const struct struct_hero* hero, const signed int attrib_
 	rolls_sum = 0;
 
 #if !defined(__BORLANDC__)
-	D1_INFO(" (%s/%s/%s) %+d -> ", names_attrib[attrib_id_1], names_attrib[attrib_id_2], names_attrib[attrib_id_3], handicap);
+	/* innerhalb einer Talent-/Zauberprobe: deren Eintrag fortsetzen */
+	const int wlog_offen = wlog_active() ? WLOG_WEITER : wlog_begin(WLOG_PROBE, "%s: Probe (%s/%s/%s) %+d", wlog_spiel(hero->alias),
+		names_attrib[attrib_id_1], names_attrib[attrib_id_2], names_attrib[attrib_id_3], handicap);
 #endif
 
 	for (i = 0; i < 3; i++) {
@@ -5461,13 +5477,14 @@ signed int test_attrib3(const struct struct_hero* hero, const signed int attrib_
 		tmp = random_schick(20);
 
 #if !defined(__BORLANDC__)
-		D1_INFO("%d ", tmp);
+		wlog_detail("%d. W20 = %d", i + 1, tmp);
 #endif
 
 		if (tmp == 20) {
 			if (++nr_rolls_20 == 2) {
 #if !defined(__BORLANDC__)
-				D1_INFO(" -> UNGLUECKLICH! nicht bestanden.\n");
+				wlog_result(WLOG_PATZER, "Patzer (zweimal 20)");
+				wlog_end(wlog_offen);
 #endif
 				return -99;
 			}
@@ -5483,7 +5500,13 @@ signed int test_attrib3(const struct struct_hero* hero, const signed int attrib_
 		hero->attrib[attrib_id_3].current + hero->attrib[attrib_id_3].mod;
 
 #if !defined(__BORLANDC__)
-	D1_INFO(" -> %s mit %d\n", (tmp - rolls_sum + 1) > 0 ? "bestanden" : "nicht bestanden", (tmp - rolls_sum + 1));
+	wlog_detail("Summe %d gegen Eigenschaften %d", rolls_sum, tmp);
+	if (tmp - rolls_sum + 1 > 0) {
+		wlog_result(WLOG_GUT, "bestanden (%d übrig)", tmp - rolls_sum);
+	} else {
+		wlog_result(WLOG_SCHLECHT, "nicht bestanden");
+	}
+	wlog_end(wlog_offen);
 #endif
 	return tmp - rolls_sum + 1; // in a nutshell: sum of the 3 attributes - 3*D20 - handicap + 1
 
@@ -5503,11 +5526,13 @@ signed int test_attrib3(const struct struct_hero* hero, const signed int attrib_
 	attrib[2] = hero->attrib[attrib_id_3].current + hero->attrib[attrib_id_3].mod;
 
 #if !defined(__BORLANDC__)
-	D1_INFO(" (%s %d/%s %d/%s %d) ->",
-			names_attrib[attrib_id_1], attrib[0],
-			names_attrib[attrib_id_2], attrib[1],
-			names_attrib[attrib_id_3], attrib[2]
-	);
+	const signed int ids[3] = { attrib_id_1, attrib_id_2, attrib_id_3 };
+	/* innerhalb einer Talent-/Zauberprobe: deren Eintrag fortsetzen */
+	const int wlog_offen = wlog_active() ? WLOG_WEITER : wlog_begin(WLOG_PROBE, "%s: Probe (%s/%s/%s) %+d", wlog_spiel(hero->alias),
+		names_attrib[attrib_id_1], names_attrib[attrib_id_2], names_attrib[attrib_id_3], handicap);
+	wlog_detail("%s %d, %s %d, %s %d; %s %d", names_attrib[attrib_id_1], attrib[0],
+		names_attrib[attrib_id_2], attrib[1], names_attrib[attrib_id_3], attrib[2],
+		handicap > 0 ? "Erschwernis" : "Ausgleich", handicap > 0 ? handicap : -handicap);
 #endif
 
 	for (i = 0; i < 3; i++) {
@@ -5515,13 +5540,15 @@ signed int test_attrib3(const struct struct_hero* hero, const signed int attrib_
 		tmp = random_schick(20);
 
 #if !defined(__BORLANDC__)
-		D1_INFO(" W20 = %d;", tmp);
+		const signed int wlog_wurf = tmp;
 #endif
 
 		if (tmp == 20) {
 			if (++nr_rolls_20 == 2) {
 #if !defined(__BORLANDC__)
-				D1_INFO(" -> UNGLUECKLICH nicht bestanden\n");
+				wlog_detail("W20 = 20 gegen %s %d", names_attrib[ids[i]], attrib[i]);
+				wlog_result(WLOG_PATZER, "Patzer (zweimal 20)");
+				wlog_end(wlog_offen);
 #endif
 				return -99;
 			}
@@ -5530,49 +5557,79 @@ signed int test_attrib3(const struct struct_hero* hero, const signed int attrib_
 		if (tmp == 1) {
 			if (++nr_rolls_1 == 2) {
 #if !defined(__BORLANDC__)
-				D1_INFO(" -> GLUECKLICH bestanden\n");
+				wlog_detail("W20 = 1 gegen %s %d", names_attrib[ids[i]], attrib[i]);
+				wlog_result(WLOG_GLUECK, "glücklich bestanden (zweimal 1)");
+				wlog_end(wlog_offen);
 #endif
 				return 99;
 			}
 		}
 
 		if (!fail) {
+#if !defined(__BORLANDC__)
+			const signed int wlog_vorher = handicap;
+#endif
 			tmp -= attrib[i];
 			if (handicap <= 0) {
 				if (tmp > 0) {
 					if (tmp > -handicap) {
 						fail = 1;
 #if !defined(__BORLANDC__)
-						D1_INFO(" zu hoch!");
+						wlog_detail("W20 = %d gegen %s %d: %d zu hoch, nur %d Ausgleich", wlog_wurf,
+							names_attrib[ids[i]], attrib[i], tmp, -handicap);
 #endif
 					} else  {
 						handicap += tmp;
+#if !defined(__BORLANDC__)
+						wlog_detail("W20 = %d gegen %s %d: %d ausgeglichen, noch %d", wlog_wurf,
+							names_attrib[ids[i]], attrib[i], tmp, -handicap);
+#endif
 					}
 				}
+#if !defined(__BORLANDC__)
+				else {
+					wlog_detail("W20 = %d gegen %s %d: gelungen", wlog_wurf, names_attrib[ids[i]], attrib[i]);
+				}
+#endif
 			}
 			if (handicap > 0) {
 				if (tmp > 0) {
 					fail = 1;
 #if !defined(__BORLANDC__)
-					D1_INFO(" zu hoch!");
+					wlog_detail("W20 = %d gegen %s %d: %d zu hoch", wlog_wurf, names_attrib[ids[i]], attrib[i], tmp);
 #endif
 				} else {
 					handicap += tmp;
 					if (handicap < 0) {
 						handicap = 0;
 					}
+#if !defined(__BORLANDC__)
+					wlog_detail("W20 = %d gegen %s %d: %d Punkte gegen die Erschwernis, noch %d", wlog_wurf,
+						names_attrib[ids[i]], attrib[i], wlog_vorher - handicap, handicap);
+#endif
 				}
 			}
 		}
+#if !defined(__BORLANDC__)
+		else {
+			wlog_detail("W20 = %d", wlog_wurf);
+		}
+#endif
 	}
 	if (fail || (handicap > 0)) {
 #if !defined(__BORLANDC__)
-		D1_INFO(" -> nicht bestanden\n");
+		if (fail) {
+			wlog_result(WLOG_SCHLECHT, "nicht bestanden");
+		} else {
+			wlog_result(WLOG_SCHLECHT, "nicht bestanden (Erschwernis %d nicht abgebaut)", handicap);
+		}
+		wlog_end(wlog_offen);
 #endif
 		return 0;
 	} else {
 #if !defined(__BORLANDC__)
-		D1_INFO(" -> bestanden mit %d.\n",-handicap);
+		wlog_result(WLOG_GUT, "bestanden (%d übrig)", -handicap);
+		wlog_end(wlog_offen);
 #endif
 		return 1 - handicap;
 	}
@@ -5736,6 +5793,12 @@ void add_party_money(const int32_t money)
 void add_hero_ap(struct struct_hero *hero, const int32_t ap)
 {
 	hero->ap += ap;
+#if !defined(__BORLANDC__)
+	if (ap) {
+		wlog_note(WLOG_SONST, ap > 0 ? WLOG_GUT : WLOG_SCHLECHT, "%s %s %ld AP", wlog_spiel(hero->alias),
+			ap > 0 ? "erhält" : "verliert", (long)(ap > 0 ? ap : -ap));
+	}
+#endif
 }
 
 /**
@@ -5783,10 +5846,6 @@ void add_hero_ap_all(const signed int ap)
 
 		if (hero->typus && (hero->group_id == gs_active_group_id) && !hero->flags.dead)
 		{
-#if !defined(__BORLANDC__)
-			D1_INFO("%s erhaelt %d AP\n", hero->alias, ap);
-#endif
-
 			add_hero_ap(hero, ap);
 		}
 	}
@@ -5811,13 +5870,10 @@ void sub_hero_ap_all(const signed int ap)
 		if (hero->typus && (hero->group_id == gs_active_group_id) && !hero->flags.dead)
 		{
 			if ((uint32_t)ap <= hero->ap) {
-#if !defined(__BORLANDC__)
-				D1_INFO("%s erhaelt %+d AP\n", hero->alias, -ap);
-#endif
 				add_hero_ap(hero, -((int32_t)ap));
 			} else {
 #if !defined(__BORLANDC__)
-				D1_INFO("%s wird auf 0 AP gesetzt\n", hero->alias);
+				wlog_note(WLOG_SONST, WLOG_SCHLECHT, "%s verliert alle AP", wlog_spiel(hero->alias));
 #endif
 				hero->ap = 0;
 			}

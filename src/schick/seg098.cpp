@@ -31,6 +31,9 @@
 #include "seg047.h"
 #include "seg097.h"
 #include "seg098.h"
+#if !defined(__BORLANDC__)
+#include "wurflog.h"
+#endif
 #include "seg099.h"
 #include "seg100.h"
 #include "seg101.h"
@@ -294,9 +297,13 @@ signed int use_magic(struct struct_hero *hero)
 				sub_ae_splash(hero, 1);
 
 #if !defined(__BORLANDC__)
-				D1_INFO("%s Meditationsprobe +0 ", hero->alias);
-#endif
+				const int wlog_offen = wlog_begin(WLOG_ZAUBER, "%s: Meditation", wlog_spiel(hero->alias));
+				const signed int wlog_ergebnis = test_attrib3(hero, ATTRIB_MU, ATTRIB_CH, ATTRIB_KK, 0);
+				wlog_end(wlog_offen);
+				if (wlog_ergebnis > 0) {
+#else
 				if (test_attrib3(hero, ATTRIB_MU, ATTRIB_CH, ATTRIB_KK, 0) > 0) {
+#endif
 					/* Success */
 
 					/* cap the converted AE such that at least 5 LE remain .*/
@@ -337,9 +344,20 @@ signed int use_magic(struct struct_hero *hero)
 					retval = 1;
 
 #if !defined(__BORLANDC__)
-					D1_INFO("%s Probe fuer Stabzauber Nr. %d (%+d)", hero->alias, hero->staff_level + 1,
-						       	g_staffspell_descriptions[hero->staff_level].handicap);
+					const int wlog_offen = wlog_begin(WLOG_ZAUBER, "%s: %d. Stabzauber %+d", wlog_spiel(hero->alias),
+						hero->staff_level + 1, g_staffspell_descriptions[hero->staff_level].handicap);
+					signed int wlog_ergebnis;
+					if ((wlog_ergebnis = test_attrib3(hero,
+							g_staffspell_descriptions[hero->staff_level].attrib1,
+							g_staffspell_descriptions[hero->staff_level].attrib2,
+#ifndef M302de_ORIGINAL_BUGFIX
+						/* Original-Bug 17: the first attribute is tested twice, the second one is left out */
+							g_staffspell_descriptions[hero->staff_level].attrib2,
+#else
+							g_staffspell_descriptions[hero->staff_level].attrib3,
 #endif
+							g_staffspell_descriptions[hero->staff_level].handicap)), wlog_end(wlog_offen), wlog_ergebnis > 0)
+#else
 					if (test_attrib3(hero,
 							g_staffspell_descriptions[hero->staff_level].attrib1,
 							g_staffspell_descriptions[hero->staff_level].attrib2,
@@ -350,6 +368,7 @@ signed int use_magic(struct struct_hero *hero)
 							g_staffspell_descriptions[hero->staff_level].attrib3,
 #endif
 							g_staffspell_descriptions[hero->staff_level].handicap) > 0)
+#endif
 					{
 						/* Success */
 
@@ -618,12 +637,16 @@ signed int test_spell(struct struct_hero *hero, const signed int spell_id, signe
 	if ((spell_id >= 1) && (spell_id <= 85)) {
 
 #if !defined(__BORLANDC__)
-		D1_INFO("%s Zauberprobe %s %+d (TaW %d)", hero->alias, names_spell[spell_id], handicap, hero->spells[spell_id]);
+		const int wlog_offen = wlog_begin(WLOG_ZAUBER, "%s: %s %+d (ZfW %d)", wlog_spiel(hero->alias),
+			names_spell[spell_id], handicap, hero->spells[spell_id]);
 #endif
 
 		handicap -= hero->spells[spell_id];
 
 		retval = test_attrib3(hero, spell_desc->attrib1, spell_desc->attrib2, spell_desc->attrib3, handicap);
+#if !defined(__BORLANDC__)
+		wlog_end(wlog_offen);
+#endif
 
 		if (retval == -99) {
 			retval = -1;

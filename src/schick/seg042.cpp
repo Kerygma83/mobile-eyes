@@ -25,6 +25,9 @@
 #include "seg045.h"
 #include "seg096.h"
 #include "seg098.h"
+#if !defined(__BORLANDC__)
+#include "wurflog.h"
+#endif
 
 static struct viewdir_offsets8s g_fig_viewdir_inverse_offsets2 = { { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } } }; // ds:0x6178
 static const char g_string_casts_spell[14] = "%s ZAUBERT %s"; // ds:0x6180
@@ -299,25 +302,68 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 
 			at_roll_d20 = random_schick(20);
 
+#if !defined(__BORLANDC__)
+			/* Würfel-Log: ein Eintrag je Angriff; die Bestätigungswürfe (sonst nur in den
+			 * Bedingungen) werden dafür in Variablen festgehalten, der Ablauf bleibt gleich */
+			const char *wlog_ziel = target_is_hero ? wlog_spiel(p_target_hero->alias) : wlog_monster(p_target_enemy->monster_id);
+			const int wlog_offen = wlog_begin(WLOG_KAMPF, "%s greift %s an", wlog_spiel(hero->alias), wlog_ziel);
+			signed int wlog_w = 0;
+			wlog_detail("Attacke: W20 = %d gegen AT %d", at_roll_d20, atpa);
+
+			if ((at_roll_d20 == 20) && ((wlog_w = random_schick(20)) > atpa - 9)) {
+#else
 			if ((at_roll_d20 == 20) && (random_schick(20) > atpa - 9)) {
+#endif
 				/* critical attack failure */
 
 				damage = 0;
 				FIG_add_msg(1, 0);
 
 				critical_failure_roll_2d6 = random_interval(2, 12);
+#if !defined(__BORLANDC__)
+				wlog_detail("Patzer bestätigt: W20 = %d > AT %d - 9", wlog_w, atpa);
+				wlog_result(WLOG_PATZER, "Patzer");
+				wlog_detail("Patzerfolge 2W6 = %d: %s", critical_failure_roll_2d6,
+					critical_failure_roll_2d6 == 2 ? "Waffe zerbricht" :
+					critical_failure_roll_2d6 <= 8 ? "Gegenangriff" :
+					critical_failure_roll_2d6 <= 11 ? "verletzt sich selbst (1W6)" : "Glück im Unglück");
+#endif
 
 				if ((critical_failure_roll_2d6 == 2) && (attacker_weapon_type != -1) && (p_weapon_attacker->bf != -99))
 				{
 					/* weapon broken */
 					p_weapon_attacker->flags.broken = 1;
 					FIG_add_msg(6, 0);
+#if !defined(__BORLANDC__)
+					wlog_result_add(WLOG_PATZER, "Waffe zerbrochen");
+#endif
 
 				} else if ((critical_failure_roll_2d6 >= 3) && (critical_failure_roll_2d6 <= 8) && (target_cannot_parry == 0)) {
 					/* defender gets a free attack */
 
 					g_fig_critical_fail_backfire_1 = 1;
 
+#if !defined(__BORLANDC__)
+					if (target_is_hero != 0) {
+
+						if ((wlog_w = random_schick(20)) <= target_hero_at_val) {
+							wlog_detail("Gegenangriff: W20 = %d gegen AT %d, getroffen", wlog_w, target_hero_at_val);
+							damage = FIG_get_hero_weapon_attack_damage(p_target_hero, hero, 1);
+						} else {
+							wlog_detail("Gegenangriff: W20 = %d gegen AT %d, verfehlt", wlog_w, target_hero_at_val);
+						}
+
+					} else {
+
+						if ((wlog_w = random_schick(20)) <= p_target_enemy->at) {
+							wlog_detail("Gegenangriff: W20 = %d gegen AT %d, getroffen", wlog_w, p_target_enemy->at);
+
+							damage = FIG_get_enemy_attack_damage(p_target_enemy, (struct enemy_sheet*)hero, 0);
+						} else {
+							wlog_detail("Gegenangriff: W20 = %d gegen AT %d, verfehlt", wlog_w, p_target_enemy->at);
+						}
+					}
+#else
 					if (target_is_hero != 0) {
 
 						if (random_schick(20) <= target_hero_at_val) {
@@ -331,8 +377,12 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 							damage = FIG_get_enemy_attack_damage(p_target_enemy, (struct enemy_sheet*)hero, 0);
 						}
 					}
+#endif
 
 					if (damage > 0) {
+#if !defined(__BORLANDC__)
+						wlog_result_add(WLOG_PATZER, "Gegenangriff: %s verliert %d LE", wlog_spiel(hero->alias), damage);
+#endif
 
 						sub_hero_le(hero, damage);
 
@@ -352,6 +402,9 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 					/* attacker hurts himself. 1W6 damage. */
 
 					damage = random_schick(6);
+#if !defined(__BORLANDC__)
+					wlog_result_add(WLOG_PATZER, "verletzt sich selbst: %d LE", damage);
+#endif
 
 					sub_hero_le(hero, damage);
 
@@ -368,6 +421,9 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 
 			} else if (at_roll_d20 <= atpa) {
 				/* attack succeeded */
+#if !defined(__BORLANDC__)
+				wlog_result(WLOG_NEUTRAL, "Attacke gelungen");
+#endif
 
 				/* check if parry is allowed */
 				if (((target_is_hero == 0) && !g_fig_enemy_parry_action_used[hero->target_object_id] && (target_cannot_parry == 0)) ||
@@ -420,7 +476,12 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 
 					pa_roll_d20 = random_schick(20);
 
+#if !defined(__BORLANDC__)
+					wlog_detail("Parade %s: W20 = %d gegen PA %d", wlog_ziel, pa_roll_d20, target_pa_val);
+					if ((pa_roll_d20 == 20) && ((wlog_w = random_schick(20)) > target_pa_val - 7)) {
+#else
 					if ((pa_roll_d20 == 20) && (random_schick(20) > target_pa_val - 7)) {
+#endif
 						/* critical defense failure */
 
 						damage = 0;
@@ -428,6 +489,13 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 						FIG_add_msg(4, 0);
 
 						critical_failure_roll_2d6 = random_interval(2, 12);
+#if !defined(__BORLANDC__)
+						wlog_detail("Parade-Patzer bestätigt: W20 = %d > PA %d - 7", wlog_w, target_pa_val);
+						wlog_result(target_is_hero ? WLOG_PATZER : WLOG_GLUECK, "Parade-Patzer");
+						wlog_detail("Patzerfolge 2W6 = %d: %s", critical_failure_roll_2d6,
+							(critical_failure_roll_2d6 >= 3 && critical_failure_roll_2d6 <= 8) ? "freier Angriff" :
+							(critical_failure_roll_2d6 >= 9 && critical_failure_roll_2d6 <= 11) ? "verletzt sich selbst (1W6)" : "ohne Folgen");
+#endif
 
 						if ((critical_failure_roll_2d6 >= 3) && (critical_failure_roll_2d6 <= 8)) {
 
@@ -436,7 +504,13 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 							 * g_fig_critical_fail_backfire_2 = 1
 							 * See comment at the declaration of g_fig_critical_fail_backfire_2. */
 
+#if !defined(__BORLANDC__)
+							wlog_w = random_schick(20);
+							wlog_detail("Freier Angriff: W20 = %d gegen AT %d, %s", wlog_w, atpa, wlog_w <= atpa ? "getroffen" : "verfehlt");
+							if (wlog_w <= atpa) {
+#else
 							if (random_schick(20) <= atpa) {
+#endif
 
 								if (target_is_hero != 0) {
 
@@ -468,9 +542,17 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 									}
 								}
 							}
+#if !defined(__BORLANDC__)
+							if (damage > 0) {
+								wlog_result_add(target_is_hero ? WLOG_SCHLECHT : WLOG_GUT, "freier Angriff: %d SP", damage);
+							}
+#endif
 						} else if ((critical_failure_roll_2d6 >= 9) && (critical_failure_roll_2d6 <= 11)) {
 
 							damage = random_schick(6);
+#if !defined(__BORLANDC__)
+							wlog_result_add(target_is_hero ? WLOG_PATZER : WLOG_GLUECK, "%s verletzt sich selbst: %d LE", wlog_ziel, damage);
+#endif
 
 							if (target_is_hero != 0) {
 
@@ -499,6 +581,12 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 						} else {
 							/* parry succeeded */
 							FIG_add_msg(5, 0);
+#if !defined(__BORLANDC__)
+							wlog_result(target_is_hero ? WLOG_NEUTRAL : WLOG_SCHLECHT, "pariert");
+							if ((pa_roll_d20 == at_roll_d20) && (p_weapon_attacker->bf != -99)) {
+								wlog_detail("gleiche Würfe: Waffen werden beschädigt (BF)");
+							}
+#endif
 
 							if ((pa_roll_d20 == at_roll_d20) && (p_weapon_attacker->bf != -99)) {
 							/* both attacker and defender damage their weapon.
@@ -527,6 +615,9 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 										p_weapon_attacker->flags.broken = 1; /* set 'broken' flag */
 
 										FIG_add_msg(6, 0);
+#if !defined(__BORLANDC__)
+										wlog_result_add(WLOG_SCHLECHT, "Waffe zerbrochen");
+#endif
 
 									} else {
 										if (target_is_hero != 0) {
@@ -548,9 +639,15 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 					}
 				} else {
 					attacker_hits_target = 1;
+#if !defined(__BORLANDC__)
+					wlog_detail("%s kann nicht parieren", wlog_ziel);
+#endif
 				}
 
 				if (attacker_hits_target != 0) {
+#if !defined(__BORLANDC__)
+					wlog_result(target_is_hero ? WLOG_NEUTRAL : WLOG_GUT, "getroffen, kein Schaden");
+#endif
 
 					if (target_is_hero != 0) {
 
@@ -581,8 +678,28 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 							}
 						}
 					}
+#if !defined(__BORLANDC__)
+					if (damage > 0) {
+						wlog_result(target_is_hero ? WLOG_SCHLECHT : WLOG_GUT, "Treffer: %d SP", damage);
+					}
+#endif
 				}
 			}
+#if !defined(__BORLANDC__)
+			else {
+				if (at_roll_d20 == 20) {
+					wlog_detail("20 nicht bestätigt: W20 = %d <= AT %d - 9", wlog_w, atpa);
+				}
+				wlog_result(target_is_hero ? WLOG_NEUTRAL : WLOG_SCHLECHT, "verfehlt");
+			}
+			if (g_defender_dead) {
+				wlog_result_add(target_is_hero ? WLOG_PATZER : WLOG_GLUECK, "%s fällt", wlog_ziel);
+			}
+			if (g_attacker_dead) {
+				wlog_result_add(WLOG_PATZER, "%s fällt", wlog_spiel(hero->alias));
+			}
+			wlog_end(wlog_offen);
+#endif
 
 			clear_anisheets();
 
@@ -623,6 +740,11 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 				attacker_weapon_type = FIG_get_range_weapon_type(hero);
 
 				if (attacker_weapon_type != -1) {
+#if !defined(__BORLANDC__)
+					const int wlog_offen = wlog_begin(WLOG_KAMPF, "%s %s %s", wlog_spiel(hero->alias),
+						attacker_weapon_type == 3 ? "schießt auf" : "wirft auf",
+						target_is_hero ? wlog_spiel(p_target_hero->alias) : wlog_monster(p_target_enemy->monster_id));
+#endif
 
 #ifndef M302de_ORIGINAL_BUGFIX
 					/* Original-Bug 32: throwing weapon in a ranged attack is dropped before the damage logic is done.
@@ -645,6 +767,10 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 						 * Fix: move the function call after the damage calculation.
 						 */
 						if (!range_attack_check_ammo(hero, 0)) {
+#if !defined(__BORLANDC__)
+							wlog_result(WLOG_NEUTRAL, "keine Munition");
+							wlog_end(wlog_offen);
+#endif
 							return;
 						}
 #endif
@@ -668,6 +794,10 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 						 * Fix: move the function call after the damage calculation.
 						 */
 						if (!range_attack_check_ammo(hero, 0)) {
+#if !defined(__BORLANDC__)
+							wlog_result(WLOG_NEUTRAL, "keine Munition");
+							wlog_end(wlog_offen);
+#endif
 							return;
 						}
 #endif
@@ -683,6 +813,18 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 							}
 						}
 					}
+#if !defined(__BORLANDC__)
+					if (damage > 0) {
+						wlog_result(target_is_hero ? WLOG_SCHLECHT : WLOG_GUT, "Treffer: %d SP", damage);
+					} else {
+						wlog_result(target_is_hero ? WLOG_NEUTRAL : WLOG_SCHLECHT, "kein Schaden");
+					}
+					if (g_defender_dead) {
+						wlog_result_add(target_is_hero ? WLOG_PATZER : WLOG_GLUECK, "%s fällt",
+							target_is_hero ? wlog_spiel(p_target_hero->alias) : wlog_monster(p_target_enemy->monster_id));
+					}
+					wlog_end(wlog_offen);
+#endif
 
 					clear_anisheets();
 

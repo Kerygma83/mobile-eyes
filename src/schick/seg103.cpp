@@ -21,6 +21,9 @@
 #include "seg053.h"
 #include "seg097.h"
 #include "seg103.h"
+#if !defined(__BORLANDC__)
+#include "wurflog.h"
+#endif
 #include "seg104.h"
 
 struct dummy {
@@ -169,7 +172,8 @@ signed int test_talent(const struct struct_hero* hero, const signed int talent_i
 	if ((talent_id >= TA_SCHUSSWAFFEN) && (talent_id <= TA_SINNESSCHAERFE)) {
 
 #if !defined(__BORLANDC__)
-		D1_INFO("%s Talentprobe %s %+d (TaW %d)", hero->alias, names_talent[talent_id], handicap, hero->talents[talent_id]);
+		const int wlog_offen = wlog_begin(WLOG_PROBE, "%s: %s %+d (TaW %d)", wlog_spiel(hero->alias),
+			names_talent[talent_id], handicap, hero->talents[talent_id]);
 #endif
 
 		/* special test if talent is a range weapon talent */
@@ -188,32 +192,40 @@ signed int test_talent(const struct struct_hero* hero, const signed int talent_i
 			e_talentval -= handicap;
 
 			randval = random_schick(20);
+#if !defined(__BORLANDC__)
+			wlog_detail("W20 = %d gegen %d ((KL+GE+KK)/4 + TaW %d %+d)", randval, e_talentval,
+				hero->talents[talent_id], -handicap);
+#endif
 
 			/* Unlucky */
 			if (randval == 20) {
 #if !defined(__BORLANDC__)
-				D1_INFO("Ungluecklich\n");
+				wlog_result(WLOG_PATZER, "Patzer (20)");
+				wlog_end(wlog_offen);
 #endif
 				return -1;
 			}
 			/* Lucky */
 			if (randval == 1) {
 #if !defined(__BORLANDC__)
-				D1_INFO("Gluecklich\n");
+				wlog_result(WLOG_GLUECK, "glücklich (1)");
+				wlog_end(wlog_offen);
 #endif
 				return 99;
 			}
 			if (randval <= e_talentval) {
 				/* test successful */
 #if !defined(__BORLANDC__)
-				D1_INFO(" (%d) -> bestanden\n", randval);
+				wlog_result(WLOG_GUT, "gelungen (%d übrig)", e_talentval - randval);
+				wlog_end(wlog_offen);
 #endif
 				return e_talentval - randval + 1;
 			}
 
 			/* test unsuccessful */
 #if !defined(__BORLANDC__)
-			D1_INFO(" (%d) -> nicht bestanden\n", randval);
+			wlog_result(WLOG_SCHLECHT, "misslungen");
+			wlog_end(wlog_offen);
 #endif
 			return 0;
 		}
@@ -222,6 +234,10 @@ signed int test_talent(const struct struct_hero* hero, const signed int talent_i
 		if ((talent_id == TA_SINNESSCHAERFE) && (g_game_mode == GAME_MODE_BEGINNER)) {
 
 			hero = get_proper_hero(TA_SINNESSCHAERFE);
+#if !defined(__BORLANDC__)
+			wlog_detail("Anfängermodus: %s mit der besten Sinnenschärfe würfelt (TaW %d)",
+				wlog_spiel(hero->alias), hero->talents[talent_id]);
+#endif
 
 #if defined(__BORLANDC__)
 			/* seems to have been debug stuff with conditional compilation */
@@ -232,9 +248,19 @@ signed int test_talent(const struct struct_hero* hero, const signed int talent_i
 		/* do the test */
 		handicap -= hero->talents[talent_id];
 
+#if !defined(__BORLANDC__)
+		{
+			const signed int wlog_ergebnis = test_attrib3(hero, g_talent_descriptions[talent_id].attrib1,
+						g_talent_descriptions[talent_id].attrib2,
+						g_talent_descriptions[talent_id].attrib3, handicap);
+			wlog_end(wlog_offen);
+			return wlog_ergebnis;
+		}
+#else
 		return test_attrib3(hero, g_talent_descriptions[talent_id].attrib1,
 						g_talent_descriptions[talent_id].attrib2,
 						g_talent_descriptions[talent_id].attrib3, handicap);
+#endif
 	}
 
 	return 0;
