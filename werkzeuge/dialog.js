@@ -16,7 +16,7 @@
 //         overlay.portraetZeichnen(), overlay.neuZeichnen(),
 //         overlay.schreibungBereit (Promise: Wörterbuch geladen?)
 //
-// Schreibung (schreibung.js): mit schreibung.json (nur in Builds mit Spieldaten) erscheinen die
+// Schreibung (schreibung.js): mit schreibung.json (Build ohne Daten: knappe Fassung) erscheinen die
 // Texte in normaler Groß-/Kleinschreibung; localStorage 'schreibung' = 'original' schaltet ab,
 // 'schriftgroesse' (Faktor, z. B. 1.15) vergrößert die Schrift.
 'use strict';
@@ -129,7 +129,7 @@ function textboxOverlay(Module, optionen = {}) {
 		const zeichenText = (b) => DOS[b] ?? (b >= 0x20 && b < 0x7f
 			? (SCHRIFT.has(String.fromCharCode(b)) ? String.fromCharCode(b) : ' ') : '');
 
-		// Wörterbuch für die Schreibung (fehlt in Builds ohne Spieldaten: dann wie im Original)
+		// Wörterbuch für die Schreibung (fehlt, wenn ohne spiel/ gebaut: dann wie im Original)
 		let woerter = null;
 		const schreibungBereit = fetch('schreibung.json').then((r) => r.ok ? r.json() : null).then((j) => {
 			if (!j?.w) return false;

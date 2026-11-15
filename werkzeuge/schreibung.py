@@ -16,11 +16,17 @@ Wörtern [klein, groß, merkmale] (Bits, siehe schreibung.js):
   2 A  Adjektiv: klein, wenn ein Nomen folgt („alter Mann“ / „das Alter“)
   4 V  Verbform: klein neben einem Pronomen („ich wünsche“ / „Eure Wünsche“)
   8 N  mit K: groß nur nach neutralem Begleiter (Infinitiv: „das Schweigen“)
-Das Wörterbuch ist aus den Spieldaten abgeleitet: es gehört nur nach build/.
+Das Wörterbuch ist aus den Spieldaten abgeleitet: es gehört nur nach build/, nie ins Repository.
+--knapp lässt alle Einträge weg, die schreibung.js für unbekannte Wörter ohnehin so schreibt
+(groß, Rest klein): Namen aus dem Spiel und eindeutige Nomen. Die Anzeige bleibt gleich
+(--texte schreibt die Spieltexte für den Vergleich in schreibung-vergleich.cjs); übrig bleiben
+Wörter des allgemeinen Wortschatzes. Diese Fassung liefert der Build ohne Spieldaten aus.
 
 Aufruf (im Werkzeug-Container):
   /usr/bin/python3 werkzeuge/schreibung.py build/web/schreibung.json
+  /usr/bin/python3 werkzeuge/schreibung.py --knapp build/web-frei/schreibung.json
   /usr/bin/python3 werkzeuge/schreibung.py --bericht build/schreibung-bericht.txt
+  /usr/bin/python3 werkzeuge/schreibung.py --texte build/schreibung-texte.json
 """
 import collections
 import itertools
@@ -182,15 +188,29 @@ class Einordnung:
 
 def main():
     args = sys.argv[1:]
-    bericht = None
-    if args[:1] == ['--bericht']:
-        bericht = args[1]
-        args = args[2:]
+    bericht = texte_ziel = None
+    knapp = False
+    while args[:1] and args[0].startswith('--'):
+        if args[0] == '--knapp':
+            knapp = True
+            args = args[1:]
+        elif args[0] == '--bericht':
+            bericht = args[1]
+            args = args[2:]
+        elif args[0] == '--texte':
+            texte_ziel = args[1]
+            args = args[2:]
+        else:
+            sys.exit(f'unbekannte Option {args[0]}')
     ziel = args[0] if args else None
 
     zaehl = collections.Counter()
     beispiele = collections.defaultdict(list)
-    for t in texte():
+    alle = list(texte())
+    if texte_ziel:
+        with open(texte_ziel, 'w', encoding='utf-8') as f:
+            json.dump(alle, f, ensure_ascii=False)
+    for t in alle:
         for m in WORT.finditer(t):
             w = m.group()
             zaehl[w] += 1
@@ -212,6 +232,9 @@ def main():
     for w, f in kor.items():
         woerter.setdefault(w, f)
 
+    if knapp:
+        # wie gross(klein) in schreibung.js: so erscheint jedes unbekannte Wort
+        woerter = {w: f for w, f in woerter.items() if f != w.lower()[:1].upper() + w.lower()[1:]}
     if ziel:
         os.makedirs(os.path.dirname(os.path.abspath(ziel)), exist_ok=True)
         with open(ziel, 'w', encoding='utf-8') as f:

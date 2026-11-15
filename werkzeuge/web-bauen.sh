@@ -117,10 +117,16 @@ if [ "${SPIELDATEN:-0}" != 1 ]; then
 	[ -f build/innoextract-wasm/innoextract.wasm ] || werkzeuge/innoextract-wasm.sh
 	cp werkzeuge/daten-worker.js build/innoextract-wasm/innoextract.js build/innoextract-wasm/innoextract.wasm "$out/"
 fi
-# Wörterbuch für die Schreibung der Textboxen: aus den Spieldaten abgeleitet, nur mit Spieldaten
+# Wörterbuch für die Schreibung der Textboxen, aus den Spieldaten abgeleitet (nie einchecken).
+# Ohne Spieldaten die knappe Fassung: ohne Namen und Nomen, die schreibung.js ohnehin groß
+# schreibt (gleiche Anzeige, nur allgemeiner Wortschatz); fehlen die Daten hier, ohne Wörterbuch
 rm -f "$out/schreibung.json"
 if [ "${SPIELDATEN:-0}" = 1 ]; then
 	/usr/bin/python3 werkzeuge/schreibung.py "$out/schreibung.json"
+elif [ -f spiel/SCHICK.DAT ]; then
+	/usr/bin/python3 werkzeuge/schreibung.py --knapp "$out/schreibung.json"
+else
+	echo "spiel/ fehlt: Build ohne Wörterbuch (Textboxen in Großbuchstaben)"
 fi
 # CD-Musik (spiel/musik/TrackNN.m4a, aus werkzeuge/musik-umwandeln.sh): nur mit Spieldaten
 rm -rf "$out/musik"

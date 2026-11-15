@@ -43,6 +43,8 @@ with zipfile.ZipFile('build/spieldaten-test.zip', 'w', zipfile.ZIP_DEFLATED) as 
 	z.write(app / 'MUSIC' / 'Track02.ogg', 'Realms of Arkania - Blade of Destiny/MUSIC/Track02.ogg')
 PY
 fi
+# Spieltexte für den Vergleich knappes/volles Wörterbuch (schreibung-vergleich.cjs)
+./werkzeug.sh /usr/bin/python3 werkzeuge/schreibung.py --texte build/schreibung-texte.json
 wurzel=/app/build/web-test
 [ "${PRUEF:-0}" = 1 ] && wurzel+=-pruef
 [ "${ASAN:-0}" = 1 ] && wurzel+=-asan
@@ -52,4 +54,4 @@ mkdir -p build/pw
 docker run --rm --init --ipc=host --user "$(id -u):$(id -g)" -e HOME=/tmp -e BROWSER="${BROWSER:-}" -e WURZEL="$wurzel" -e ZUFALL_MIN="${ZUFALL_MIN:-}" -e ZUFALL_SAAT="${ZUFALL_SAAT:-}" -e ZUFALL_START="${ZUFALL_START:-}" \
 	-v "$PWD":/app -w /app/build/pw mcr.microsoft.com/playwright:v1.64.1-noble bash -c \
 	'[ -d node_modules/playwright ] || npm i -s playwright@1.64.1 >/dev/null 2>&1
-	 node /app/werkzeuge/schreibung-test.cjs && cp /app/werkzeuge/regression.mjs /app/werkzeuge/szenarien.mjs . && node regression.mjs "$1"' _ "$filter"
+	 node /app/werkzeuge/schreibung-test.cjs && node /app/werkzeuge/schreibung-vergleich.cjs /app/build/web-test/schreibung.json /app/build/web-test-frei/schreibung.json /app/build/schreibung-texte.json && cp /app/werkzeuge/regression.mjs /app/werkzeuge/szenarien.mjs . && node regression.mjs "$1"' _ "$filter"

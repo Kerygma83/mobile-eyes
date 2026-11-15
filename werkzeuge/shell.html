@@ -688,7 +688,7 @@
 	if (lies('layout') === 'original') setzeLayout(false);
 
 	// Schreibung und Schriftgröße der Textboxen liest dialog.js beim Anzeigen (auch im iframe
-	// der Heldenerschaffung); die Schreibung gibt es nur mit Wörterbuch (Builds mit Spieldaten)
+	// der Heldenerschaffung); die Schreibung gibt es nur mit Wörterbuch (schreibung.json)
 	const einstellung = {
 		schreibung: { lies: () => lies('schreibung') === 'original' ? 'original' : 'normal',
 			setze: (v) => { merke('schreibung', v); overlay.neuZeichnen(); } },

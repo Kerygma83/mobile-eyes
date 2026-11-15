@@ -46,7 +46,8 @@ werkzeuge/musik-umwandeln.sh
 ./werkzeug.sh env SPIELDATEN=1 werkzeuge/web-bauen.sh
 
 # Web-Build ohne Spieldaten (→ build/web-frei): fragt beim ersten Start nach dem GOG-Installer
-# oder einer ZIP-Datei und hält die Daten im Browser; baut beim ersten Mal innoextract als WebAssembly
+# oder einer ZIP-Datei und hält die Daten im Browser; baut beim ersten Mal innoextract als WebAssembly.
+# Liegen die Daten in spiel/, kommt das knappe Wörterbuch der Schreibung mit (nur allgemeiner Wortschatz)
 ./werkzeug.sh werkzeuge/web-bauen.sh
 
 # Ausliefern auf http://<host>:8180 (mit Daten) und :8181 (ohne)
@@ -75,5 +76,7 @@ MOBIL=1 werkzeuge/test.sh '[{"tippAus":["Aktionen",252,69]},{"seite":"dialog"}]'
 ## Lizenz
 
 Der Code von BrightEyes und die Änderungen daran stehen unter der GPL v3 (siehe `BrightEyes/copyright`);
-die Dateien dieses Repos ebenso. Alle Rechte am Spiel, seinen Texten, Grafiken und Daten liegen bei den
+die Dateien dieses Repos ebenso. Der Build ohne Spieldaten enthält innoextract (zlib-Lizenz) mit Boost
+(BSL-1.0), liblzma (0BSD), zlib und bzip2 sowie ein Wörterbuch der Groß-/Kleinschreibung, dessen Wortformen
+aus dem hunspell-Wörterbuch de_DE (igerman98, Björn Jacke, GPL v2/v3 bzw. OASIS) stammen. Alle Rechte am Spiel, seinen Texten, Grafiken und Daten liegen bei den
 jeweiligen Rechteinhabern.
