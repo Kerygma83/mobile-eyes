@@ -9,6 +9,8 @@
 //
 // Aufruf: const log = wurfLogEinrichten(Module, { spielText: overlay.spielText });
 //         log.eintraege (Liste, höchstens MAX), log.oeffnen(), log.schliessen()
+//         optionen.knopf: bekommt die Klasse „neu“, wenn bei geschlossenem Protokoll ein Eintrag
+//         dazukommt; Öffnen nimmt sie wieder weg (nur ein Merker, nicht je Eintrag)
 // Nur im Speicher: nach dem Neuladen ist das Protokoll leer.
 'use strict';
 
@@ -159,6 +161,7 @@ function wurfLogEinrichten(Module, optionen = {}) {
 		const e = { art: roh.art, erfolg: roh.erfolg, roh };
 		eintraege.push(e);
 		if (eintraege.length > MAX) eintraege.splice(0, eintraege.length - MAX);
+		if (el.hidden) optionen.knopf?.classList.add('neu');
 		if (el.hidden || !passt(e)) return;
 		const unten = liste.scrollHeight - liste.scrollTop - liste.clientHeight < 40;
 		liste.append(knoten(e));
@@ -169,6 +172,7 @@ function wurfLogEinrichten(Module, optionen = {}) {
 
 	function oeffnen() {
 		optionen.beimOeffnen?.();
+		optionen.knopf?.classList.remove('neu');
 		el.hidden = false;
 		alleZeigen();
 	}

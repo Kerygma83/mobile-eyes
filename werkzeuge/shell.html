@@ -166,6 +166,9 @@
 	.aktionen button.zahnrad, .aktionen button.wuerfel { width: 2.3rem; padding: 0; }
 	.aktionen button.zahnrad svg, .aktionen button.wuerfel svg { width: 1.3rem; height: 1.3rem; stroke-width: 2; }
 	.aktionen button.wuerfel[hidden] { display: none; }
+	/* neue Einträge seit dem letzten Öffnen des Protokolls */
+	.aktionen button.wuerfel.neu { color: var(--gold); border-color: var(--gold); }
+	.aktionen button.wuerfel.neu svg { fill: rgb(201 164 92 / 0.25); }
 
 	/* ---------- Heldenerschaffung / Intro ---------- */
 	#gen { position: fixed; inset: 0; z-index: 20; background: #000; }
@@ -452,7 +455,8 @@
 	const { dialoge, alsText, portraetZeichnen } = overlay;
 	const ton = tonEinrichten(Module);   // Soundeffekte und Musik (ton.js)
 	// Würfelprotokoll (wurflog.js): Proben, Zauber und Kampfwürfe zum Nachlesen
-	const wurfLog = wurfLogEinrichten(Module, { spielText: overlay.spielText, beimOeffnen: alleLoslassen });
+	const wurfLog = wurfLogEinrichten(Module, { spielText: overlay.spielText, beimOeffnen: alleLoslassen,
+		knopf: document.getElementById('wurflog-knopf') });
 	document.getElementById('wurflog-knopf').addEventListener('click', () => wurfLog.oeffnen());
 	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
 
