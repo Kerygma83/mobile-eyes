@@ -1,0 +1,134 @@
+# Korrekturen für werkzeuge/schreibung.py (Groß-/Kleinschreibung der Spieltexte im Overlay)
+#   WORT schreibung              immer so
+#   WORT klein|Groß              klein, nach Begleiter (Artikel, beim, zum …) groß
+# Gilt vor hunspell. Der Bericht (schreibung.py --bericht) zeigt, was sonst wie eingeordnet wird.
+
+# Anrede: das Spiel ihrzt die Gruppe
+IHR Ihr
+EUCH Euch
+EUER Euer
+EUERN Euern
+EURE Eure
+EUREN Euren
+EUREM Eurem
+EURER Eurer
+EURES Eures
+
+# Kürzel bleiben groß (Eigenschaften, Werte); IN regelt schreibung.js nach Kontext
+MU MU
+KL KL
+CH CH
+FF FF
+GE GE
+KK KK
+AG AG
+HA HA
+RA RA
+GG GG
+TA TA
+NG NG
+JZ JZ
+LE LE
+AE AE
+AT AT
+PA PA
+RS RS
+MR MR
+TP TP
+AP AP
+BP BP
+AU AU
+CD CD
+NPC NPC
+
+# meist klein (Adverb, Präposition, Verb), als Nomen nur nach Begleiter
+SEIN sein
+WEG weg|Weg
+GUT gut|Gut
+MAL mal|Mal
+WOHL wohl|Wohl
+RECHT recht|Recht
+GERADE gerade|Gerade
+BITTE bitte|Bitte
+PAAR paar
+DANK dank|Dank
+LOS los|Los
+FEST fest|Fest
+WERT wert|Wert
+HALT halt|Halt
+HOCH hoch|Hoch
+LAUT laut|Laut
+LINKS links|Links
+RECHTS rechts|Rechts
+FALLS falls|Falls
+WEGEN wegen|Wegen
+TROTZ trotz|Trotz
+NORMAL normal|Normal
+LOKAL lokal|Lokal
+WILD wild|Wild
+ARM arm|Arm
+LEID leid|Leid
+MACHT macht|Macht
+SUCHT sucht|Sucht
+TRITT tritt|Tritt
+TAT tat|Tat
+GEN gen
+NICHTS nichts|Nichts
+WEISS weiß|Weiß
+HATS hats
+LÄNGSSEITS längsseits
+NÄHER näher
+STOLZ stolz|Stolz
+WÜRDE würde|Würde
+HAB hab|Hab
+TUN tun|Tun
+NAMENS namens
+
+# Ausrufe
+NA na
+TJA tja
+ACK ack
+HMM hmm
+HM hm
+AHA aha
+AH ah
+OH oh
+DRUM drum
+SOWAS sowas
+GIBTS gibts
+RÜBER rüber
+
+# Nomen, die hunspell nicht kennt und die nach Adjektiv/Verb aussehen
+SCHADEN Schaden
+FACKELN Fackeln
+EINBEINIGE Einbeinige
+PFLUGSCHAREN Pflugscharen
+SÄBELZAHNTIGER Säbelzahntiger
+ZWEIHÄNDER Zweihänder
+HEILTRÄNKE Heiltränke
+ADLERSCHWINGE Adlerschwinge
+KASCHEMME Kaschemme
+MENSCHLINGE Menschlinge
+BOGENSEHNE Bogensehne
+EICHENSTUMPF Eichenstumpf
+EISENKLAUE Eisenklaue
+FRISCHLINGE Frischlinge
+GÜRTELSCHNALLE Gürtelschnalle
+JARHZEHNTE Jarhzehnte
+KRÄMERSTAND Krämerstand
+LEDERHARNISCH Lederharnisch
+ORKSCHÄDELSTEPPE Orkschädelsteppe
+SCHNEEWÄCHTE Schneewächte
+SCHRÖTER Schröter
+ALCHIMISTEN Alchimisten
+ALLERWERTESTE Allerwerteste
+HOCHGEBOREN Hochgeboren
+KANNEMÜNDE Kannemünde
+MITTELREICHER Mittelreicher
+
+# Tippfehler im Spiel und Wörter, die hunspell nicht kennt (klein)
+ALERDINGS alerdings
+ANEINDERSTOSSENDER aneinderstoßender
+DURCHDRINGEDEN durchdringeden
+MISSVERTSANDEN missvertsanden
+VERHUTZELTES verhutzeltes

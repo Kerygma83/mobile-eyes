@@ -10,8 +10,13 @@
 //             portraetQuelle: () => canvas,   // Bild, aus dem Porträts (32x32) kopiert werden
 //             beimOeffnen: (d) => {},         // z. B. gehaltene Knöpfe loslassen
 //             beimSchliessen: (leer) => {},   // leer = keine Box mehr offen
+//             schreibungZusatz: { SIE: 'Sie' },  // eigene Wörter vor dem Wörterbuch
 //         });
-//         overlay.dialoge, overlay.alsText(bytes), overlay.portraetZeichnen()
+//         overlay.dialoge, overlay.alsText(bytes), overlay.portraetZeichnen(), overlay.neuZeichnen(),
+//         overlay.schreibungBereit (Promise: Wörterbuch geladen?)
+//
+// Schreibung (schreibung.js): mit schreibung.json (nur in Builds mit Spieldaten) erscheinen die
+// Texte in normaler Groß-/Kleinschreibung; localStorage 'schreibung' = 'original' schaltet ab.
 'use strict';
 
 function textboxOverlay(Module, optionen = {}) {
@@ -122,6 +127,29 @@ function textboxOverlay(Module, optionen = {}) {
 		const zeichenText = (b) => DOS[b] ?? (b >= 0x20 && b < 0x7f
 			? (SCHRIFT.has(String.fromCharCode(b)) ? String.fromCharCode(b) : ' ') : '');
 
+		// Wörterbuch für die Schreibung (fehlt in Builds ohne Spieldaten: dann wie im Original)
+		let woerter = null;
+		const schreibungBereit = fetch('schreibung.json').then((r) => r.ok ? r.json() : null).then((j) => {
+			if (!j?.w) return false;
+			woerter = Object.assign(Object.create(null), j.w, optionen.schreibungZusatz);
+			neuZeichnen();
+			return true;
+		}).catch(() => false);
+		const schreibungAn = () => {
+			try { return localStorage.getItem('schreibung') !== 'original'; } catch (e) { return true; }
+		};
+		/** Bytes als Zeichenkette; @ und ~ bleiben, Farben 0xf0–f3 als \uE000–\uE003 */
+		function dekodiere(bytes) {
+			let t = '';
+			for (const b of bytes) {
+				if (b === 0x40 || b === 0x7e) t += String.fromCharCode(b);
+				else if (b >= 0xf0 && b <= 0xf3) t += String.fromCharCode(0xe000 + b - 0xf0);
+				else if (b === 0x0d || b === 0x0a) t += ' ';
+				else t += zeichenText(b);
+			}
+			return (woerter && schreibungAn() && typeof Schreibung !== 'undefined') ? Schreibung.umwandeln(t, woerter) : t;
+		}
+
 		/** Spieltext (Bytes im DOS-Zeichensatz) als Zeilen: @ = Umbruch, ~ = Tabulator, 0xf0–f3 = Farbe */
 		function spieltext(bytes, ziel) {
 			ziel.replaceChildren();
@@ -134,12 +162,12 @@ function textboxOverlay(Module, optionen = {}) {
 				span.textContent += z;
 			};
 			neueZeile();
-			for (const b of bytes) {
-				if (b === 0x40) neueZeile();
-				else if (b === 0x7e) neueSpalte();
-				else if (b >= 0xf0 && b <= 0xf3) { farbe = b - 0xf0; span = null; }
-				else if (b === 0x0d || b === 0x0a) zeichen(' ');
-				else if (zeichenText(b)) zeichen(zeichenText(b));
+			for (const z of dekodiere(bytes)) {
+				const c = z.charCodeAt(0);
+				if (z === '@') neueZeile();
+				else if (z === '~') neueSpalte();
+				else if (c >= 0xe000 && c <= 0xe003) { farbe = c - 0xe000; span = null; }
+				else zeichen(z);
 			}
 		}
 		const alsText = (bytes) => bytes ? bytes.map(zeichenText).join('') : '';
@@ -272,5 +300,11 @@ function textboxOverlay(Module, optionen = {}) {
 		if (d) { d.bildPos = [x, y]; portraetZeichnen(); }
 	};
 
-	return { dialoge, alsText, portraetZeichnen };
+	/** offene Box neu aufbauen (z. B. nach Umschalten der Schreibung) */
+	function neuZeichnen() {
+		const d = dialoge.at(-1);
+		if (d && d.art !== 1 && d.art !== 4) zeigeDialog();   // Eingabefelder nicht zurücksetzen
+	}
+
+	return { dialoge, alsText, portraetZeichnen, neuZeichnen, schreibungBereit };
 }

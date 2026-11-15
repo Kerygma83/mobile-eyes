@@ -1,6 +1,7 @@
 // Regressionstests für ./pruefen.sh (ausgeführt von werkzeuge/regression.mjs)
 //
-// Je Szenario: name, schritte, optional adresse (Standard '/?ohneIntro').
+// Je Szenario: name, schritte, optional adresse (Standard '/?ohneIntro'), schreibung: true (Textboxen
+// in normaler Schreibung statt in Großbuchstaben wie im Original).
 //
 // Schritte:
 //   { tipp: [ausschnitt, x, y] }     Antippen im mobilen Layout, x/y in Spielkoordinaten (320x200);
@@ -106,6 +107,23 @@ export const szenarien = [
 			{ bild: 'intro' },
 			{ genKnopf: 'Intro überspringen' },
 			{ warteAuf: 'z.gen == 0 && z.ov == 1 && /SCHWIERIGKEITSGRAD/.test(z.ovText)', max: 5000 },
+		],
+	},
+	{
+		// Textboxen in normaler Groß-/Kleinschreibung (schreibung.js, Wörterbuch aus den Spieldaten);
+		// der Knopf „Aa“ schaltet auf Großbuchstaben wie im Original und zurück
+		name: 'Schreibung: normal und wie im Original',
+		schreibung: true,
+		schritte: [
+			{ warteAuf: 'z.ov == 1 && /Schwierigkeitsgrad/.test(z.ovText)', max: 20000 },
+			{ erwarte: '/^Wählen Sie den/.test(z.ovText)', text: 'Satzanfang groß, Anrede „Sie“, sonst klein' },
+			{ js: "document.getElementById('schreibung').click()" },
+			{ warteAuf: 'z.ov == 1 && /^WÄHLEN SIE DEN/.test(z.ovText)', max: 2000 },
+			{ js: "document.getElementById('schreibung').click()" },
+			{ warteAuf: 'z.ov == 1 && /^Wählen Sie den/.test(z.ovText)', max: 2000 },
+			{ wahl: 1 },
+			{ warteAuf: 'z.ov == 1 && /gestartet/.test(z.ovText)', max: 3000 },
+			{ warteAuf: "[...document.querySelectorAll('#dialog .optionen button')].some((b) => b.textContent == 'Hauptprogramm')", seite: true, max: 2000 },
 		],
 	},
 	{

@@ -36,4 +36,4 @@ mkdir -p build/pw
 docker run --rm --init --ipc=host --user "$(id -u):$(id -g)" -e HOME=/tmp -e BROWSER="${BROWSER:-}" -e WURZEL="$wurzel" -e ZUFALL_MIN="${ZUFALL_MIN:-}" -e ZUFALL_SAAT="${ZUFALL_SAAT:-}" -e ZUFALL_START="${ZUFALL_START:-}" \
 	-v "$PWD":/app -w /app/build/pw mcr.microsoft.com/playwright:v1.64.1-noble bash -c \
 	'[ -d node_modules/playwright ] || npm i -s playwright@1.64.1 >/dev/null 2>&1
-	 cp /app/werkzeuge/regression.mjs /app/werkzeuge/szenarien.mjs . && node regression.mjs "$1"' _ "$filter"
+	 node /app/werkzeuge/schreibung-test.cjs && cp /app/werkzeuge/regression.mjs /app/werkzeuge/szenarien.mjs . && node regression.mjs "$1"' _ "$filter"

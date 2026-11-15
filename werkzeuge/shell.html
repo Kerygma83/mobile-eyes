@@ -239,12 +239,14 @@
 			<button data-key="j" title="Ja (J)">Ja</button>
 			<button data-key="n" title="Nein (N)">Nein</button>
 			<button id="layout" title="Zwischen mobilem und originalem Layout wechseln">Layout</button>
+			<button id="schreibung" hidden title="Textboxen in normaler Schreibung oder wie im Original in Großbuchstaben">Aa</button>
 			<button id="spielstaende-knopf" title="Spielstände exportieren und importieren">Spielstände</button>
 			<button id="vollbild" title="Vollbild">Vollbild</button>
 		</div>
 	</div>
 </div>
 
+<script src="schreibung.js"></script>
 <script src="dialog.js"></script>
 <script src="ton.js"></script>
 <script>
@@ -582,6 +584,23 @@
 	}
 	try { if (localStorage.getItem('layout') === 'original') setzeLayout(false); } catch (e) {}
 	document.getElementById('layout').addEventListener('click', () => setzeLayout(!document.body.classList.contains('mobil')));
+
+	// Schreibung der Textboxen: normal oder Großbuchstaben wie im Original (gilt auch für die
+	// Heldenerschaffung, die dialog.js im iframe nutzt); nur mit Wörterbuch (Builds mit Spieldaten)
+	const schreibungKnopf = document.getElementById('schreibung');
+	const schreibungZeigen = () => {
+		let an = true;
+		try { an = localStorage.getItem('schreibung') !== 'original'; } catch (e) {}
+		schreibungKnopf.textContent = an ? 'Aa' : 'AA';
+		schreibungKnopf.setAttribute('aria-pressed', String(an));
+	};
+	overlay.schreibungBereit.then((ok) => { schreibungKnopf.hidden = !ok; schreibungZeigen(); });
+	schreibungKnopf.addEventListener('click', () => {
+		const an = schreibungKnopf.getAttribute('aria-pressed') !== 'true';
+		try { localStorage.setItem('schreibung', an ? 'normal' : 'original'); } catch (e) {}
+		schreibungZeigen();
+		overlay.neuZeichnen();
+	});
 
 	document.getElementById('vollbild').addEventListener('click', () => {
 		if (document.fullscreenElement) document.exitFullscreen();

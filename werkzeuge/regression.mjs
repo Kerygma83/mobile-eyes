@@ -41,6 +41,9 @@ const auswahl = szenarien.filter((s) => s.name.toLowerCase().includes(filter.toL
 for (const sz of auswahl) {
 	const kurz = sz.name.replace(/[^A-Za-z0-9äöüÄÖÜß]+/g, '-').toLowerCase();
 	const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
+	// Szenarien vergleichen mit den Texten des Spiels (Großbuchstaben); die normale Schreibung
+	// (schreibung.js) nur in Szenarien mit schreibung: true
+	if (!sz.schreibung) await ctx.addInitScript(() => { try { localStorage.setItem('schreibung', 'original'); } catch (e) {} });
 	const page = await ctx.newPage();
 	const konsole = [];
 	let laufzeitfehler = null;

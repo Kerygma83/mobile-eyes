@@ -59,6 +59,7 @@
 	<button type="button" id="menue" title="Menü der Heldenerschaffung (Rechtsklick)">Menü</button>
 	<button type="button" id="ueberspringen" hidden>Intro überspringen</button>
 </div>
+<script src="schreibung.js"></script>
 <script src="dialog.js"></script>
 <script>
 	const statusEl = document.getElementById('status');
@@ -81,7 +82,8 @@
 
 	// Textboxen als Overlay wie im Spiel (nicht im Original-Layout: gen.html?…&original).
 	// Solange eines offen ist, gibt ngen selbst keine Bilder aus (vgalib.c), seine Box bleibt unsichtbar.
-	if (!new URLSearchParams(location.search).has('original')) textboxOverlay(Module);
+	// Die Heldenerschaffung siezt („WÄHLEN SIE …“), das Spiel ihrzt
+	if (!new URLSearchParams(location.search).has('original')) textboxOverlay(Module, { schreibungZusatz: { SIE: 'Sie', IHNEN: 'Ihnen' } });
 </script>
 {{{ SCRIPT }}}
 </body>

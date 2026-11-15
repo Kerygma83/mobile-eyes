@@ -103,7 +103,12 @@ emcc "${gobjs[@]}" -o "$out/gen.html" "${glflags[@]}" \
 	-sUSE_SDL=2 -sASYNCIFY -sASYNCIFY_STACK_SIZE=65536 -sALLOW_MEMORY_GROWTH -sSTACK_SIZE=1MB \
 	-sEXPORTED_RUNTIME_METHODS=FS -lidbfs.js \
 	--pre-js werkzeuge/gen-pre.js --shell-file werkzeuge/gen-shell.html
-cp werkzeuge/dialog.js werkzeuge/ton.js "$out/"
+cp werkzeuge/dialog.js werkzeuge/ton.js werkzeuge/schreibung.js "$out/"
+# Wörterbuch für die Schreibung der Textboxen: aus den Spieldaten abgeleitet, nur mit Spieldaten
+rm -f "$out/schreibung.json"
+if [ "${SPIELDATEN:-0}" = 1 ]; then
+	/usr/bin/python3 werkzeuge/schreibung.py "$out/schreibung.json"
+fi
 # CD-Musik (spiel/musik/TrackNN.m4a, aus werkzeuge/musik-umwandeln.sh): nur mit Spieldaten
 rm -rf "$out/musik"
 if [ "${SPIELDATEN:-0}" = 1 ] && [ -d spiel/musik ]; then
@@ -116,8 +121,8 @@ sed -i -E '/^[[:space:]]*\/\/ (end )?include: \/tmp\/tmp[^ ]*\.js$/d' "$out/inde
 
 # ---- PWA: Manifest, Icons, Service Worker mit Version (Prüfsumme aller Dateien) ----
 cp werkzeuge/pwa/manifest.webmanifest werkzeuge/pwa/icon-*.png "$out/"
-dateien=(index.html index.js index.wasm gen.html gen.js gen.wasm dialog.js ton.js manifest.webmanifest icon-180.png icon-192.png icon-512.png)
-for d in index.data gen.data; do [ -f "$out/$d" ] && dateien+=("$d"); done
+dateien=(index.html index.js index.wasm gen.html gen.js gen.wasm dialog.js ton.js schreibung.js manifest.webmanifest icon-180.png icon-192.png icon-512.png)
+for d in index.data gen.data schreibung.json; do [ -f "$out/$d" ] && dateien+=("$d"); done
 version=$(cd "$out" && cat "${dateien[@]}" | sha256sum | cut -c1-12)
 liste=$(printf '"./",'; printf '"%s",' "${dateien[@]}")
 sed -e "s/__VERSION__/$version/" -e "s|__DATEIEN__|[${liste%,}]|" werkzeuge/pwa/sw.js > "$out/sw.js"
