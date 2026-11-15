@@ -1873,6 +1873,18 @@ static int g_sdl_quit_event = 0;
 #if defined(__EMSCRIPTEN__)
 #include <emscripten.h>
 /* Logo-Intro abspielen (Seite öffnet gen.html?intro) und warten */
+/* Spielende: alle exit()-Aufrufe laufen über diese Hülle (Linker: --wrap=exit, werkzeuge/web-bauen.sh).
+ * Unter DOS ging es zurück zum Betriebssystem; die Seite zeigt „Spiel beendet“ mit Neustart. */
+EM_JS(void, web_spielende, (int status), {
+	if (Module.spielEnde) Module.spielEnde(status);
+});
+extern "C" void __real_exit(int status);
+extern "C" void __wrap_exit(int status)
+{
+	web_spielende(status);
+	__real_exit(status);
+}
+
 EM_ASYNC_JS(void, web_intro, (void), {
 	if (Module.genStarten) await Module.genStarten('intro');
 });
@@ -6273,6 +6285,10 @@ int main(int argc, char** argv)
 #endif
 	}
 
+#if defined(__EMSCRIPTEN__)
+	/* main() endet hier asynchron (ASYNCIFY), ohne dass die Seite davon erfährt: über exit() melden */
+	exit(0);
+#endif
 #if !defined(__BORLANDC__)
 	return 0;
 #endif
