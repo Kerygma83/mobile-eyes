@@ -49,6 +49,7 @@
 #endif
 #if defined(WEB_TESTHOOKS)
 #include "seg032.h"
+#include "seg103.h"
 #endif
 #include "seg004.h"
 #include "seg006.h"
@@ -1979,6 +1980,13 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_test_talk(const int art, const int talk
 	g_web_test_talk[0] = art; g_web_test_talk[1] = talk_id; g_web_test_talk[2] = partner;
 }
 
+/* Probe des ersten Helden (Würfel-Log): art 1 = Talent (test_talent), 2 = Eigenschaft (test_attrib) */
+static int g_web_test_probe[3] = { 0, 0, 0 };
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_probe(const int art, const int id, const int handicap)
+{
+	g_web_test_probe[1] = id; g_web_test_probe[2] = handicap; g_web_test_probe[0] = art;
+}
+
 extern "C" int web_screen_mode(void);
 
 /* Spielzustand als JSON für die Tests */
@@ -2030,6 +2038,12 @@ static void web_test_hooks(void)
 		const int id = g_web_test_fight;
 		g_web_test_fight = 0;
 		do_fight(id);
+	}
+	if (g_web_test_probe[0]) {
+		const int art = g_web_test_probe[0];
+		g_web_test_probe[0] = 0;
+		if (art == 1) test_talent(get_hero(0), g_web_test_probe[1], g_web_test_probe[2]);
+		else test_attrib(get_hero(0), g_web_test_probe[1], g_web_test_probe[2]);
 	}
 }
 #endif
