@@ -49,7 +49,13 @@ for (const sz of auswahl) {
 		// Sanitizer (ASAN=1): UBSan meldet nur und läuft weiter, das zählt trotzdem als Fehler
 		if (/runtime error:|AddressSanitizer|LeakSanitizer/.test(m.text())) laufzeitfehler ??= new Error(`Sanitizer: ${m.text()}`);
 	});
-	page.on('dialog', (d) => d.accept());   // Rückfragen (confirm) bestätigen
+	page.on('dialog', (d) => d.accept());
+	// lange Läufe (Chromium): Debugger gleich verbinden, bei einem Hänger lässt er sich nicht mehr einschalten
+	let cdp = null;
+	if (sz.nurAufWunsch && process.env.BROWSER !== 'webkit') {
+		cdp = await ctx.newCDPSession(page);
+		await cdp.send('Debugger.enable');
+	}   // Rückfragen (confirm) bestätigen
 	page.on('pageerror', (e) => { laufzeitfehler ??= e; konsole.push(`[pageerror] ${e.message}\n${e.stack}`); });
 
 	// vor dem Start des Spiels (Modul lädt noch) gibt es keinen Zustand
@@ -145,11 +151,13 @@ for (const sz of auswahl) {
 				const raus = gleich > 40 && zufall() < 0.5;
 				let aktion;
 				try {
+				// Frist für die ganze Aktion: hängt das Spiel, warten auch DOM-Abfragen ewig
+				await mitFrist((async () => {
 				if (z.ov) {
 					// Overlay: Eintrag wählen, Meldung weg, Zahl/Text eingeben oder abbrechen.
 					// Nie das Spiel beenden (sonst ist der Lauf vorbei)
 					const texte = await page.locator('#dialog .optionen button').allTextContents();
-					const erlaubt = texte.map((t, i) => [t, i]).filter(([t]) => !/BEENDEN/.test(t));
+					const erlaubt = texte.map((t, i) => [t, i]).filter(([t]) => !/BEENDEN|VERLASSEN \/ LADEN/.test(t));   // beides beendet das Spiel (Kampf verlassen ohne Spielstand)
 					const eingabe = await page.locator('#dialog input').isVisible();
 					const r = zufall();
 					const ausgang = erlaubt.filter(([t]) => /VERLASSEN|ZURÜCK|ABBRECHEN|NEIN|ENDE/.test(t));
@@ -208,6 +216,7 @@ for (const sz of auswahl) {
 						}
 					}
 				}
+				})(), 20000, 'Zufallsaktion');
 				} catch (e) {
 					// Ziel inzwischen verdeckt oder weg (Overlay ging gerade auf/zu): nächste Runde
 					if (e.name !== 'TimeoutError') throw e;
@@ -345,16 +354,36 @@ for (const sz of auswahl) {
 		if (laufzeitfehler) throw laufzeitfehler;
 	} catch (e) {
 		fehler = e;
-		await page.screenshot({ path: `${ausgabe}/${kurz}-FEHLER.png`, timeout: 5000 }).catch(() => {});
+		// Hänger: Seite über DevTools anhalten und den Aufrufstapel festhalten (nur Chromium)
+		if (/Seite blockiert/.test(e.message) && process.env.BROWSER !== 'webkit') {
+			fs.writeFileSync(`${ausgabe}/${kurz}-konsole.txt`, konsole.join('\n'));
+			try {
+				if (!cdp) throw new Error('Debugger nur bei langen Läufen verbunden');
+				// mehrmals anhalten: die Positionen zeigen, wo die Schleife kreist
+				const proben = [];
+				for (let k = 0; k < 8; k++) {
+					const angehalten = new Promise((ja) => cdp.once('Debugger.paused', ja));
+					await mitFrist(cdp.send('Debugger.pause'), 10000, 'Debugger.pause');
+					const p = await mitFrist(angehalten, 10000, 'Debugger');
+					proben.push(p.callFrames.filter((f) => f.url.endsWith('.wasm') || f.functionName.startsWith('$'))
+						.map((f) => `${f.functionName}@${f.location.columnNumber}`).join(' ← '));
+					await cdp.send('Debugger.resume').catch(() => {});
+					await new Promise((r) => setTimeout(r, 150));
+				}
+				konsole.push('[hänger] Proben (Funktion@WASM-Offset):\n' + proben.map((x) => '  ' + x).join('\n'));
+				fehler.message += '\n    Proben: ' + [...new Set(proben)].join(' | ');
+			} catch (x) { konsole.push(`[hänger] kein Stapel: ${x.message}`); }
+		}
+		if (!/Seite blockiert/.test(e.message)) await page.screenshot({ path: `${ausgabe}/${kurz}-FEHLER.png`, timeout: 5000 }).catch(() => {});
 	}
 	fs.writeFileSync(`${ausgabe}/${kurz}-konsole.txt`, konsole.join('\n'));
 	const dauer = ((Date.now() - start) / 1000).toFixed(0);
 	ergebnisse.push({ name: sz.name, ok: !fehler, dauer, fehler });
 	console.log(`${fehler ? '✗' : '✓'} ${sz.name} (${dauer} s)${fehler ? '\n    ' + String(fehler.message).replace(/\n/g, '\n    ') : ''}`);
-	await ctx.close();
+	await mitFrist(ctx.close(), 10000, 'Kontext schließen').catch(() => {});
 }
 
-await browser.close();
+await mitFrist(browser.close(), 10000, "Browser schließen").catch(() => {});
 server.close();
 const gescheitert = ergebnisse.filter((e) => !e.ok).length;
 console.log(`\n${ergebnisse.length - gescheitert}/${ergebnisse.length} Szenarien bestanden`);

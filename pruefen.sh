@@ -6,6 +6,7 @@
 #   PRUEF=1 ./pruefen.sh    Szenarien im Prüf-Build (SAFE_HEAP, Assertions; langsamer)
 #   ASAN=1 ./pruefen.sh     Szenarien mit AddressSanitizer/UBSan (deutlich langsamer)
 #   ZUFALL_MIN=20 ZUFALL_SAAT=3 ./pruefen.sh zufall   Testpartie per Zufallsspieler
+#     ZUFALL_START=dungeon:13 / weg:1                  Start im Dungeon / am Wegweiser
 set -euo pipefail
 cd "$(dirname "$0")"
 filter="${1:-}"
@@ -32,7 +33,7 @@ wurzel=/app/build/web-test
 
 echo "== Browser-Regressionstests"
 mkdir -p build/pw
-docker run --rm --init --ipc=host --user "$(id -u):$(id -g)" -e HOME=/tmp -e BROWSER="${BROWSER:-}" -e WURZEL="$wurzel" -e ZUFALL_MIN="${ZUFALL_MIN:-}" -e ZUFALL_SAAT="${ZUFALL_SAAT:-}" \
+docker run --rm --init --ipc=host --user "$(id -u):$(id -g)" -e HOME=/tmp -e BROWSER="${BROWSER:-}" -e WURZEL="$wurzel" -e ZUFALL_MIN="${ZUFALL_MIN:-}" -e ZUFALL_SAAT="${ZUFALL_SAAT:-}" -e ZUFALL_START="${ZUFALL_START:-}" \
 	-v "$PWD":/app -w /app/build/pw mcr.microsoft.com/playwright:v1.64.1-noble bash -c \
 	'[ -d node_modules/playwright ] || npm i -s playwright@1.64.1 >/dev/null 2>&1
 	 cp /app/werkzeuge/regression.mjs /app/werkzeuge/szenarien.mjs . && node regression.mjs "$1"' _ "$filter"

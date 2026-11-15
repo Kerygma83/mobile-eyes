@@ -74,6 +74,21 @@ function wege(folge) {
 	return [...folge.replace(/\s+/g, '')].flatMap((c) => [{ knopf: name[c] }, { warte: 350 }]);
 }
 
+/** Startpunkt für den Zufallsspieler */
+function zufallStart(start) {
+	const [art, nr] = start.split(':');
+	if (art === 'dungeon') return [
+		{ js: `Module._web_test_dungeon(${Number(nr)})` },
+		{ warteAuf: `z.dungeon == ${Number(nr)} && z.haupt == 1`, max: 10000 },
+	];
+	if (art === 'weg') return [
+		{ js: `Module._web_test_sign(${Number(nr)})` },
+		{ knopf: 'Vorwärts' },
+		{ warteAuf: 'z.karte == 1 || z.ov == 1', max: 5000 },
+	];
+	return [];
+}
+
 export const szenarien = [
 	{
 		name: 'Start im Tempel',
@@ -493,12 +508,26 @@ export const szenarien = [
 		],
 	},
 	{
+		name: 'Dungeon betreten (Verlassene Mine) und laufen',
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(2), ...tempelVerlassen,
+			{ js: 'Module._web_test_dungeon(13)' },
+			{ warteAuf: 'z.dungeon == 13 && z.haupt == 1', max: 10000 },
+			{ merke: 'start' },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: 'z.y != m.start.y || z.x != m.start.x || z.ov == 1', max: 5000 },
+			{ bild: 'mine' },
+		],
+	},
+	{
 		// Testpartie per Zufall (nicht in ./pruefen.sh ohne Filter):
 		//   ZUFALL_MIN=20 ZUFALL_SAAT=7 ASAN=1 SCHNELL=1 ./pruefen.sh zufall
+		// Start: ZUFALL_START=dungeon:13 (Dungeon-ID) oder weg:1 (Wegweiser-Typindex), sonst Thorwal
 		name: 'Zufallsspieler',
 		nurAufWunsch: true,
 		schritte: [
 			...spielBereit, ...heldenAufnehmen(5), ...tempelVerlassen,
+			...zufallStart(process.env.ZUFALL_START || ''),
 			{ zufall: { dauer: Number(process.env.ZUFALL_MIN || 5) * 60000, saat: Number(process.env.ZUFALL_SAAT || 1) } },
 			{ bild: 'ende' },
 		],

@@ -23,7 +23,7 @@ out=build/web
 if [ "${TESTHOOKS:-0}" = 1 ]; then
 	out=build/web-test
 	cflags+=(-DWEB_TESTHOOKS)
-	exports+=,_web_test_fight,_web_test_sign,_web_test_no_city_events,_web_test_state,_web_test_input,_web_test_talk
+	exports+=,_web_test_fight,_web_test_sign,_web_test_no_city_events,_web_test_state,_web_test_input,_web_test_talk,_web_test_dungeon
 	runtime+=,UTF8ToString
 fi
 if [ "${PRUEF:-0}" = 1 ]; then
@@ -32,9 +32,10 @@ if [ "${PRUEF:-0}" = 1 ]; then
 fi
 if [ "${ASAN:-0}" = 1 ]; then
 	out+=-asan
-	san=(-fsanitize=address,undefined -fno-sanitize=alignment -fno-omit-frame-pointer)
-	cflags+=("${san[@]}")
-	lflags+=("${san[@]}" -sINITIAL_MEMORY=256MB --profiling-funcs)
+	# shift-base: Linksschieben negativer Werte (MAP_POS mit -1) rechnet im Zweierkomplement, seit C++20 definiert
+	san=(-fsanitize=address,undefined -fno-sanitize=alignment,shift-base -fno-omit-frame-pointer)
+	cflags+=("${san[@]}" -gline-tables-only)
+	lflags+=("${san[@]}" -gline-tables-only -sINITIAL_MEMORY=256MB --profiling-funcs)
 fi
 if [ "${SPIELDATEN:-0}" = 1 ]; then
 	# Musik nicht ins Paket (rund 40 MB), sie liegt einzeln unter musik/ (siehe unten)

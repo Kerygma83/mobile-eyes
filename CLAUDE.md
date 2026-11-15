@@ -10,7 +10,7 @@ Die Schicksalsklinge (DSA 1) als Web-App. Spiellogik aus BrightEyes (`BrightEyes
 - Abweichungen vom DOS-Original nur nativ: `#if !defined(__BORLANDC__)`; der Borland-Build muss unverändert bleiben. Web-Spezifisches unter `#if defined(__EMSCRIPTEN__)`.
 - Neue Fehlerklasse gefunden → im ganzen Code nach demselben Muster suchen.
 - Vor jedem Commit `./pruefen.sh` (nativer Build, Test-Build, Browser-Szenarien in `werkzeuge/szenarien.mjs`). Neue Fehler → neues Szenario.
-- Test-Auslöser nur unter `#if defined(WEB_TESTHOOKS)` (Build mit `TESTHOOKS=1` → `build/web-test`, wird nie ausgeliefert). Vorhanden: `web_test_fight(id)`, `web_test_sign(typeindex)`, `web_test_input(stellen)`, `web_test_no_city_events(an)`, `web_test_talk(art, tlk, partner)` (1 Informant, 2 Händler/Zufall), `web_test_state()` (JSON). Hooks laufen in `game_loop()`, also nicht im Tempel.
+- Test-Auslöser nur unter `#if defined(WEB_TESTHOOKS)` (Build mit `TESTHOOKS=1` → `build/web-test`, wird nie ausgeliefert). Vorhanden: `web_test_fight(id)`, `web_test_sign(typeindex)`, `web_test_input(stellen)`, `web_test_no_city_events(an)`, `web_test_talk(art, tlk, partner)` (1 Informant, 2 Händler/Zufall), `web_test_dungeon(id)`, `web_test_state()` (JSON). Hooks laufen in `game_loop()`, also nicht im Tempel.
 - `BROWSER=webkit ./pruefen.sh …` testet mit der Safari-Engine (Desktop-WebKit, bildet iOS nur teilweise nach).
 - Szenarien warten auf Spielzustände (`warteAuf`), nicht auf feste Zeiten; Textboxen und Menüs über das Overlay bedienen (`wahl`, `weiter`, `eingabe`, `abbrechen`).
 
