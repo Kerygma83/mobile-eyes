@@ -211,6 +211,11 @@ export const szenarien = [
 		name: 'Kampf bis zum Ende (Computerkampf)',
 		schritte: [
 			...spielBereit, ...heldenAufnehmen(3), ...tempelVerlassen,
+			// Würfelprotokoll vor dem Kampf: Knopf in der Leiste, noch leer bis auf die Aufnahme
+			{ knopf: 'Würfelprotokoll' },
+			{ warteAuf: "!document.getElementById('wurflog').hidden", seite: true, max: 2000 },
+			{ knopf: 'Schließen' },
+			{ warteAuf: "document.getElementById('wurflog').hidden", seite: true, max: 2000 },
 			{ js: `Module._web_test_fight(${KAMPF_THOR8})` },
 			{ knopf: 'Vorwärts' },
 			{ warteAuf: 'z.kampf == 1 && z.menue == 1', max: 15000 },
@@ -222,6 +227,35 @@ export const szenarien = [
 			{ warte: 20000 },
 			{ bild: 'kampf' },
 			{ warteAuf: 'z.kampf == 0', max: 300000 },
+			// Würfelprotokoll: Kampfrunden, Angriffe mit AT-Wurf und Ergebnis
+			{ warteAuf: 'wurfLog.eintraege.some((e) => e.art === 4)', seite: true, max: 2000 },
+			{ warteAuf: "wurfLog.alsText().some(([t, r, d]) => / greift .* an$/.test(t) && /^Attacke: W20 = \\d+ gegen AT -?\\d+/.test(d) && r)", seite: true, max: 2000 },
+			{ warteAuf: "wurfLog.alsText().some(([t, r, d]) => /^(Treffer: \\d+ SP|pariert|verfehlt|Patzer)/.test(r))", seite: true, max: 2000 },
+			{ js: 'wurfLog.oeffnen()', seite: true },
+			{ warteAuf: "document.querySelectorAll('#wurflog .eintrag').length > 3", seite: true, max: 2000 },
+			{ bild: 'wurflog' },
+		],
+	},
+	{
+		// Würfelprotokoll (wurflog.js, BrightEyes wurflog.cpp): Talent- und Eigenschaftsproben mit Einzelwürfen
+		name: 'Würfelprotokoll: Proben',
+		schritte: [
+			...spielBereit, ...ohneZufall, ...heldenAufnehmen(1), ...tempelVerlassen,
+			{ js: 'Module._web_test_probe(1, 10, 2)' },                // Klettern +2 (3W20)
+			{ warteAuf: "wurfLog.alsText().some(([t, r, d]) => /: Klettern \\+2 \\(TaW -?\\d+\\)$/.test(t) && /bestanden|Patzer/.test(r) && /^MU \\d+, GE \\d+, KK \\d+; Erschwernis|Ausgleich/.test(d) && (d.match(/W20 = /g) || []).length >= 2)", seite: true, max: 3000 },
+			{ js: 'Module._web_test_probe(1, 7, 0)' },                 // Schusswaffen (1W20 gegen Fernkampfwert)
+			{ warteAuf: "wurfLog.alsText().some(([t, r, d]) => /: Schusswaffen \\+0/.test(t) && /\\(KL\\+GE\\+KK\\)\\/4/.test(d))", seite: true, max: 3000 },
+			{ js: 'Module._web_test_probe(2, 6, -1)' },                // Eigenschaftsprobe KK -1
+			{ warteAuf: "wurfLog.alsText().some(([t, r, d]) => /: Probe auf KK -1$/.test(t) && /^W20 = \\d+ -1 = -?\\d+ gegen KK \\d+$|^W20 = 20$/.test(d))", seite: true, max: 3000 },
+			// Panel: Namen in normaler Schreibung (beim Öffnen umgewandelt), Details aufklappbar
+			{ js: "localStorage.setItem('schreibung', 'normal')" },
+			{ knopf: 'Würfelprotokoll' },
+			{ warteAuf: "document.querySelectorAll('#wurflog details.eintrag').length >= 3", seite: true, max: 2000 },
+			{ js: "document.querySelector('#wurflog details.eintrag summary').click()" },
+			{ warteAuf: "document.querySelector('#wurflog details.eintrag').open && /^[A-ZÄÖÜ][a-zäöüß]+: Klettern/.test(document.querySelector('#wurflog .titel').textContent)", seite: true, max: 2000 },
+			{ bild: 'proben' },
+			{ knopf: 'Proben & Zauber' },
+			{ warteAuf: "[...document.querySelectorAll('#wurflog .eintrag .titel')].length >= 3 && !document.querySelector('#wurflog .runde')", seite: true, max: 2000 },
 		],
 	},
 	{

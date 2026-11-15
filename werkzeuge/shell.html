@@ -160,8 +160,9 @@
 		font: calc(1.12rem * var(--schrift, 1))/1.45 Georgia, 'Times New Roman', serif; letter-spacing: 0.02em;
 	}
 	#einstellungen .fuss { display: flex; justify-content: flex-end; }
-	.aktionen button.zahnrad { width: 2.3rem; padding: 0; }
-	.aktionen button.zahnrad svg { width: 1.3rem; height: 1.3rem; stroke-width: 2; }
+	.aktionen button.zahnrad, .aktionen button.wuerfel { width: 2.3rem; padding: 0; }
+	.aktionen button.zahnrad svg, .aktionen button.wuerfel svg { width: 1.3rem; height: 1.3rem; stroke-width: 2; }
+	.aktionen button.wuerfel[hidden] { display: none; }
 
 	/* ---------- Heldenerschaffung / Intro ---------- */
 	#gen { position: fixed; inset: 0; z-index: 20; background: #000; }
@@ -228,7 +229,7 @@
 	<input type="file" accept=".gam,.GAM" hidden>
 </div>
 
-<!-- Einstellungen: Schrift der Textboxen, Layout, Spielstände, Vollbild (nur im Browser-Tab) -->
+<!-- Einstellungen: Schrift der Textboxen, Würfelprotokoll, Layout, Spielstände, Vollbild (nur im Browser-Tab) -->
 <div id="einstellungen" hidden role="dialog" aria-modal="true" aria-label="Einstellungen">
 	<div class="karte">
 		<h2>Einstellungen</h2>
@@ -251,6 +252,13 @@
 			<div class="wahl" data-einstellung="layout">
 				<button type="button" data-wert="mobil">Mobil</button>
 				<button type="button" data-wert="original">Original</button>
+			</div>
+		</section>
+		<section>
+			<h3>Würfelprotokoll</h3>
+			<div class="wahl" data-einstellung="wurflog" aria-label="Würfelprotokoll">
+				<button type="button" data-wert="an">Knopf zeigen</button>
+				<button type="button" data-wert="aus">Aus</button>
 			</div>
 		</section>
 		<section>
@@ -305,6 +313,9 @@
 			<button data-key="rechtsklick" title="Abbrechen / Dialog schließen / Menü (Rechtsklick)">Zurück</button>
 			<button data-key="j" title="Ja (J)">Ja</button>
 			<button data-key="n" title="Nein (N)">Nein</button>
+			<button id="wurflog-knopf" class="wuerfel" aria-label="Würfelprotokoll" title="Würfelprotokoll: Proben, Zauber, Kampfwürfe">
+				<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/></svg>
+			</button>
 			<button id="einstellungen-knopf" class="zahnrad" aria-label="Einstellungen" title="Einstellungen: Schrift, Layout, Spielstände">
 				<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
 			</button>
@@ -315,6 +326,7 @@
 <script src="schreibung.js"></script>
 <script src="dialog.js"></script>
 <script src="ton.js"></script>
+<script src="wurflog.js"></script>
 <script>
 	// SDL-Tastencodes, die das Spiel in sdl_event_loop() auswertet
 	const TASTEN = {
@@ -422,6 +434,9 @@
 	const overlay = textboxOverlay(Module, { portraetQuelle: () => lebend, beimOeffnen: alleLoslassen });
 	const { dialoge, alsText, portraetZeichnen } = overlay;
 	const ton = tonEinrichten(Module);   // Soundeffekte und Musik (ton.js)
+	// Würfelprotokoll (wurflog.js): Proben, Zauber und Kampfwürfe zum Nachlesen
+	const wurfLog = wurfLogEinrichten(Module, { spielText: overlay.spielText, beimOeffnen: alleLoslassen });
+	document.getElementById('wurflog-knopf').addEventListener('click', () => wurfLog.oeffnen());
 	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
 
 	function taste(name) {
@@ -664,7 +679,12 @@
 			setze: (v) => { merke('schriftgroesse', v); overlay.neuZeichnen(); } },
 		layout: { lies: () => document.body.classList.contains('mobil') ? 'mobil' : 'original',
 			setze: (v) => setzeLayout(v === 'mobil') },
+		wurflog: { lies: () => lies('wurflog') === 'aus' ? 'aus' : 'an',
+			setze: (v) => { merke('wurflog', v); wurflogKnopfZeigen(); } },
 	};
+	// Protokoll läuft immer mit; die Einstellung blendet nur den Knopf aus
+	const wurflogKnopfZeigen = () => { document.getElementById('wurflog-knopf').hidden = einstellung.wurflog.lies() === 'aus'; };
+	wurflogKnopfZeigen();
 	const probe = einstEl.querySelector('.probe');
 	const probeText = probe.textContent;
 	function einstellungenZeigen() {

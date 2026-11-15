@@ -12,7 +12,8 @@
 //             beimSchliessen: (leer) => {},   // leer = keine Box mehr offen
 //             schreibungZusatz: { SIE: 'Sie' },  // eigene Wörter vor dem Wörterbuch
 //         });
-//         overlay.dialoge, overlay.alsText(bytes), overlay.portraetZeichnen(), overlay.neuZeichnen(),
+//         overlay.dialoge, overlay.alsText(bytes), overlay.spielText(bytes) (mit Schreibung),
+//         overlay.portraetZeichnen(), overlay.neuZeichnen(),
 //         overlay.schreibungBereit (Promise: Wörterbuch geladen?)
 //
 // Schreibung (schreibung.js): mit schreibung.json (nur in Builds mit Spieldaten) erscheinen die
@@ -311,5 +312,5 @@ function textboxOverlay(Module, optionen = {}) {
 		if (d && d.art !== 1 && d.art !== 4) zeigeDialog();   // Eingabefelder nicht zurücksetzen
 	}
 
-	return { dialoge, alsText, portraetZeichnen, neuZeichnen, schreibungBereit };
+	return { dialoge, alsText, spielText: dekodiere, portraetZeichnen, neuZeichnen, schreibungBereit };
 }
