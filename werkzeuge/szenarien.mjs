@@ -608,4 +608,43 @@ export const szenarien = [
 			{ bild: 'ende' },
 		],
 	},
+	{
+		// Spielstand mit hochgerüsteter Gruppe zum Ausprobieren (nicht in ./pruefen.sh ohne Filter):
+		//   SCHNELL=1 ./pruefen.sh testgruppe   → build/regression/TESTGRUPPE.GAM
+		name: 'Testgruppe: hochgerüstet speichern',
+		nurAufWunsch: true,
+		schritte: [
+			...spielBereit, ...ohneZufall, ...heldenAufnehmen(5),
+			// sechster Held: danach ist die Gruppe voll, das Spiel schließt die Liste selbst
+			{ tipp: ['Aktionen', 252, 69] }, { warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
+			{ wahl: 1 }, { warteAuf: 'z.helden == 6 && z.dialog == 0 && z.haupt == 1', max: 3000 },
+			...tempelVerlassen,
+			{ js: 'Module._web_test_ruesten()' },
+			{ warte: 500 },
+			// zurück in den Tempel (speichern geht nur dort)
+			{ merke: 'draussen' }, ...wege('LLV'),
+			{ warteAuf: `z.ort == ${ORT_TEMPEL} && z.haupt == 1`, max: 5000 },
+			{ knopf: 'Zurück' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 9', max: 3000 },
+			{ wahl: 5 },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 3000 },
+			{ wahl: 1 },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 0', max: 3000 },
+			{ tippen: 'TESTGRUP' },
+			{ warteAuf: 'z.ov == 0 && z.dialog == 0', max: 5000 },
+			{ warteAuf: "FS.readdir('/spielstand').some((d) => d.startsWith('TESTGRUP'))", seite: true, max: 5000 },
+			{ knopf: 'Einstellungen' },
+			{ knopf: 'Spielstände exportieren und importieren …' },
+			{ exportiere: 'TESTGRUP', datei: 'TESTGRUPPE.GAM' },
+			// lässt sich laden
+			{ neuLaden: true }, ...spielBereit,
+			{ knopf: 'Zurück' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 9', max: 3000 },
+			{ wahl: 4 },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 3000 },
+			{ wahl: 'TESTGRUP' },
+			{ warteAuf: 'z.helden == 6 && z.ov == 0', max: 5000 },
+			{ bild: 'geladen' },
+		],
+	},
 ];
