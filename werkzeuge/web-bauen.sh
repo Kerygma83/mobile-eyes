@@ -19,14 +19,13 @@ src=BrightEyes/src/schick
 cflags=(-O2 -fno-asm -Wno-register -Wno-unused-result -sUSE_SDL=2)
 lflags=()
 exports=_main,_web_key,_web_right_click,_web_click,_web_screen_mode,_web_party_state,_web_menu_select,_web_mouse_cursor
-runtime=FS,callMain
+runtime=FS,callMain,UTF8ToString
 out=build/web
 
 if [ "${TESTHOOKS:-0}" = 1 ]; then
 	out=build/web-test
 	cflags+=(-DWEB_TESTHOOKS)
 	exports+=,_web_test_fight,_web_test_sign,_web_test_no_city_events,_web_test_state,_web_test_input,_web_test_talk,_web_test_dungeon
-	runtime+=,UTF8ToString
 fi
 if [ "${PRUEF:-0}" = 1 ]; then
 	out+=-pruef
@@ -108,7 +107,7 @@ emcc "${gobjs[@]}" -o "$out/gen.html" "${glflags[@]}" \
 	-sUSE_SDL=2 -sASYNCIFY -sASYNCIFY_STACK_SIZE=65536 -sALLOW_MEMORY_GROWTH -sSTACK_SIZE=1MB \
 	-sEXPORTED_RUNTIME_METHODS=FS -lidbfs.js \
 	--pre-js werkzeuge/gen-pre.js --shell-file werkzeuge/gen-shell.html
-cp werkzeuge/dialog.js werkzeuge/ton.js werkzeuge/schreibung.js werkzeuge/wurflog.js werkzeuge/daten.js "$out/"
+cp werkzeuge/dialog.js werkzeuge/ton.js werkzeuge/schreibung.js werkzeuge/wurflog.js werkzeuge/questlog.js werkzeuge/daten.js "$out/"
 # Spieldaten eingebaut (1) oder Import im Browser (0): Kennung für daten.js
 sed -i "s/__SPIELDATEN__/${SPIELDATEN:-0}/" "$out/index.html" "$out/gen.html"
 # ohne Spieldaten: Import des GOG-Installers (innoextract als WebAssembly, einmal gebaut)
@@ -140,7 +139,7 @@ sed -i -E '/^[[:space:]]*\/\/ (end )?include: \/tmp\/tmp[^ ]*\.js$/d' "$out/inde
 
 # ---- PWA: Manifest, Icons, Service Worker mit Version (Prüfsumme aller Dateien) ----
 cp werkzeuge/pwa/manifest.webmanifest werkzeuge/pwa/icon-*.png "$out/"
-dateien=(index.html index.js index.wasm gen.html gen.js gen.wasm dialog.js ton.js schreibung.js wurflog.js daten.js manifest.webmanifest icon-180.png icon-192.png icon-512.png)
+dateien=(index.html index.js index.wasm gen.html gen.js gen.wasm dialog.js ton.js schreibung.js wurflog.js questlog.js daten.js manifest.webmanifest icon-180.png icon-192.png icon-512.png)
 for d in index.data gen.data schreibung.json daten-worker.js innoextract.js innoextract.wasm; do [ -f "$out/$d" ] && dateien+=("$d"); done
 version=$(cd "$out" && cat "${dateien[@]}" | sha256sum | cut -c1-12)
 liste=$(printf '"./",'; printf '"%s",' "${dateien[@]}")

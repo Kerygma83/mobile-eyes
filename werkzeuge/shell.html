@@ -163,12 +163,14 @@
 		font: calc(1.12rem * var(--schrift, 1))/1.45 Georgia, 'Times New Roman', serif; letter-spacing: 0.02em;
 	}
 	#einstellungen .fuss { display: flex; justify-content: flex-end; }
-	.aktionen button.zahnrad, .aktionen button.wuerfel { width: 2.3rem; padding: 0; }
-	.aktionen button.zahnrad svg, .aktionen button.wuerfel svg { width: 1.3rem; height: 1.3rem; stroke-width: 2; }
-	.aktionen button.wuerfel[hidden] { display: none; }
-	/* neue Einträge seit dem letzten Öffnen des Protokolls */
-	.aktionen button.wuerfel.neu { color: var(--gold); border-color: var(--gold); }
-	.aktionen button.wuerfel.neu svg { fill: rgb(201 164 92 / 0.25); }
+	.aktionen button.zahnrad, .aktionen button.wuerfel, .aktionen button.quest { width: 2.3rem; padding: 0; }
+	/* J/N wirken nur in Ja/Nein-Menüs (GUI_bool); die kommen im mobilen Layout als Overlay, das die Leiste verdeckt */
+	body.mobil .aktionen button[data-key="j"], body.mobil .aktionen button[data-key="n"] { display: none; }
+	.aktionen button.zahnrad svg, .aktionen button.wuerfel svg, .aktionen button.quest svg { width: 1.3rem; height: 1.3rem; stroke-width: 2; }
+	.aktionen button.wuerfel[hidden], .aktionen button.quest[hidden] { display: none; }
+	/* neue Einträge seit dem letzten Öffnen des Protokolls bzw. des Questlogs */
+	.aktionen button.wuerfel.neu, .aktionen button.quest.neu { color: var(--gold); border-color: var(--gold); }
+	.aktionen button.wuerfel.neu svg, .aktionen button.quest.neu svg { fill: rgb(201 164 92 / 0.25); }
 
 	/* ---------- Heldenerschaffung / Intro ---------- */
 	#gen { position: fixed; inset: 0; z-index: 20; background: #000; }
@@ -235,7 +237,7 @@
 	<input type="file" accept=".gam,.GAM" hidden>
 </div>
 
-<!-- Einstellungen: Schrift der Textboxen, Würfelprotokoll, Layout, Spielstände, Vollbild (nur im Browser-Tab) -->
+<!-- Einstellungen: Schrift der Textboxen, Würfelprotokoll, Questlog, Layout, Spielstände, Vollbild (nur im Browser-Tab) -->
 <div id="einstellungen" hidden role="dialog" aria-modal="true" aria-label="Einstellungen">
 	<div class="karte">
 		<h2>Einstellungen</h2>
@@ -270,6 +272,13 @@
 		<section>
 			<h3>Würfelprotokoll</h3>
 			<div class="wahl" data-einstellung="wurflog" aria-label="Würfelprotokoll">
+				<button type="button" data-wert="an">Knopf zeigen</button>
+				<button type="button" data-wert="aus">Aus</button>
+			</div>
+		</section>
+		<section>
+			<h3>Questlog</h3>
+			<div class="wahl" data-einstellung="questlog" aria-label="Questlog">
 				<button type="button" data-wert="an">Knopf zeigen</button>
 				<button type="button" data-wert="aus">Aus</button>
 			</div>
@@ -334,6 +343,9 @@
 			<button id="wurflog-knopf" class="wuerfel" aria-label="Würfelprotokoll" title="Würfelprotokoll: Proben, Zauber, Kampfwürfe">
 				<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/></svg>
 			</button>
+			<button id="questlog-knopf" class="quest" aria-label="Questlog" title="Questlog: Aufträge, Informanten, bekannte Orte">
+				<svg viewBox="0 0 24 24"><path d="M6 3.5h10.5a2 2 0 0 1 2 2V18"/><path d="M6 3.5a2 2 0 0 0-2 2v1.5h3"/><path d="M7 5.5v13a2 2 0 0 0 2 2h9.5a2 2 0 0 0 2-2V18H11v.5a2 2 0 0 1-4 0"/><path d="M10 8.5h5.5M10 12h5.5"/></svg>
+			</button>
 			<button id="einstellungen-knopf" class="zahnrad" aria-label="Einstellungen" title="Einstellungen: Schrift, Layout, Spielstände">
 				<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
 			</button>
@@ -346,6 +358,7 @@
 <script src="dialog.js"></script>
 <script src="ton.js"></script>
 <script src="wurflog.js"></script>
+<script src="questlog.js"></script>
 <script>
 	// SDL-Tastencodes, die das Spiel in sdl_event_loop() auswertet
 	const TASTEN = {
@@ -431,6 +444,7 @@
 			zeigerSetzen(false);   // läuft vor main()
 			zeigerGesetzt = true;
 			autokampfSetzen();
+			questLog.starten();
 		},
 		onFrame: neuesBild,
 		onExit: () => Module.spielEnde(),   // exit() im Spiel (Strg+Q, Sieg)
@@ -466,6 +480,10 @@
 	const wurfLog = wurfLogEinrichten(Module, { spielText: overlay.spielText, beimOeffnen: alleLoslassen,
 		knopf: document.getElementById('wurflog-knopf') });
 	document.getElementById('wurflog-knopf').addEventListener('click', () => wurfLog.oeffnen());
+	// Questlog (questlog.js): Haupt- und Nebenquests aus den Flags des Spielstands
+	const questLog = questLogEinrichten(Module, { spielText: overlay.spielText, beimOeffnen: alleLoslassen,
+		knopf: document.getElementById('questlog-knopf') });
+	document.getElementById('questlog-knopf').addEventListener('click', () => questLog.oeffnen());
 	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
 
 	function taste(name) {
@@ -713,11 +731,15 @@
 			setze: (v) => { merke('autokampf', v); autokampfSetzen(); } },
 		wurflog: { lies: () => lies('wurflog') === 'aus' ? 'aus' : 'an',
 			setze: (v) => { merke('wurflog', v); wurflogKnopfZeigen(); } },
+		questlog: { lies: () => lies('questlog') === 'aus' ? 'aus' : 'an',
+			setze: (v) => { merke('questlog', v); questlogKnopfZeigen(); } },
 	};
 	function autokampfSetzen() { Module._web_fast_autofight?.(einstellung.autokampf.lies() === 'schnell' ? 1 : 0); }
 	// Protokoll läuft immer mit; die Einstellung blendet nur den Knopf aus
 	const wurflogKnopfZeigen = () => { document.getElementById('wurflog-knopf').hidden = einstellung.wurflog.lies() === 'aus'; };
 	wurflogKnopfZeigen();
+	const questlogKnopfZeigen = () => { document.getElementById('questlog-knopf').hidden = einstellung.questlog.lies() === 'aus'; };
+	questlogKnopfZeigen();
 	const probe = einstEl.querySelector('.probe');
 	const probeText = probe.textContent;
 	function einstellungenZeigen() {

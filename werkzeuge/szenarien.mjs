@@ -285,6 +285,36 @@ export const szenarien = [
 		],
 	},
 	{
+		// Questlog (questlog.js, BrightEyes questlog.cpp): Flags des Spielstands als Haupt- und Nebenquests;
+		// web_test_quest stellt einen Fortschritt nach (Auftrag, Isleif besucht, zwei Kartenstücke, Ugdalf …)
+		name: 'Questlog: Auftrag, Informanten, Nebenquests',
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(1),
+			{ js: "localStorage.setItem('schreibung', 'normal')" },   // Namen im Panel in normaler Schreibung
+			// Leiste (mobil): ohne Ja/Nein (Overlay), Questlog neben Würfel und Zahnrad in zwei Reihen
+			{ warteAuf: "(() => { const k = [...document.querySelectorAll('.aktionen button')].filter((b) => b.offsetParent); return k.length == 5 && new Set(k.map((b) => Math.round(b.getBoundingClientRect().top))).size == 2; })()", seite: true, max: 1000 },
+			{ bild: 'leiste' },
+			{ knopf: 'Questlog' },
+			{ warteAuf: "!document.getElementById('questlog').hidden && /Noch keine Hinweise/.test(questLog.alsText())", seite: true, max: 2000 },
+			{ js: "document.querySelector('#questlog .schliessen').click()" },
+			{ js: 'Module._web_test_quest(2)' },
+			// der Knopf färbt sich beim nächsten Abgleich (alle 2 s)
+			{ warteAuf: "document.getElementById('questlog-knopf').classList.contains('neu')", seite: true, max: 5000 },
+			{ knopf: 'Questlog' },
+			{ warteAuf: "!document.getElementById('questlog-knopf').classList.contains('neu') && document.querySelector('#questlog [data-quest=haupt]')", seite: true, max: 2000 },
+			{ warteAuf: "(() => { const t = questLog.alsText(); return /Auftrag des Hetmanns/.test(t) && /Kartenstücke von Hyggeliks Karte: 2 von 9/.test(t) && /Empfehlungsschreiben des Hetmanns erhalten/.test(t); })()", seite: true, max: 1000 },   // Hauptquest: Auftrag, Brief, Kartenstücke
+			// Informanten: Isleif besucht (mit Kartenstück), Jurge und Umbrik nur gehört; Namen aus dem Spiel in normaler Schreibung
+			{ warteAuf: "document.querySelector('#questlog [data-informant=\"4\"]').classList.contains('fertig') && /^Isleif /.test(document.querySelector('#questlog [data-informant=\"4\"] .name').textContent) && /Kartenstück erhalten/.test(document.querySelector('#questlog [data-informant=\"4\"]').textContent)", seite: true, max: 1000 },   // Isleif besucht, Name aus TEXT.LTX, Kartenstück
+			{ warteAuf: "!document.querySelector('#questlog [data-informant=\"0\"]').classList.contains('fertig') && /\\(Skjal\\)/.test(document.querySelector('#questlog [data-informant=\"0\"]').textContent) && document.querySelectorAll('#questlog [data-informant]').length == 3", seite: true, max: 1000 },   // Jurge gehört, Wohnort Skjal; nur drei Informanten
+			{ warteAuf: "document.querySelector('#questlog [data-quest=ugdalf]') && document.querySelector('#questlog [data-quest=totenschiff]') && /Ruine des Schwarzmagiers/.test(questLog.alsText()) && !document.querySelector('#questlog [data-quest=drache]')", seite: true, max: 1000 },   // Nebenquests und bekannte Orte
+			{ bild: 'questlog' },
+			{ js: "document.querySelector('#questlog .schliessen').click()" },
+			{ js: 'Module._web_test_quest(0)' },
+			{ knopf: 'Questlog' },
+			{ warteAuf: "/Noch keine Hinweise/.test(questLog.alsText())", seite: true, max: 2000 },
+		],
+	},
+	{
 		// gemeldet auf iOS: nach der Meldung im Haus lief die Gruppe endlos weiter gegen das Haus
 		name: 'Haus mit Meldung betreten',
 		schritte: [
