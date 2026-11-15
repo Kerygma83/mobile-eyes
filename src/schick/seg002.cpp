@@ -50,6 +50,7 @@
 #if defined(WEB_TESTHOOKS)
 #include "seg032.h"
 #include "seg103.h"
+#include "seg105.h"
 #endif
 #include "seg004.h"
 #include "seg006.h"
@@ -1987,6 +1988,94 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_test_probe(const int art, const int id,
 	g_web_test_probe[1] = id; g_web_test_probe[2] = handicap; g_web_test_probe[0] = art;
 }
 
+/* Gruppe zum Testen hochrüsten: Eigenschaften, LE/AE, Talente, Zauber, Ausrüstung */
+static int g_web_test_ruesten = 0;
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_ruesten(void)
+{
+	g_web_test_ruesten = 1;
+}
+
+/* Gegenstand in den Rucksack legen und am Körper anlegen wie im Inventar (move_item: Boni, BE);
+ * 1 = angelegt */
+static int web_test_anlegen(struct struct_hero *hero, const int slot, const int item_id)
+{
+	int k;
+	if (!can_hero_use_item(hero, item_id) || !can_hero_equip_item_at_slot(item_id, slot)
+		|| two_hand_collision(hero, item_id, slot)) return 0;
+	if (!give_new_item_to_hero(hero, item_id, 2, 1)) return 0;
+	for (k = NR_HERO_INVENTORY_SLOTS - 1; k >= HERO_INVENTORY_SLOT_KNAPSACK_1; k--) {
+		if (hero->inventory[k].item_id == item_id) {
+			move_item(slot, k, hero);
+			return hero->inventory[slot].item_id == item_id;
+		}
+	}
+	return 0;
+}
+
+static void web_test_gruppe_ruesten(void)
+{
+	/* je Körperstelle die erste passende Wahl */
+	static const int kopf[] = { ITEM_SILBERHELM, ITEM_EISENHELM, ITEM_TOPFHELM, ITEM_LEDERHELM, 0 };
+	static const int koerper[] = { ITEM_KETTENHEMD__MAGIC, ITEM_SCHUPPENRUESTUNG, ITEM_KETTENHEMD, ITEM_LEDERHARNISCH, ITEM_ROBE__RED, 0 };
+	static const int zeug[] = { ITEM_KETTENZEUG, ITEM_PLATTENZEUG, 0 };
+	static const int fuesse[] = { ITEM_STIEFEL, 0 };
+	static const int waffe[] = { ITEM_SCHWERT__MAGIC, ITEM_SCHWERT, ITEM_SAEBEL__MAGIC, ITEM_KRIEGSBEIL__SPECIAL, ITEM_SPEER, 0 };
+	static const int schild[] = { ITEM_GOLDENER_SCHILD, ITEM_SCHILD, 0 };
+	static const struct { int slot; const int *wahl; } teile[] = {
+		{ HERO_INVENTORY_SLOT_HEAD, kopf }, { HERO_INVENTORY_SLOT_BODY, koerper },
+		{ HERO_INVENTORY_SLOT_ARMS, zeug }, { HERO_INVENTORY_SLOT_LEGS, zeug },
+		{ HERO_INVENTORY_SLOT_FEET, fuesse }, { HERO_INVENTORY_SLOT_RIGHT_HAND, waffe },
+		{ HERO_INVENTORY_SLOT_LEFT_HAND, schild },
+	};
+	struct struct_hero *hero = get_hero(0);
+	int i, j, w;
+
+	for (i = 0; i <= 6; i++, hero++) {
+		if (hero->typus == HERO_TYPE_NONE) continue;
+
+		for (j = ATTRIB_MU; j < ATTRIB_AG; j++) hero->attrib[j].normal = hero->attrib[j].current = 18;
+		for (j = ATTRIB_AG; j < ATTRIB__END; j++) hero->attrib[j].normal = hero->attrib[j].current = 2;
+		/* wie update_atpa(): (IN + KK + GE) / 5 gerundet */
+		hero->atpa_base = 11;
+		hero->le_max = hero->le = 100;
+		if (hero->ae_max > 0) hero->ae_max = hero->ae = 100;
+		hero->mr = 15;
+		for (j = 0; j < TA__END; j++) {
+			if (hero->talents[j] < 12) hero->talents[j] = 12;
+		}
+		/* Kampftalente: TaW 14, je zur Hälfte auf AT und PA (die Felder halten den vollen Wert) */
+		for (j = TA_WAFFENLOS; j <= TA_ZWEIHAENDER; j++) {
+			hero->talents[j] = 14;
+			hero->at_talent_bonus[j] = hero->atpa_base + 7;
+			hero->pa_talent_bonus[j] = hero->atpa_base + 7;
+		}
+		hero->talents[TA_SCHUSSWAFFEN] = hero->talents[TA_SCHUSSWAFFEN + 1] = 14;
+		if (hero->ae_max > 0) {
+			for (j = 1; j < SP__END; j++) {
+				if (hero->spells[j] < 12) hero->spells[j] = 12;
+			}
+		}
+		hero->money += 100000;	/* 1000 Dukaten */
+		hero->hunger = hero->thirst = 0;
+
+		for (j = 0; j < (int)(sizeof(teile) / sizeof(teile[0])); j++) {
+			/* Zauberstab der Magier behalten */
+			if (teile[j].slot == HERO_INVENTORY_SLOT_RIGHT_HAND
+				&& hero->inventory[teile[j].slot].item_id == ITEM_ZAUBERSTAB) continue;
+			for (w = 0; teile[j].wahl[w]; w++) {
+				if (web_test_anlegen(hero, teile[j].slot, teile[j].wahl[w])) break;
+			}
+		}
+		/* Fernkampf zum Ausprobieren im Rucksack, Tränke */
+		if (can_hero_use_item(hero, ITEM_LANGBOGEN)) {
+			give_new_item_to_hero(hero, ITEM_LANGBOGEN, 2, 1);
+			give_new_item_to_hero(hero, ITEM_PFEIL, 2, 30);
+		}
+		give_new_item_to_hero(hero, ITEM_STARKER_HEILTRANK, 2, 5);
+		if (hero->ae_max > 0) give_new_item_to_hero(hero, ITEM_ZAUBERTRANK_STARK, 2, 3);
+	}
+}
+
 extern "C" int web_screen_mode(void);
 
 /* Spielzustand als JSON für die Tests */
@@ -2038,6 +2127,10 @@ static void web_test_hooks(void)
 		const int id = g_web_test_fight;
 		g_web_test_fight = 0;
 		do_fight(id);
+	}
+	if (g_web_test_ruesten) {
+		g_web_test_ruesten = 0;
+		web_test_gruppe_ruesten();
 	}
 	if (g_web_test_probe[0]) {
 		const int art = g_web_test_probe[0];
