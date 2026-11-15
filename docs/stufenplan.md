@@ -14,7 +14,9 @@ Prüf-Builds (14.11., Stufe 1): `PRUEF=1` (SAFE_HEAP, Assertions) und `ASAN=1` (
 
 Zufallsläufe (15.11.) in Verlassener Mine, Zwingfeste, Verfallener Herberge und ab Wegweiser: keine weiteren Speicherfehler. Werkzeuge dazu: `ZUFALL_START=dungeon:N|weg:N`, bei Hängern Proben des Aufrufstapels über DevTools (ASan-Build mit Zeileninformationen, `emsymbolizer`).
 
-Bekannte offene Punkte: Spielende im Browser (z. B. Kampf „Verlassen / Laden“ → „Keinen“, wie im Original) hinterlässt eine leere Seite statt eines Neustarts. Original-Intro (`INTRO.EXE`) nicht nachgebaut. Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
+Spielende im Browser (15.11.): Jedes `exit()` und das Ende von `main()` zeigen „Das Spiel ist beendet“ mit „Neu starten“ (ohne Intro ins Startmenü) statt einer leeren Seite.
+
+Bekannte offene Punkte: Original-Intro (`INTRO.EXE`) nicht nachgebaut. Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
 
 ## Überblick
 

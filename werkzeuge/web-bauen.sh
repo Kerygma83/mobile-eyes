@@ -76,7 +76,7 @@ em++ "${objs[@]}" -o "$out/index.html" "${lflags[@]}" \
 	-sUSE_SDL=2 -sASYNCIFY -sASYNCIFY_STACK_SIZE=65536 \
 	-sALLOW_MEMORY_GROWTH -sSTACK_SIZE=1MB \
 	-sFORCE_FILESYSTEM -sEXPORTED_RUNTIME_METHODS=$runtime \
-	-lidbfs.js --pre-js werkzeuge/pre.js --shell-file werkzeuge/shell.html \
+	-lidbfs.js --pre-js werkzeuge/pre.js --shell-file werkzeuge/shell.html -Wl,--wrap=exit \
 	-sEXPORTED_FUNCTIONS=$exports
 
 # ---- Heldenerschaffung (ngen, eigenes Programm wie GEN.EXE im Original) → $out/gen.html ----

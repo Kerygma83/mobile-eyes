@@ -148,6 +148,15 @@
 		box-shadow: 0 0.3rem 1rem rgb(0 0 0 / 0.5); font-size: 0.95rem;
 	}
 	#update[hidden] { display: none; }
+
+	/* ---------- Spielende (main() zurückgekehrt oder exit) ---------- */
+	#ende {
+		position: fixed; z-index: 40; inset: 0;
+		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2rem;
+		background: rgb(0 0 0 / 0.85); color: var(--text); font-size: 1.1rem;
+	}
+	#ende[hidden] { display: none; }
+	#ende button { min-height: 3rem; padding: 0 1.6rem; font-size: 1.05rem; touch-action: manipulation; }
 	#update button { min-height: 2.4rem; padding: 0 0.9rem; touch-action: manipulation; }
 
 	/* Querformat im Original-Layout: Leiste rechts */
@@ -193,6 +202,11 @@
 <div id="gen" hidden><iframe title="Heldenerschaffung"></iframe></div>
 
 <!-- neue Version der App bereit (Service Worker) -->
+<div id="ende" hidden role="alertdialog" aria-label="Spiel beendet">
+	<span>Das Spiel ist beendet.</span>
+	<button type="button">Neu starten</button>
+</div>
+
 <div id="update" hidden role="status">
 	<span>Neue Version verfügbar</span>
 	<button type="button">Jetzt laden</button>
@@ -319,7 +333,21 @@
 			zeigerGesetzt = true;
 		},
 		onFrame: neuesBild,
+		onExit: () => Module.spielEnde(),   // exit() im Spiel (Strg+Q, Sieg)
 	};
+
+	// Spielende: wie unter DOS zurück „zum Betriebssystem“ – hier ein Hinweis mit Neustart.
+	// Neustart ohne Intro direkt ins Startmenü; Spielstände liegen schon in IndexedDB.
+	const endeEl = document.getElementById('ende');
+	Module.spielEnde = () => {
+		if (!endeEl.hidden) return;
+		alleLoslassen?.();
+		Module.musikPause?.();
+		endeEl.hidden = false;
+	};
+	endeEl.querySelector('button').addEventListener('click', () => {
+		location.replace(location.pathname + '?ohneIntro');
+	});
 
 	// Textboxen als Overlay (dialog.js); nach dem Schließen zeigt das nächste Bild des
 	// Spiels wieder alles (die Box ist dort schon entfernt)

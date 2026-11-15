@@ -508,6 +508,25 @@ export const szenarien = [
 		],
 	},
 	{
+		// Spielende wie im Original (Kampf verlassen, keinen Spielstand laden): vorher blieb eine leere Seite
+		name: 'Spielende: Hinweis und Neustart',
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen,
+			{ js: `Module._web_test_fight(${KAMPF_THOR8})` },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: 'z.ov == 1 && /WAS WILLST DU TUN/.test(z.ovText)', max: 15000 },
+			{ wahl: 'VERLASSEN' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 2', max: 3000 },
+			{ wahl: 'JA' },
+			{ warteAuf: '!document.getElementById("dialog").hidden && /KEINEN/.test(document.querySelector("#dialog .optionen")?.textContent)', seite: true, max: 5000 },
+			{ wahl: 'KEINEN' },
+			{ warteAuf: '!document.getElementById("ende").hidden', seite: true, max: 10000 },
+			{ bild: 'ende' },
+			{ knopf: 'Neu starten' },
+			...startMenue(),
+		],
+	},
+	{
 		name: 'Dungeon betreten (Verlassene Mine) und laufen',
 		schritte: [
 			...spielBereit, ...heldenAufnehmen(2), ...tempelVerlassen,

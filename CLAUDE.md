@@ -26,6 +26,7 @@ Die Schicksalsklinge (DSA 1) als Web-App. Spiellogik aus BrightEyes (`BrightEyes
 - Start (Web): `main` in seg002 läuft wie im Original (Intro über `web_intro`, Startmenü, `call_gen` → `web_gen`). Die Heldenerschaffung ist ngen (`BrightEyes/src/gen`) als `gen.html` im iframe (`gen-shell.html`, `gen-pre.js`). Tests starten mit `?ohneIntro`; Schritte mit `imGen: true` gelten dem iframe.
 - Overlays: `werkzeuge/dialog.js` (`textboxOverlay`) für Spiel und Heldenerschaffung; die Programme melden Boxen per `Module.dialogAuf/dialogZu`.
 - Ton: `werkzeuge/ton.js`. Effekte: `play_voc` (seg002) gibt die VOC-Datei an `Module.tonEffekt`. Musik: `CD_set_track`/`CD_audio_pause`/`CD_audio_play` (seg001) spielen `musik/TrackNN.m4a`, die nicht in `index.data` liegt. Ton gibt es erst nach der ersten Berührung.
+- Spielende: alle `exit()` laufen im Browser über `__wrap_exit` (seg002, Linker `--wrap=exit`) → `Module.spielEnde` (Hinweis mit Neustart); `main()` ruft am Ende im Browser `exit(0)`.
 - PWA: `werkzeuge/pwa/` (Manifest, Icons, `sw.js`-Vorlage). `web-bauen.sh` setzt Version (Prüfsumme) und Dateiliste ein. Service Worker und Wake-Lock nur über HTTPS oder localhost.
 - Spielstände: `save/load_game_state` in seg026 sind nativ eigene Zweige (`*_native`). Der Spielzustand wird über `datseg_status.h` in das DOS-Format (ds:0x2d34–0x4474) gebracht. Nach Änderungen an `datseg.cpp` `python3 werkzeuge/status-tabelle.py` ausführen; der Compiler prüft jede Größe gegen DOS. Im Browser liegen `*.GAM`/`GAMES.NAM` zusätzlich in IDBFS `/spielstand` (`pre.js`).
 
