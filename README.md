@@ -21,7 +21,7 @@ Dieses Repository enthält **keine** Spieldaten. Nötig ist die deutsche GOG-Fas
 | `werkzeuge/` | Build-Image, Build-Skript, HTML-Seiten (`shell.html` Spiel, `gen-shell.html` Heldenerschaffung, `dialog.js` Overlays), Browser-Tests |
 | `werkzeug.sh` | führt Befehle im Build-Container aus (auf dem Host ist kein Compiler nötig) |
 | `werkzeuge/pwa/` | Manifest, Icon (`icon.svg`, PNGs mit `icons.sh`), Vorlage des Service Workers |
-| `compose.yaml`, `nginx.conf` | Auslieferung von `build/web` auf Port 8180 |
+| `compose.yaml`, `nginx.conf` | Auslieferung von `build/web` (mit Spieldaten, nur LAN) auf Port 8180 und `build/web-frei` (ohne) auf 8181 |
 | `spieldaten/`, `spiel/` | GOG-Installer und entpackte Daten (nicht im Repo) |
 
 ## Einrichten
@@ -45,7 +45,11 @@ werkzeuge/musik-umwandeln.sh
 # Web-Build mit eingebetteten Spieldaten (nur für Tests im LAN!)
 ./werkzeug.sh env SPIELDATEN=1 werkzeuge/web-bauen.sh
 
-# Ausliefern auf http://<host>:8180
+# Web-Build ohne Spieldaten (→ build/web-frei): fragt beim ersten Start nach dem GOG-Installer
+# oder einer ZIP-Datei und hält die Daten im Browser; baut beim ersten Mal innoextract als WebAssembly
+./werkzeug.sh werkzeuge/web-bauen.sh
+
+# Ausliefern auf http://<host>:8180 (mit Daten) und :8181 (ohne)
 docker compose up -d
 
 # Nativer Build zum Gegentesten

@@ -2,6 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<!-- 1: Spieldaten eingebaut (SPIELDATEN=1), 0: Import im Browser (daten.js); setzt web-bauen.sh -->
+<meta name="spieldaten" content="__SPIELDATEN__">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Heldenerschaffung</title>
 <style>
@@ -59,6 +61,7 @@
 	<button type="button" id="menue" title="Menü der Heldenerschaffung (Rechtsklick)">Menü</button>
 	<button type="button" id="ueberspringen" hidden>Intro überspringen</button>
 </div>
+<script src="daten.js"></script>
 <script src="schreibung.js"></script>
 <script src="dialog.js"></script>
 <script>
@@ -70,6 +73,9 @@
 		setStatus: (t) => { statusEl.textContent = t; statusEl.style.display = t ? 'flex' : 'none'; },
 		onRuntimeInitialized: () => { statusEl.style.display = 'none'; },
 	};
+	// ohne eingebaute Spieldaten: DSAGEN.DAT aus dem Browser (das Spiel hat sie beim Start eingelesen)
+	const spieldaten = spieldatenEinrichten({ ohneDialog: true });
+	if (!spieldaten.eingebaut) Module.spieldatenHolen = () => spieldaten.holen(['DSAGEN.DAT']);
 
 	document.getElementById('menue').addEventListener('click', () => Module._web_right_click?.());
 	// Intro: nur „Überspringen“ (meldet dem Spiel sofort „fertig“, das schließt den Rahmen)

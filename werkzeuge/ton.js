@@ -2,7 +2,8 @@
 //
 // Das Spiel ruft auf (seg002 play_voc, seg001 CD_*):
 //   Module.tonEffekt(bytes)   VOC-Datei abspielen, Rückgabe: Dauer in ms
-//   Module.musikSpielen(nr)   CD-Track nr in Schleife (musik/TrackNN.m4a)
+//   Module.musikSpielen(nr)   CD-Track nr in Schleife (musik/TrackNN.m4a, ohne eingebaute Spieldaten
+//                             die eingelesene OGG-Datei über Module.musikDatei, daten.js)
 //   Module.musikPause() / Module.musikWeiter()
 // Browser erlauben Ton erst nach einer Berührung; bis dahin wird er still übergangen und
 // die Musik beginnt mit dem ersten Tippen.
@@ -107,10 +108,17 @@ function tonEinrichten(Module) {
 			let url = urls.get(track);
 			if (!url) {
 				try {
-					// ganze Datei holen (der Service Worker legt sie für offline ab), als Blob abspielen
-					const antwort = await fetch(`musik/Track${String(track).padStart(2, '0')}.m4a`);
-					if (!antwort.ok) throw new Error(antwort.status);
-					url = URL.createObjectURL(new Blob([await antwort.arrayBuffer()], { type: 'audio/mp4' }));   // Typ fest: Safari
+					if (Module.musikDatei) {
+						// ohne eingebaute Spieldaten: eingelesene OGG-Datei aus dem Browser (daten.js)
+						const blob = await Module.musikDatei(track);
+						if (!blob) throw new Error('nicht eingelesen');
+						url = URL.createObjectURL(new Blob([blob], { type: 'audio/ogg' }));
+					} else {
+						// ganze Datei holen (der Service Worker legt sie für offline ab), als Blob abspielen
+						const antwort = await fetch(`musik/Track${String(track).padStart(2, '0')}.m4a`);
+						if (!antwort.ok) throw new Error(antwort.status);
+						url = URL.createObjectURL(new Blob([await antwort.arrayBuffer()], { type: 'audio/mp4' }));   // Typ fest: Safari
+					}
 					urls.set(track, url);
 					// höchstens drei Tracks im Speicher halten (je einige MB)
 					for (const [alt, altUrl] of urls) {

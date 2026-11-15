@@ -150,6 +150,8 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Risiken:** Ordnerauswahl auf iOS eingeschränkt → ZIP-Upload als Weg, der überall geht.
 
+**Stand (15.11.):** Build ohne Daten (`build/web-frei`, lokal auf Port 8181) fragt beim ersten Start nach dem GOG-Installer, einer ZIP-Datei des Spielordners oder den Dateien selbst (`werkzeuge/daten.js`). Der Installer wird im Browser entpackt: innoextract 1.9 als WebAssembly in einem Worker (`werkzeuge/innoextract-wasm.sh`; Boost, liblzma, wasm-Ausnahmen, 8 MB Stack), deutscher Installer in wenigen Sekunden. Prüfung per MD5 von `SCHICKM.EXE`, englische Fassung wird mit Hinweis abgelehnt. Ablage als ArrayBuffer in IndexedDB (Blobs scheitern in Safari privat), danach Start direkt und offline. CD-Musik optional als OGG (nur wenn der Browser OGG abspielt). Szenarien „Spieldaten: Installer einlesen“ und „… ZIP einlesen“ (Chromium und WebKit). Offen: Wörterbuch der Schreibung ohne Spieldaten (heute aus den Spieltexten erzeugt, im Build ohne Daten fehlt die normale Schreibung), Musik auf Geräten ohne OGG, Veröffentlichung (Hosting, GPL-Quelltext).
+
 ## Stufe 5 – PWA
 
 **Ziel:** Installierbar wie eine App.

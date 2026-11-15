@@ -31,8 +31,18 @@ Module.genFertig = function () {
 };
 
 Module.preRun = Module.preRun || [];
+// ohne eingebaute Spieldaten: DSAGEN.DAT von der Seite (daten.js, IndexedDB)
 Module.preRun.push(function () {
-	try { FS.mkdir('/gen/TEMP'); } catch (e) {}   // ngen legt neue Helden auch dort ab
+	if (!Module.spieldatenHolen) return;
+	addRunDependency('spieldaten');
+	Module.spieldatenHolen().then((dateien) => {
+		FS.mkdirTree('/gen');
+		for (const [name, daten] of dateien) FS.writeFile(`/gen/${name}`, daten);
+		removeRunDependency('spieldaten');
+	}, (e) => console.warn('Spieldaten nicht geladen', e));
+});
+Module.preRun.push(function () {
+	try { FS.mkdirTree('/gen/TEMP'); } catch (e) {}   // ngen legt neue Helden auch dort ab
 	try { FS.chdir('/gen'); } catch (e) { console.warn('kein /gen', e); }
 	try {
 		FS.mkdir(SPIELSTAND);

@@ -2,6 +2,8 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
+<!-- 1: Spieldaten eingebaut (SPIELDATEN=1), 0: Import im Browser (daten.js); setzt web-bauen.sh -->
+<meta name="spieldaten" content="__SPIELDATEN__">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#14110f">
 <meta name="mobile-web-app-capable" content="yes">
@@ -150,6 +152,7 @@
 	#einstellungen h2 { margin: 0; font: bold 1.2rem Georgia, serif; color: var(--gold); }
 	#einstellungen section { display: flex; flex-direction: column; gap: 0.45rem; }
 	#einstellungen section[hidden] { display: none; }
+	#einstellungen p { margin: 0; color: var(--leise); font-size: 0.9rem; }
 	#einstellungen h3 { margin: 0; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--leise); }
 	#einstellungen .wahl { display: flex; gap: 0.35rem; }
 	#einstellungen button { min-height: 2.6rem; padding: 0 0.8rem; font-size: 0.95rem; touch-action: manipulation; }
@@ -261,6 +264,11 @@
 				<button type="button" data-wert="aus">Aus</button>
 			</div>
 		</section>
+		<section id="spieldaten-teil" hidden>
+			<h3>Spieldaten</h3>
+			<p class="spieldaten-info"></p>
+			<button type="button" id="spieldaten-loeschen">Spieldaten aus dem Browser entfernen …</button>
+		</section>
 		<section>
 			<h3>Spielstände</h3>
 			<button type="button" id="spielstaende-knopf">Spielstände exportieren und importieren …</button>
@@ -323,6 +331,7 @@
 	</div>
 </div>
 
+<script src="daten.js"></script>
 <script src="schreibung.js"></script>
 <script src="dialog.js"></script>
 <script src="ton.js"></script>
@@ -415,6 +424,14 @@
 		onFrame: neuesBild,
 		onExit: () => Module.spielEnde(),   // exit() im Spiel (Strg+Q, Sieg)
 	};
+
+	// Spieldaten (daten.js): ohne eingebaute Daten aus dem Browser, beim ersten Start mit Import;
+	// pre.js wartet darauf, bevor main() startet. Musik dann als OGG aus derselben Ablage (ton.js).
+	const spieldaten = spieldatenEinrichten();
+	if (!spieldaten.eingebaut) {
+		Module.spieldatenHolen = () => spieldaten.holen();
+		Module.musikDatei = (track) => spieldaten.musik(track);
+	}
 
 	// Spielende: wie unter DOS zurück „zum Betriebssystem“ – hier ein Hinweis mit Neustart.
 	// Neustart ohne Intro direkt ins Startmenü; Spielstände liegen schon in IndexedDB.
@@ -706,7 +723,21 @@
 	const schreibungTeil = einstEl.querySelector('[data-einstellung="schreibung"]');
 	schreibungTeil.hidden = true;
 	overlay.schreibungBereit.then((ok) => { schreibungTeil.hidden = !ok; });
+	// Spieldaten (nur ohne eingebaute Daten): Größe, entfernen (Spielstände bleiben)
+	const spieldatenTeil = document.getElementById('spieldaten-teil');
+	spieldatenTeil.hidden = spieldaten.eingebaut;
+	document.getElementById('spieldaten-loeschen').addEventListener('click', async () => {
+		if (!confirm('Spieldaten aus diesem Browser entfernen? Beim nächsten Start werden sie neu eingelesen. Spielstände bleiben erhalten.')) return;
+		await spieldaten.loeschen();
+		location.reload();
+	});
 	document.getElementById('einstellungen-knopf').addEventListener('click', () => {
+		if (!spieldaten.eingebaut) {
+			spieldaten.groesse().then((b) => {
+				spieldatenTeil.querySelector('.spieldaten-info').textContent =
+					`Im Browser gespeichert: ${(b / 1048576).toFixed(1).replace('.', ',')} MB.`;
+			}, () => {});
+		}
 		einstellungenZeigen();
 		einstEl.hidden = false;
 	});

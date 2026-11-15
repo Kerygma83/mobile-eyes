@@ -609,6 +609,45 @@ export const szenarien = [
 		],
 	},
 	{
+		// Build ohne Spieldaten (…-frei, daten.js): GOG-Installer im Browser einlesen (innoextract als
+		// WebAssembly). Der englische Installer wird abgelehnt; nach dem Neuladen startet das Spiel direkt.
+		name: 'Spieldaten: Installer einlesen',
+		wurzel: 'frei',
+		schritte: [
+			{ warteAuf: "document.querySelector('#spieldaten .waehlen')", seite: true, max: 15000 },
+			{ bild: 'import' },
+			{ dateiWahl: '/app/spieldaten/installer.exe' },
+			{ warteAuf: "/deutsche/.test(document.querySelector('#spieldaten .fehler').textContent)", seite: true, max: 120000 },
+			{ bild: 'englisch' },
+			{ dateiWahl: '/app/spieldaten/installer-de.exe' },
+			{ warteAuf: "!document.getElementById('spieldaten')", seite: true, max: 180000 },
+			...spielBereit,
+			// alles da, mit Musik (Chromium spielt OGG)
+			{ js: "spieldaten.groesse().then((b) => { window.datenGroesse = b; })", seite: true },
+			{ warteAuf: 'window.datenGroesse > 80e6', seite: true, max: 5000 },
+			{ js: "spieldaten.musik(2).then((b) => { window.track2 = b && b.size; })", seite: true },
+			{ warteAuf: 'window.track2 > 1e6', seite: true, max: 5000 },
+			{ neuLaden: true },
+			...spielBereit,
+			{ warteAuf: "!document.getElementById('spieldaten')", seite: true, max: 500 },   // nach dem Neuladen ohne Import
+		],
+	},
+	{
+		// ZIP mit dem Spielordner (pruefen.sh packt build/spieldaten-test.zip, Dateien in einem
+		// Unterordner, gemischte Schreibung); danach Heldenerschaffung (DSAGEN.DAT im iframe aus dem Browser)
+		name: 'Spieldaten: ZIP einlesen',
+		wurzel: 'frei',
+		schritte: [
+			{ warteAuf: "document.querySelector('#spieldaten .waehlen')", seite: true, max: 15000 },
+			{ dateiWahl: '/app/build/spieldaten-test.zip' },
+			{ warteAuf: "!document.getElementById('spieldaten')", seite: true, max: 60000 },
+			...startMenue(2),
+			{ wahl: 'GENERIERUNG' },
+			{ warteAuf: 'z.gen == 1 && z.gOv == 1 && z.gN == 9', max: 15000 },
+			{ bild: 'heldenerschaffung' },
+		],
+	},
+	{
 		// Spielstand mit hochgerüsteter Gruppe zum Ausprobieren (nicht in ./pruefen.sh ohne Filter):
 		//   SCHNELL=1 ./pruefen.sh testgruppe   → build/regression/TESTGRUPPE.GAM
 		name: 'Testgruppe: hochgerüstet speichern',

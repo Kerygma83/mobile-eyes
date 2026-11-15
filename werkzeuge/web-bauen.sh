@@ -2,9 +2,11 @@
 # Baut BrightEyes (Schicksalsklinge) mit Emscripten.
 # Aufruf über den Container:  ./werkzeug.sh [env VAR=1 …] werkzeuge/web-bauen.sh
 #
-#   SPIELDATEN=1  packt /app/spiel mit ein (nur für Tests im LAN, niemals ausliefern!)
+#   SPIELDATEN=1  packt /app/spiel mit ein (nur für Tests im LAN, niemals ausliefern!) → build/web;
+#                 ohne: → build/web-frei, die Spieldaten liest der Nutzer im Browser ein (daten.js,
+#                 GOG-Installer per innoextract-wasm.sh oder ZIP)
 #   TESTHOOKS=1   Test-Build mit Abkürzungen (Kampf starten, Zustand abfragen)
-#                 → baut nach build/web-test statt build/web
+#                 → baut nach build/web-test(-frei)
 #   PROFIL=1      Funktionsnamen im WASM behalten (Stacktraces, CPU-Profile)
 #   ASAN=1        AddressSanitizer + UBSan (Feldgrenzen, freigegebener Speicher, undefiniertes
 #                 Verhalten) → build/…-asan, deutlich langsamer
@@ -44,15 +46,18 @@ fi
 if [ "${PROFIL:-0}" = 1 ]; then
 	lflags+=(--profiling-funcs)
 fi
+# Objektdateien hängen nicht an den Spieldaten: mit und ohne Daten dieselben (nur das Linken unterscheidet sich)
+obj="$out/obj"
+[ "${SPIELDATEN:-0}" = 1 ] || out+=-frei
 
-mkdir -p "$out/obj"
+mkdir -p "$obj" "$out"
 
 # Header oder Schalter geändert? Dann alles neu übersetzen (keine Abhängigkeitsverfolgung pro Datei)
 stand="${cflags[*]}"
-if [ -f "$out/obj/.stand" ] && { [ "$(cat "$out/obj/.stand")" != "$stand" ] || \
-	[ -n "$(find "$src" -maxdepth 2 \( -name '*.h' -o -name '*.H' \) -newer "$out/obj/.stand")" ]; }; then
+if [ -f "$obj/.stand" ] && { [ "$(cat "$obj/.stand")" != "$stand" ] || \
+	[ -n "$(find "$src" -maxdepth 2 \( -name '*.h' -o -name '*.H' \) -newer "$obj/.stand")" ]; }; then
 	echo "Header oder Schalter geändert – baue alles neu"
-	rm -f "$out"/obj/*.o
+	rm -f "$obj"/*.o
 fi
 
 # Quelldateien aus der CMakeLists.txt übernehmen, damit beide Builds dieselben Dateien nutzen
@@ -60,7 +65,7 @@ mapfile -t quellen < <(sed -n '/set(SCHICK_SOURCES/,/)/p' "$src/CMakeLists.txt" 
 
 objs=()
 for q in "${quellen[@]}"; do
-	o="$out/obj/${q%.cpp}.o"
+	o="$obj/${q%.cpp}.o"
 	objs+=("$o")
 	if [ ! -f "$o" ] || [ "$src/$q" -nt "$o" ]; then
 		echo "em++ $q"
@@ -70,7 +75,7 @@ for q in "${quellen[@]}"; do
 	fi
 done
 wait
-echo "$stand" > "$out/obj/.stand"
+echo "$stand" > "$obj/.stand"
 
 em++ "${objs[@]}" -o "$out/index.html" "${lflags[@]}" \
 	-sUSE_SDL=2 -sASYNCIFY -sASYNCIFY_STACK_SIZE=65536 \
@@ -83,7 +88,7 @@ em++ "${objs[@]}" -o "$out/index.html" "${lflags[@]}" \
 gsrc=BrightEyes/src/gen
 gobjs=()
 for q in ngen cda_code vgalib ail_stub powerp20; do
-	o="$out/obj/gen_$q.o"
+	o="$obj/gen_$q.o"
 	gobjs+=("$o")
 	if [ ! -f "$o" ] || [ "$gsrc/$q.c" -nt "$o" ] || [ -n "$(find "$gsrc" -maxdepth 1 -name '*.h' -newer "$o")" ]; then
 		echo "emcc gen/$q.c"
@@ -103,7 +108,15 @@ emcc "${gobjs[@]}" -o "$out/gen.html" "${glflags[@]}" \
 	-sUSE_SDL=2 -sASYNCIFY -sASYNCIFY_STACK_SIZE=65536 -sALLOW_MEMORY_GROWTH -sSTACK_SIZE=1MB \
 	-sEXPORTED_RUNTIME_METHODS=FS -lidbfs.js \
 	--pre-js werkzeuge/gen-pre.js --shell-file werkzeuge/gen-shell.html
-cp werkzeuge/dialog.js werkzeuge/ton.js werkzeuge/schreibung.js werkzeuge/wurflog.js "$out/"
+cp werkzeuge/dialog.js werkzeuge/ton.js werkzeuge/schreibung.js werkzeuge/wurflog.js werkzeuge/daten.js "$out/"
+# Spieldaten eingebaut (1) oder Import im Browser (0): Kennung für daten.js
+sed -i "s/__SPIELDATEN__/${SPIELDATEN:-0}/" "$out/index.html" "$out/gen.html"
+# ohne Spieldaten: Import des GOG-Installers (innoextract als WebAssembly, einmal gebaut)
+rm -f "$out"/innoextract.* "$out/daten-worker.js"
+if [ "${SPIELDATEN:-0}" != 1 ]; then
+	[ -f build/innoextract-wasm/innoextract.wasm ] || werkzeuge/innoextract-wasm.sh
+	cp werkzeuge/daten-worker.js build/innoextract-wasm/innoextract.js build/innoextract-wasm/innoextract.wasm "$out/"
+fi
 # Wörterbuch für die Schreibung der Textboxen: aus den Spieldaten abgeleitet, nur mit Spieldaten
 rm -f "$out/schreibung.json"
 if [ "${SPIELDATEN:-0}" = 1 ]; then
@@ -121,8 +134,8 @@ sed -i -E '/^[[:space:]]*\/\/ (end )?include: \/tmp\/tmp[^ ]*\.js$/d' "$out/inde
 
 # ---- PWA: Manifest, Icons, Service Worker mit Version (Prüfsumme aller Dateien) ----
 cp werkzeuge/pwa/manifest.webmanifest werkzeuge/pwa/icon-*.png "$out/"
-dateien=(index.html index.js index.wasm gen.html gen.js gen.wasm dialog.js ton.js schreibung.js wurflog.js manifest.webmanifest icon-180.png icon-192.png icon-512.png)
-for d in index.data gen.data schreibung.json; do [ -f "$out/$d" ] && dateien+=("$d"); done
+dateien=(index.html index.js index.wasm gen.html gen.js gen.wasm dialog.js ton.js schreibung.js wurflog.js daten.js manifest.webmanifest icon-180.png icon-192.png icon-512.png)
+for d in index.data gen.data schreibung.json daten-worker.js innoextract.js innoextract.wasm; do [ -f "$out/$d" ] && dateien+=("$d"); done
 version=$(cd "$out" && cat "${dateien[@]}" | sha256sum | cut -c1-12)
 liste=$(printf '"./",'; printf '"%s",' "${dateien[@]}")
 sed -e "s/__VERSION__/$version/" -e "s|__DATEIEN__|[${liste%,}]|" werkzeuge/pwa/sw.js > "$out/sw.js"

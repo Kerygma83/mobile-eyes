@@ -8,14 +8,16 @@ import { chromium, webkit } from 'playwright';
 import { szenarien } from './szenarien.mjs';
 
 const wurzel = process.env.WURZEL || '/app/build/web-test';
+// Szenarien mit wurzel: 'frei' laufen im Build ohne eingebaute Spieldaten (…-frei)
+let aktWurzel = wurzel;
 const ausgabe = '/app/build/regression';
 const filter = process.argv[2] || '';
 fs.rmSync(ausgabe, { recursive: true, force: true });
 fs.mkdirSync(ausgabe, { recursive: true });
 
-const typen = { '.html': 'text/html', '.js': 'text/javascript', '.wasm': 'application/wasm', '.data': 'application/octet-stream', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.m4a': 'audio/mp4' };
+const typen = { '.html': 'text/html', '.js': 'text/javascript', '.wasm': 'application/wasm', '.data': 'application/octet-stream', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.m4a': 'audio/mp4', '.ogg': 'audio/ogg' };
 const server = http.createServer((req, res) => {
-	const datei = path.join(wurzel, decodeURIComponent(req.url.split('?')[0]).replace(/^\/$/, '/index.html'));
+	const datei = path.join(aktWurzel, decodeURIComponent(req.url.split('?')[0]).replace(/^\/$/, '/index.html'));
 	fs.readFile(datei, (err, inhalt) => {
 		if (err) { res.writeHead(404); res.end(); return; }
 		res.writeHead(200, { 'Content-Type': typen[path.extname(datei)] || 'application/octet-stream' });
@@ -242,6 +244,7 @@ for (const sz of auswahl) {
 	let nr = 0;
 	const m = {};
 	try {
+		aktWurzel = sz.wurzel === 'frei' ? wurzel + '-frei' : wurzel;
 		await page.goto('http://localhost:8080' + (sz.adresse ?? '/?ohneIntro'));
 		for (const s of sz.schritte) {
 			if (laufzeitfehler) throw laufzeitfehler;
@@ -300,6 +303,11 @@ for (const sz of auswahl) {
 				const wert = await ort.locator('#dialog input').inputValue();
 				if (wert !== s.tippen) throw new Error(`Eingabefeld enthält „${wert}“ statt „${s.tippen}“ (Tasten abgefangen?)`);
 				await page.keyboard.press('Enter');
+				await page.waitForTimeout(250);
+			}
+			if (s.dateiWahl) {
+				// Spieldaten-Import (daten.js): Datei(en) im versteckten Auswahlfeld setzen
+				await page.locator('#spieldaten input[type=file]').setInputFiles(s.dateiWahl);
 				await page.waitForTimeout(250);
 			}
 			if (s.exportiere) {

@@ -9,3 +9,13 @@ services:
     volumes:
       - ./build/web:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  # Build ohne Spieldaten (./werkzeug.sh werkzeuge/web-bauen.sh → build/web-frei): so, wie er öffentlich
+  # ausgeliefert würde; die Daten liest jeder Browser selbst ein (GOG-Installer oder ZIP)
+  frei:
+    image: nginx:1.29-alpine
+    restart: unless-stopped
+    ports:
+      - "8181:80"
+    volumes:
+      - ./build/web-frei:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro

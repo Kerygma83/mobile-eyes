@@ -55,8 +55,22 @@ Module.heldenNachladen = () => new Promise((fertig) => {
 });
 
 Module.preRun = Module.preRun || [];
+// Builds ohne eingebaute Spieldaten: die Seite liefert sie (daten.js, IndexedDB; beim ersten
+// Start erst nach dem Import). Das Spiel startet erst, wenn sie in /spiel liegen.
 Module.preRun.push(function () {
-	try { FS.mkdir('/spiel/TEMP'); } catch (e) {}
+	if (!Module.spieldatenHolen) return;
+	addRunDependency('spieldaten');
+	Module.spieldatenHolen().then((dateien) => {
+		FS.mkdirTree('/spiel');
+		for (const [name, daten] of dateien) FS.writeFile(`/spiel/${name}`, daten);
+		removeRunDependency('spieldaten');
+	}, (e) => {
+		console.warn('Spieldaten nicht geladen', e);
+		Module.setStatus?.('Spieldaten nicht geladen – siehe Konsole');
+	});
+});
+Module.preRun.push(function () {
+	try { FS.mkdirTree('/spiel/TEMP'); } catch (e) {}
 	try { FS.chdir('/spiel'); } catch (e) { console.warn('kein /spiel', e); }
 
 	const fertig = () => {

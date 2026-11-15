@@ -27,6 +27,22 @@ fi
 
 echo "== Web-Test-Build"
 ./werkzeug.sh env SPIELDATEN=1 TESTHOOKS=1 PRUEF="${PRUEF:-0}" ASAN="${ASAN:-0}" werkzeuge/web-bauen.sh | grep -E "error|→"
+# dasselbe ohne eingebaute Spieldaten (Import im Browser, Szenarien „Spieldaten: …“)
+./werkzeug.sh env TESTHOOKS=1 PRUEF="${PRUEF:-0}" ASAN="${ASAN:-0}" werkzeuge/web-bauen.sh | grep -E "error|→"
+# ZIP für den Import-Test: Spielordner in einem Unterordner, CHR-Dateien klein geschrieben, ein Musiktrack
+if [ ! -f build/spieldaten-test.zip ]; then
+	python3 - <<'PY'
+import zipfile, pathlib, re
+app = pathlib.Path('spieldaten/gog-de/app')
+muster = re.compile(r'^(SCHICK\.DAT|SCHICKM\.EXE|DSAGEN\.DAT|FONT\.NVF|MOUSE\.NVF|POPUP\.NVF|SOUND\.(CFG|LTX|NVF)|\w+\.CHR|INTRODAT\.\w+|\w+\.ADV)$')
+with zipfile.ZipFile('build/spieldaten-test.zip', 'w', zipfile.ZIP_DEFLATED) as z:
+	for f in sorted(app.iterdir()):
+		if f.is_file() and muster.match(f.name):
+			name = f.name.lower() if f.name.endswith('.CHR') else f.name
+			z.write(f, 'Realms of Arkania - Blade of Destiny/' + name)
+	z.write(app / 'MUSIC' / 'Track02.ogg', 'Realms of Arkania - Blade of Destiny/MUSIC/Track02.ogg')
+PY
+fi
 wurzel=/app/build/web-test
 [ "${PRUEF:-0}" = 1 ] && wurzel+=-pruef
 [ "${ASAN:-0}" = 1 ] && wurzel+=-asan

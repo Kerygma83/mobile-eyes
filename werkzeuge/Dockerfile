@@ -3,8 +3,8 @@ FROM emscripten/emsdk:4.0.10
 RUN apt-get update \
  && apt-get install -y --no-install-recommends g++ cmake make libsdl2-dev \
  && rm -rf /var/lib/apt/lists/*
-# SDL2-Port einmal vorab bauen, damit er im Image liegt
-RUN embuilder build sdl2
+# SDL2-Port (Spiel) sowie zlib und bzip2 (innoextract-wasm.sh) einmal vorab bauen, damit sie im Image liegen
+RUN embuilder build sdl2 zlib bzip2
 # Wörterbuch für die Groß-/Kleinschreibung der Spieltexte (werkzeuge/schreibung.py)
 RUN apt-get update \
  && apt-get install -y --no-install-recommends hunspell-de-de python3-hunspell \
