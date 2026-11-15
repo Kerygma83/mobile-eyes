@@ -59,6 +59,7 @@
 #include "seg029.h"
 #include "seg030.h"
 #include "seg031.h"
+#include "seg075.h"
 #include "seg039.h"
 #include "seg041.h"
 #include "seg047.h"
@@ -1953,6 +1954,9 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_test_sign(const int typeindex) { g_web_
 static int g_web_test_input = 0;
 static int g_web_test_input_result = -2;
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_input(const int digits) { g_web_test_input = digits; }
+/* Dungeon betreten (DNG_enter_dungeon wie am Eingang) */
+static int g_web_test_dungeon = 0;
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_dungeon(const int dungeon_id) { g_web_test_dungeon = dungeon_id; }
 /* Gespräch starten: art 1 = Informant (do_talk), 2 = Händler/Zufall (do_random_talk) */
 static int g_web_test_talk[3] = { 0, 0, 0 };
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_talk(const int art, const int talk_id, const int partner)
@@ -1985,6 +1989,16 @@ static void web_test_hooks(void)
 		g_web_test_input = 0;
 		strcpy(text, "TESTEINGABE: WIEVIEL PROZENT (0-50)?");
 		g_web_test_input_result = GUI_input(text, digits);
+	}
+	if (g_web_test_dungeon) {
+		const int id = g_web_test_dungeon;
+		g_web_test_dungeon = 0;
+		/* Abstecher-Dungeons führen beim Verlassen zum Reiseziel; ohne Reise: zurück hierher
+		 * (sonst ist die Gruppe nirgends und game_loop() kreist leer) */
+		gs_travel_destination_town_id = gs_town_id;
+		gs_travel_destination_x = gs_x_target;
+		gs_travel_destination_y = gs_y_target;
+		DNG_enter_dungeon(id);
 	}
 	if (g_web_test_talk[0]) {
 		const int art = g_web_test_talk[0];
