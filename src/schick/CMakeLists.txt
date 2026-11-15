@@ -129,6 +129,7 @@ set(SCHICK_SOURCES
     wurflog.cpp
     questlog.cpp
     datumzeile.cpp
+    reisekarte.cpp
 )
 
 # Define header files

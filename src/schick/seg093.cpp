@@ -30,6 +30,37 @@
 #include "seg094.h"
 #include "seg097.h"
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+
+/* Reisekarte im Browser (reisekarte.cpp): Ziele am Wegweiser als Knöpfe unter der Karte */
+signed int g_web_trv_wartet = 0;	/* 1 = am Wegweiser, das Spiel wartet auf die Wahl */
+signed int g_web_trv_wahl = 0;		/* gewählter Eintrag wie im Menü (1 …), 0 = keiner */
+signed int g_web_trv_ziele[7];		/* Orte wie im Menü, der letzte ist der aktuelle Ort (zurück) */
+signed int g_web_trv_ziele_n = 0;
+
+/* Ziele in derselben Reihenfolge wie das Menü in do_travel_mode() */
+static void web_trv_ziele_setzen(const uint8_t *routes)
+{
+	signed int n = 0, r;
+
+	while ((r = routes[n]) != 0xff && n < 6) {
+		g_web_trv_ziele[n] = (g_land_routes[r - 1].town_id_1 != gs_town_id) ?
+			g_land_routes[r - 1].town_id_1 : g_land_routes[r - 1].town_id_2;
+		n++;
+	}
+	g_web_trv_ziele[n++] = gs_town_id;
+	g_web_trv_ziele_n = n;
+	g_web_trv_wahl = 0;
+}
+
+extern "C" EMSCRIPTEN_KEEPALIVE void web_reise_wahl(const int n)
+{
+	if (g_web_trv_wartet && n >= 1 && n <= g_web_trv_ziele_n) g_web_trv_wahl = n;
+}
+
+#endif
+
 struct struct_land_route g_land_routes[LROUTE_ID__END - 1] = {
 	{ TOWN_ID_THORWAL            , TOWN_ID_VAERMHAG           ,  34,  1, 10,  25,  0, 10, 100 }, //  1
 	{ TOWN_ID_VAERMHAG           , TOWN_ID_VARNHEIM           ,  40,  1, 10,  20,  0, 10, 100 }, //  2
@@ -852,11 +883,25 @@ signed int do_travel_mode(void)
 
 		if ((signpost_ptr->town_id == gs_town_id) && (signpost_ptr->typeindex == gs_current_signpost_typeindex))
 		{
+#if defined(__EMSCRIPTEN__)
+			web_trv_ziele_setzen(signpost_ptr->linked_travel_routes);
+#endif
 			while (1) {
+#if defined(__EMSCRIPTEN__)
+				g_web_trv_wartet = 1;
+#endif
 				handle_input();
 
+#if defined(__EMSCRIPTEN__)
+				/* Reiseziel als Knopf unter der Karte gewählt (wie Menü und Auswahl) */
+				if (g_mouse_rightclick_event || g_action == ACTION_ID_PAGE_UP || g_web_trv_wahl)
+#else
 				if (g_mouse_rightclick_event || g_action == ACTION_ID_PAGE_UP)
+#endif
 				{
+#if defined(__EMSCRIPTEN__)
+					g_web_trv_wartet = 0;
+#endif
 					i = 0;
 					while ((tmp1 = signpost_ptr->linked_travel_routes[i]) != 0xff)
 					{
@@ -876,9 +921,17 @@ signed int do_travel_mode(void)
 					tw_bak = g_textbox_width;
 					g_textbox_width = 4;
 
+#if defined(__EMSCRIPTEN__)
+					if (g_web_trv_wahl >= 1 && g_web_trv_wahl <= i) {
+						tmp2 = g_web_trv_wahl - 1;
+					} else
+#endif
 					tmp2 = GUI_radio(g_text_output_buf, i,
 								destinations_tab[0], destinations_tab[1], destinations_tab[2],
 								destinations_tab[3], destinations_tab[4], destinations_tab[5]) - 1;
+#if defined(__EMSCRIPTEN__)
+					g_web_trv_wahl = 0;
+#endif
 
 					g_textbox_width = tw_bak;
 
@@ -1045,3 +1098,11 @@ signed int do_travel_mode(void)
 
 	return 0;
 }
+
+#if defined(__EMSCRIPTEN__)
+/* Gebiete der Reisekarte (Klickfelder) für reisekarte.cpp */
+const struct mouse_action* web_travelmap_actions(void)
+{
+	return g_action_table_travelmap;
+}
+#endif

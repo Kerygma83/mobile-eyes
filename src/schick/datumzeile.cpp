@@ -88,8 +88,10 @@ static void dz_zeichen(uint8_t *bild, const char c, const signed int x, const si
 	}
 }
 
-/* bei jedem Bild des Hauptbildschirms (Rahmen und Palette können sich ändern, etwa nachts) */
-extern "C" EMSCRIPTEN_KEEPALIVE void web_datum_zeile(void)
+/* bei jedem Bild des Hauptbildschirms (Rahmen und Palette können sich ändern, etwa nachts).
+ * rahmen = 0 (Reisekarte, dort ist y 139–156 Kartenbild): nur die Textpixel, sonst durchsichtig;
+ * die Seite behält den Rahmen vom letzten Hauptbildschirm. */
+extern "C" EMSCRIPTEN_KEEPALIVE void web_datum_zeile(const int rahmen)
 {
 	uint8_t bild[DZ_W * DZ_H];
 	signed int i, x, w, farbe = 0;
@@ -103,6 +105,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_datum_zeile(void)
 	memcpy(bild, g_vga_memstart + DZ_Y * DZ_W, sizeof(bild));
 	for (i = 140; i <= 153; i++) memset(bild + (i - DZ_Y) * DZ_W + 3, 0, 316 - 3 + 1);
 
+	if (!rahmen) memset(bild, 0, sizeof(bild));	/* 0 = durchsichtig (Textfarben sind nie 0) */
 	for (i = 0, x = DZ_X0; g_dz_text[i]; i++) {
 		const unsigned char c = (unsigned char)g_dz_text[i];
 		if (c >= 0xf0 && c <= 0xf3) { farbe = c - 0xf0; continue; }
@@ -110,7 +113,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_datum_zeile(void)
 		x += w;
 	}
 
-	for (i = 0; i < DZ_W * DZ_H; i++) g_dz_bild[i] = sdl_palette_rgba(bild[i]);
+	for (i = 0; i < DZ_W * DZ_H; i++) g_dz_bild[i] = (rahmen || bild[i]) ? sdl_palette_rgba(bild[i]) : 0;
 	EM_ASM({ if (Module.datumZeile) Module.datumZeile(HEAPU8, $0, $1, $2); }, g_dz_bild, DZ_W, DZ_H);
 }
 
