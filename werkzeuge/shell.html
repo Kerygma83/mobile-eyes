@@ -68,7 +68,7 @@
 	#mobil { display: none; flex: 1; min-height: 0; flex-direction: column; gap: 3px; overflow: hidden; }
 	body.mobil #mobil { display: flex; }
 	/* DOS-Pixel sind 1,2-mal so hoch wie breit */
-	canvas.aus { width: 100%; height: auto; background: #000; }
+	canvas.aus, #datum { width: 100%; height: auto; background: #000; }
 	#mobil .voll { display: none; }
 	#mobil.vollbild .teil { display: none; }
 	#mobil.vollbild .voll { display: block; }
@@ -222,6 +222,8 @@
 	<!-- ab y 139: Zeilen 136–138 sind Übergang (Bildende, rechts Muster unter den Icons) -->
 	<canvas class="aus teil" data-aus="0,139,320,18" aria-label="Ortszeile"></canvas>
 	<canvas class="aus teil" data-aus="0,157,320,43" aria-label="Gruppe"></canvas>
+	<!-- Datum und Uhrzeit (im Original per Klick oben rechts über den Icons), vom Spiel gezeichnet -->
+	<canvas id="datum" class="teil" width="320" height="18" aria-label="Datum und Uhrzeit"></canvas>
 	<canvas class="aus voll" data-aus="0,0,320,200" aria-label="Bildschirm"></canvas>
 </div>
 
@@ -401,6 +403,17 @@
 		a.c.addEventListener('contextmenu', (e) => e.preventDefault());
 	}
 
+	// Datumszeile: das Spiel zeichnet sie im Stil der Ortszeile (web_datum_zeile → Module.datumZeile).
+	// Antippen öffnet wie im Original die Box mit Datum, Uhrzeit und Feiertag (Klickfeld 0xfc).
+	const datumEl = document.getElementById('datum');
+	datumEl.style.aspectRatio = `320 / ${18 * 1.2}`;
+	const datumCtx = datumEl.getContext('2d');
+	datumEl.addEventListener('pointerdown', (e) => {
+		e.preventDefault();
+		Module._web_click?.(280, 38, 1);
+	});
+	datumEl.addEventListener('contextmenu', (e) => e.preventDefault());
+
 	// vom Spiel nach jedem geänderten Bild aufgerufen (RGBA, Alpha 0)
 	// Mauszeiger nur im Original-Layout: vor dem Start nur merken (onRuntimeInitialized),
 	// beim Layoutwechsel im laufenden Spiel sofort neu zeichnen
@@ -429,6 +442,7 @@
 			if (a.c.offsetParent === null) continue; // ausgeblendet
 			a.ctx.drawImage(ganz, a.x, a.y, a.w, a.h, 0, 0, a.w, a.h);
 		}
+		if (haupt && document.body.classList.contains('mobil')) Module._web_datum_zeile?.();
 	}
 
 	var Module = {
@@ -447,6 +461,9 @@
 			questLog.starten();
 		},
 		onFrame: neuesBild,
+		datumZeile: (heap, ptr, w, h) => {
+			datumCtx.putImageData(new ImageData(new Uint8ClampedArray(heap.subarray(ptr, ptr + w * h * 4)), w, h), 0, 0);
+		},
 		onExit: () => Module.spielEnde(),   // exit() im Spiel (Strg+Q, Sieg)
 	};
 

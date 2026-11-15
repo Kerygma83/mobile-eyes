@@ -119,7 +119,9 @@ for (const sz of auswahl) {
 	const bewerte = (ausdruck, z, m) => Function('z', 'm', `return (${ausdruck});`)(z, m);
 	async function punkt(label, gx, gy) {
 		const el = page.locator(`canvas[aria-label="${label}"]`);
-		const [ax, ay, aw, ah] = (await el.getAttribute('data-aus')).split(',').map(Number);
+		// ohne data-aus (Datumszeile): Koordinaten in der Canvas selbst
+		const aus = (await el.getAttribute('data-aus')) ?? `0,0,${await el.getAttribute('width')},${await el.getAttribute('height')}`;
+		const [ax, ay, aw, ah] = aus.split(',').map(Number);
 		const b = await el.boundingBox();
 		if (!b) throw new Error(`Ausschnitt „${label}“ ist nicht sichtbar`);
 		return [b.x + (gx - ax + 0.5) / aw * b.width, b.y + (gy - ay + 0.5) / ah * b.height];

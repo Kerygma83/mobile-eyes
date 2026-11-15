@@ -315,6 +315,20 @@ export const szenarien = [
 		],
 	},
 	{
+		// Datum und Uhrzeit: im Original per Klick oben rechts über den Icons, den das mobile Layout
+		// nicht zeigt; dort als Zeile unter den Porträts (datumzeile.cpp), Antippen öffnet die Box
+		name: 'Datumszeile unter den Porträts',
+		schritte: [
+			...spielBereit,
+			{ warteAuf: "(() => { const c = document.getElementById('datum'); if (!c.offsetParent) return false; const d = c.getContext('2d').getImageData(6, 4, 300, 7).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 128) n++; return n > 150; })()", seite: true, max: 3000 },   // Text in der Spielschrift
+			{ bild: 'datumszeile' },
+			{ tipp: ['Datum und Uhrzeit', 160, 9] },
+			{ warteAuf: 'z.ov == 1 && /ES IST .* UHR/.test(z.ovText)', max: 3000 },
+			{ weiter: true },
+			{ warteAuf: 'z.ov == 0 && z.haupt == 1', max: 3000 },
+		],
+	},
+	{
 		// gemeldet auf iOS: nach der Meldung im Haus lief die Gruppe endlos weiter gegen das Haus
 		name: 'Haus mit Meldung betreten',
 		schritte: [
