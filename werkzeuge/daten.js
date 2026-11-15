@@ -222,6 +222,11 @@ function spieldatenEinrichten(optionen = {}) {
 			#spieldaten .leise { color: var(--leise, #a99); font-size: 0.9rem; }
 			#spieldaten label { display: flex; gap: 0.5rem; align-items: center; }
 			#spieldaten button { min-height: 3rem; font-size: 1.05rem; touch-action: manipulation; }
+			#spieldaten details { font-size: 0.9rem; border: 1px solid var(--rand, #4a3b2c); border-radius: 0.6rem; padding: 0.5rem 0.8rem; }
+			#spieldaten summary { cursor: pointer; color: var(--gold, #d8b25a); min-height: 1.8rem; display: flex; align-items: center; }
+			#spieldaten details[open] summary { margin-bottom: 0.4rem; }
+			#spieldaten details ul { margin: 0.3rem 0 0.5rem; padding-left: 1.2rem; line-height: 1.5; }
+			#spieldaten details code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85rem; }
 			#spieldaten .status:empty, #spieldaten .fehler:empty { display: none; }
 			#spieldaten .fehler { color: #ff8a6a; }
 			#spieldaten .status { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85rem; color: var(--leise, #a99); }
@@ -238,6 +243,19 @@ function spieldatenEinrichten(optionen = {}) {
 				„Realms of Arkania 1 – Blade of Destiny Classic“ (Sprache Deutsch).</p>
 				<p>Bitte den <b>GOG-Installer</b> (.exe, rund 120 MB) oder eine <b>ZIP-Datei</b> mit dem Ordner
 				des installierten Spiels wählen. Am PC lassen sich auch die Spieldateien direkt markieren.</p>
+				<details class="dateiliste">
+					<summary>Benötigte Dateien</summary>
+					<p>Aus dem Ordner des installierten Spiels alle zusammen wählen:</p>
+					<ul>
+						<li><code>SCHICK.DAT</code>, <code>SCHICKM.EXE</code>, <code>DSAGEN.DAT</code></li>
+						<li><code>FONT.NVF</code>, <code>MOUSE.NVF</code>, <code>POPUP.NVF</code></li>
+						<li><code>SOUND.CFG</code>, <code>SOUND.LTX</code>, <code>SOUND.NVF</code></li>
+						<li><code>INTRODAT.DIR</code>, <code>INTRODAT.SND</code>, <code>INTRODAT.VOL</code></li>
+						<li>alle <code>*.ADV</code> (Sound-Treiber) und <code>*.CHR</code> (vorgefertigte Helden)</li>
+						<li>Musik (optional): <code>Track02.ogg</code> … <code>Track15.ogg</code> aus dem Unterordner <code>MUSIC</code></li>
+					</ul>
+					<p class="leise">Andere Dateien werden übergangen, es schadet also nicht, mehr zu wählen.</p>
+				</details>
 				<label class="musik"><input type="checkbox" checked> CD-Musik übernehmen (rund 80 MB)</label>
 				<p class="leise musik-hinweis" hidden>Dieser Browser spielt die Musik (OGG) nicht ab; sie wird nicht übernommen.</p>
 				<button type="button" class="waehlen">Datei wählen …</button>

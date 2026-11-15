@@ -709,6 +709,10 @@ export const szenarien = [
 		wurzel: 'frei',
 		schritte: [
 			{ warteAuf: "document.querySelector('#spieldaten .waehlen')", seite: true, max: 15000 },
+			// aufklappbare Liste der benötigten Dateien (für die Wahl einzelner Dateien)
+			{ js: "document.querySelector('#spieldaten .dateiliste summary').click()" },
+			{ warteAuf: "document.querySelector('#spieldaten .dateiliste').open && /SCHICKM\\.EXE/.test(document.querySelector('#spieldaten .dateiliste').textContent)", seite: true, max: 1000 },
+			{ bild: 'dateiliste' },
 			{ dateiWahl: '/app/build/spieldaten-test.zip' },
 			{ warteAuf: "!document.getElementById('spieldaten')", seite: true, max: 60000 },
 			...startMenue(2),
