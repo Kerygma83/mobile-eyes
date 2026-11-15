@@ -28,6 +28,9 @@ void sdl_init_video(void);
 void sdl_exit_video(void);
 void sdl_update_rect_window(const int, const int, const int, const int);
 void sdl_forced_update(void);
+#if defined(__EMSCRIPTEN__)
+uint32_t sdl_palette_rgba(const unsigned char);
+#endif
 void sdl_present_if_changed(void);
 SDL_Window* sdl_get_window(void);
 int sdl_get_ratio(void);

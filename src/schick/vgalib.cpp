@@ -434,6 +434,14 @@ static inline uint32_t get_ABGR_grey(const unsigned char *p)
 	return (avg) | (avg << 8) | (avg << 16);
 }
 
+#if defined(__EMSCRIPTEN__)
+/* Farbe aus der aktuellen Palette als RGBA (Alpha voll), für Bilder neben dem Bildschirm */
+uint32_t sdl_palette_rgba(const unsigned char i)
+{
+	return palette[i] | 0xff000000u;
+}
+#endif
+
 void set_palette(const unsigned char *pointer, const unsigned char first_color, const unsigned short colors)
 {
 	signed int i;

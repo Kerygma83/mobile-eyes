@@ -128,6 +128,7 @@ set(SCHICK_SOURCES
     vgalib.cpp
     wurflog.cpp
     questlog.cpp
+    datumzeile.cpp
 )
 
 # Define header files
