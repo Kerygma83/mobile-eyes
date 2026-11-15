@@ -330,6 +330,28 @@ export const szenarien = [
 		],
 	},
 	{
+		// gemeldet auf iOS: Infobildschirm und Kartenteile erschienen als Hauptbildschirm (Ausschnitte)
+		name: 'Infobildschirm und Kartenteile im Vollbild',
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen,
+			{ js: 'Module._web_test_quest(2)' },   // zwei Kartenstücke
+			{ tipp: ['Aktionen', 252, 96] },       // Icon 4 (Stadt): game_options()
+			{ warteAuf: 'z.haupt == 0 && z.vollbild == 1 && z.ov == 0', max: 5000 },
+			{ bild: 'infobildschirm' },
+			{ tipp: ['Bildschirm', 80, 180] },     // Hyggeliks Karte
+			{ warte: 1500 },
+			{ erwarte: 'z.haupt == 0 && z.vollbild == 1 && z.ov == 0', text: 'Kartenteile im Vollbild' },
+			{ bild: 'kartenteile' },
+			{ tipp: ['Bildschirm', 160, 100] },    // zurück in den Infobildschirm
+			{ warte: 1000 },
+			{ erwarte: 'z.haupt == 0 && z.vollbild == 1', text: 'wieder im Infobildschirm' },
+			{ js: 'Module._web_right_click()' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 9', max: 3000 },
+			{ wahl: 9 },
+			{ warteAuf: 'z.ov == 0 && z.haupt == 1 && z.vollbild == 0', max: 5000 },
+		],
+	},
+	{
 		// gemeldet auf iOS: nach der Meldung im Haus lief die Gruppe endlos weiter gegen das Haus
 		name: 'Haus mit Meldung betreten',
 		schritte: [
