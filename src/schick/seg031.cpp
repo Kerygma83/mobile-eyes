@@ -44,6 +44,14 @@ static const struct struct_informer_tab g_informer_tab[15] = {
 	{ 714, TOWN_ID_MANRIN     , 0 }  // INFORMER_ID_TIOMAR
 }; // ds:0x5ed6
 
+#if defined(__EMSCRIPTEN__)
+/* Questlog der Seite (questlog.cpp): Name und Wohnort je Informant */
+const struct struct_informer_tab* web_informer_tab(void)
+{
+	return g_informer_tab;
+}
+#endif
+
 void do_random_talk(const signed int talk_id, const signed int informer_id)
 {
 	signed int optioncount;

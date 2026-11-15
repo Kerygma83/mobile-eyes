@@ -18,3 +18,8 @@ char* get_random_tavern_message(void);
 void drink_while_drinking(const signed int);
 /* 0x4d */
 void eat_while_drinking(const signed int);
+
+#if defined(__EMSCRIPTEN__)
+/* Tabelle der 15 Informanten (Name in TEXT.LTX, Stadt) für den Questlog der Seite */
+const struct struct_informer_tab* web_informer_tab(void);
+#endif
