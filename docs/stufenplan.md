@@ -1,12 +1,13 @@
 # Schicksalsklinge mobil – Stufenplan
 
-Stand: 14.11.2026 · Basis: BrightEyes (Henne), Branch `web` in `BrightEyes/`, Build über `./werkzeug.sh`
+Stand: 16.11.2026 · Basis: BrightEyes (Henne), Branch `web` in `BrightEyes/`, Build über `./werkzeug.sh`
 Ziel: Die Schicksalsklinge als installierbare Web-App (PWA). Die Spiellogik bleibt aus BrightEyes, die Bedienung wird Bereich für Bereich durch ein mobiles Interface ersetzt.
 
 ## Stand heute
 
-Läuft im Browser (Port 8180, nur LAN, mit eingebetteten GOG-Daten):
-Tempel, Helden aufnehmen/tauschen, Charakterbogen, Laufen in Thorwal, Kampf (Computerkampf bis zum Ende), Reise mit Übernachtung, Touch-Steuerleiste.
+Meilenstein A und B erreicht (16.11.): Das Spiel ist im Browser vom Intro über die Heldenerschaffung bis in Dungeons durchspielbar, auch längere Testpartien laufen ohne Hänger. Die App ist auf echten Android- und iOS-Geräten installiert und getestet, mit Ton und Spielständen. Die Fassung ohne Spieldaten (Version 0.2) steht auf GitHub Pages, die Spieldaten liest jeder selbst ein.
+
+Dazu gekommen und nicht im ursprünglichen Plan: Questlog, Würfelprotokoll, Datumszeile, schneller Autokampf, Einstellungen (Schreibung, Schriftgröße, Layout).
 
 Bisher behobene Fehler im nativen Port (je ein Commit im Branch `web`): Browser-Abgabe, Mausklick-Flags, Bildaktualisierung, Tastenreihenfolge, gesammeltes Zeichnen, `wait_for_vsync` mit Eingabeverarbeitung, Timer-Interrupt-Emulation, Kampf-Warteschleife, 16/32-Bit-Lesefehler bei der Reisekarte.
 
@@ -16,7 +17,9 @@ Zufallsläufe (15.11.) in Verlassener Mine, Zwingfeste, Verfallener Herberge und
 
 Spielende im Browser (15.11.): Jedes `exit()` und das Ende von `main()` zeigen „Das Spiel ist beendet“ mit „Neu starten“ (ohne Intro ins Startmenü) statt einer leeren Seite.
 
-Original-Intro (16.11.): `INTRO_E.OVL` läuft in einem kleinen 8086-Interpreter (`werkzeuge/intro.js`), Musik wie bei GOG (Track 2, dann Track 3). Bekannte offene Punkte: Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
+Original-Intro (16.11.): `INTRO_E.OVL` läuft in einem kleinen 8086-Interpreter (`werkzeuge/intro.js`), Musik wie bei GOG (Track 2, dann Track 3).
+
+Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
 
 ## Überblick
 
@@ -25,24 +28,26 @@ Aufwand in Arbeitsstunden (gemeinsame Sitzungen mit Claude, grob geschätzt; Feh
 | Nr | Stufe | Lauffähiges Ergebnis | Aufwand |
 | --- | --- | --- | --- |
 | 0 | Projekt-Setup ✓ | Eigenes Repo, `./pruefen.sh` mit Browser-Regressionstests | 3–4 h |
-| 1 | Stabilität | Bekannte Fehler behoben, Speicherfehler-Suche mit Prüf-Build | 6–10 h |
-| 2 | Spielstart wie im Original | Intro, Hauptmenü „Neu/Laden“, Heldenerschaffung im Browser | 6–10 h |
-| 3 | Dauerhafte Spielstände | Speichern überlebt Neuladen, Export/Import als Datei | 3–4 h |
-| | **Meilenstein A: Durchspielbar im Browser** | Mehrstündige Testpartie ohne Hänger, Spielstände bleiben | |
-| 5 | PWA | Installierbar, offline, Vollbild, Hoch-/Querformat | 3–4 h |
-| 6 | Ton | Soundeffekte und CD-Musik (OGG aus der GOG-Fassung) | 6–10 h |
-| | **Meilenstein B: Installierbare App (intern, Spieldaten eingebaut)** | Auf echtem Android- und iOS-Gerät getestet | |
+| 1 | Stabilität ✓ | Bekannte Fehler behoben, Speicherfehler-Suche mit Prüf-Build | 6–10 h |
+| 2 | Spielstart wie im Original ✓ | Intro, Hauptmenü „Neu/Laden“, Heldenerschaffung im Browser | 6–10 h |
+| 3 | Dauerhafte Spielstände ✓ | Speichern überlebt Neuladen, Export/Import als Datei | 3–4 h |
+| | **Meilenstein A: Durchspielbar im Browser** ✓ | Mehrstündige Testpartie ohne Hänger, Spielstände bleiben | |
+| 5 | PWA ✓ | Installierbar, offline, Vollbild, Hoch-/Querformat | 3–4 h |
+| 6 | Ton ✓ | Soundeffekte und CD-Musik (OGG aus der GOG-Fassung) | 6–10 h |
+| | **Meilenstein B: Installierbare App** ✓ | Auf echtem Android- und iOS-Gerät getestet | |
 | 7 | Bugfixes übernehmen | Fehlerkorrekturen aus MeowMuhMuhCow/NRS als Schalter | 8–16 h |
-| 8 | Mobiles UI I: Dialoge | Alle `GUI_*`-Dialoge als HTML (große Schrift, Touch) | 8–12 h |
+| 8 | Mobiles UI I: Dialoge (weitgehend) | Alle `GUI_*`-Dialoge als HTML (große Schrift, Touch) | 8–12 h |
 | 9 | Mobiles UI II: Bewegung und Orte | Wischgesten, Ortsaktionen als Knöpfe statt Icon-Leiste | 8–12 h |
 | 10 | Mobiles UI III: Helden und Inventar | Charakterbogen und Inventar als native Ansicht | 12–20 h |
-| 11 | Mobiles UI IV: Reisen und Karte | Ziele antippen, Reiseereignisse als Dialoge | 6–10 h |
+| 11 | Mobiles UI IV: Reisen und Karte (weitgehend) | Ziele antippen, Reiseereignisse als Dialoge | 6–10 h |
 | 12 | Mobiles UI V: Kampf | Felder antippen, Aktionsleiste, Zoom | 12–20 h |
 | | **Meilenstein C: Mobile Fassung** | Komplett im Hochformat spielbar | |
 | 13 | Upstream und Pflege | Korrekturen an BrightEyes zurückgeben, Updates einpflegen | laufend |
-| 4 | Spieldaten vom Nutzer (zurückgestellt, 14.11.) | Daten-Import (Ordner oder ZIP), Prüfsumme, Ablage im Browser – erst vor einer Veröffentlichung, bis dahin bleibt das Projekt intern | 4–6 h |
+| 4 | Spieldaten vom Nutzer ✓ | Daten-Import (GOG-Installer, ZIP oder Dateien), Prüfsumme, Ablage im Browser | 4–6 h |
 
 Summe bis Meilenstein A: ca. 18–28 h · bis B: ca. 31–48 h · bis C: ca. 85–138 h.
+
+**Nächste Schritte (16.11.):** Stufe 9 (Ortsaktionen als Knöpfe, Wischgesten), danach 10 und 12. Kleine Reste: langes Kampfmenü ohne Scrollen (Stufe 8), Spielstand der DOS-Fassung laden (Stufe 3), Reiseereignisse als Dialoge prüfen (Stufe 11).
 
 Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander parallel. 4 braucht 3 und kommt erst vor einer Veröffentlichung. 5 zunächst mit eingebauten Spieldaten (intern), die Variante ohne Daten folgt mit 4. 6 unabhängig ab 1. 7 jederzeit ab 1. 8 vor 9–12 (gemeinsame Brücke C ↔ HTML). 9–12 untereinander frei.
 
@@ -103,7 +108,7 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 - Systematische Suche nach weiteren Mustern: Schleifen, die auf vom Interrupt gesetzte Variablen warten; Strukturen und Dateiformate mit `int`/`long` statt fester Breite; `sizeof`-Annahmen bei Spielständen.
 - Testpartie: Thorwal → Reise → Dungeon (z. B. Totenschiff) mit Kampf, Zauber, Händler, Tempel, Heiler.
 
-**Abnahmekriterien:** Prüf-Build meldet in allen Regressionstests keinen Speicherfehler; Testpartie von mindestens 2 Stunden ohne Hänger.
+**Abnahmekriterien:** Prüf-Build meldet in allen Regressionstests keinen Speicherfehler; Testpartie von mindestens 2 Stunden ohne Hänger. Erfüllt (16.11.).
 
 **Risiken:** Fehler, die auch im DOS-Original stecken (dort still, nativ Absturz) → mit der Bugfix-Liste von MeowMuhMuhCow abgleichen.
 
@@ -126,7 +131,7 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 - ngen-Korrekturen: Abgabe an den Browser (Namenseingabe fror sonst ein), Tastenreihenfolge (aus „TEST“ wurde „ETS“), Formatfrage im Web fest auf CD.
 - Overlays (`werkzeuge/dialog.js`, gemeinsam mit dem Spiel) für Menüs, Meldungen, Ja/Nein und Namenseingabe. Knopf „Menü“ ersetzt den Rechtsklick.
 - Szenarien: Start mit Intro; Heldenerschaffung bis zum neuen Helden im Tempel, auch nach dem Neuladen.
-- Offen: Tippen auf die Bildelemente der Erschaffung (Seitenpfeile, Geschlecht, Porträtwahl) auf dem Handy prüfen; die Erschaffungsseite ist im Hochformat klein.
+- Menüs, Talente, AT/PA und Zauber der Erschaffung als Knöpfe unter dem Bild, Bild oben bündig, Pfeile unten zum Blättern. Auf dem Handy getestet (16.11.).
 
 ## Stufe 3 – Dauerhafte Spielstände
 
@@ -140,8 +145,6 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 ## Stufe 4 – Spieldaten vom Nutzer
 
-**Zurückgestellt (14.11.):** kommt ans Ende, erst vor einer Veröffentlichung. Bis dahin bleibt das Projekt intern und die Spieldaten sind im LAN-Build eingebaut.
-
 **Ziel:** Die App enthält keine Spieldaten mehr.
 
 **Umfang:** Erster Start: Assistent „Spieldaten auswählen“ (GOG-Ordner per Ordnerauswahl oder ZIP); Prüfung von `SCHICKM.EXE` (MD5 `4ce035f9…`, deutsche Fassung 3.02) mit verständlicher Meldung bei englischer Fassung; Ablage der benötigten Dateien (~6,5 MB) im Browser-Speicher. Option für später: GOG-Installer direkt einlesen (innoextract als WASM).
@@ -150,7 +153,7 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Risiken:** Ordnerauswahl auf iOS eingeschränkt → ZIP-Upload als Weg, der überall geht.
 
-**Stand (15.11.):** Build ohne Daten (`build/web-frei`, lokal auf Port 8181) fragt beim ersten Start nach dem GOG-Installer, einer ZIP-Datei des Spielordners oder den Dateien selbst (`werkzeuge/daten.js`). Der Installer wird im Browser entpackt: innoextract 1.9 als WebAssembly in einem Worker (`werkzeuge/innoextract-wasm.sh`; Boost, liblzma, wasm-Ausnahmen, 8 MB Stack), deutscher Installer in wenigen Sekunden. Prüfung per MD5 von `SCHICKM.EXE`, englische Fassung wird mit Hinweis abgelehnt. Ablage als ArrayBuffer in IndexedDB (Blobs scheitern in Safari privat), danach Start direkt und offline. CD-Musik optional als OGG (nur wenn der Browser OGG abspielt). Szenarien „Spieldaten: Installer einlesen“ und „… ZIP einlesen“ (Chromium und WebKit). Wörterbuch der Schreibung im Build ohne Daten als knappe Fassung (ohne Namen und Nomen, die ohnehin groß erscheinen; 5 820 statt 10 788 Wörter, gleiche Anzeige, geprüft an allen Spieltexten). Musik aus dem Installer (OGG) läuft auch auf iOS (getestet 15.11.). Offen: Veröffentlichung (Hosting, GPL-Quelltext).
+**Stand (15.11.):** Build ohne Daten (`build/web-frei`, lokal auf Port 8181) fragt beim ersten Start nach dem GOG-Installer, einer ZIP-Datei des Spielordners oder den Dateien selbst (`werkzeuge/daten.js`). Der Installer wird im Browser entpackt: innoextract 1.9 als WebAssembly in einem Worker (`werkzeuge/innoextract-wasm.sh`; Boost, liblzma, wasm-Ausnahmen, 8 MB Stack), deutscher Installer in wenigen Sekunden. Prüfung per MD5 von `SCHICKM.EXE`, englische Fassung wird mit Hinweis abgelehnt. Ablage als ArrayBuffer in IndexedDB (Blobs scheitern in Safari privat), danach Start direkt und offline. CD-Musik optional als OGG (nur wenn der Browser OGG abspielt). Szenarien „Spieldaten: Installer einlesen“ und „… ZIP einlesen“ (Chromium und WebKit). Wörterbuch der Schreibung im Build ohne Daten als knappe Fassung (ohne Namen und Nomen, die ohnehin groß erscheinen; 5 820 statt 10 788 Wörter, gleiche Anzeige, geprüft an allen Spieltexten). Musik aus dem Installer (OGG) läuft auch auf iOS (getestet 15.11.). Veröffentlicht über GitHub Pages (`werkzeuge/pages.sh`, Branch `gh-pages`, Mirror von Forgejo).
 
 ## Stufe 5 – PWA
 
@@ -168,6 +171,7 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 - Szenario: offline starten.
 - Voraussetzung für Service Worker und Wake-Lock ist HTTPS, über `http://<IP>` gehen nur Home-Bildschirm und Vollbild. Geplant ist ein Caddy-Eintrag auf 192.168.178.77, etwa `schick.ohrnernetz.de` → `192.168.178.128:8180`.
 - Spielstände hängen an der Adresse; beim Wechsel auf HTTPS mit „Spielstände“ exportieren und dort importieren.
+- Auf Android und iOS installiert und getestet (16.11.), Meilenstein B erreicht.
 
 ## Stufe 6 – Ton
 
@@ -206,7 +210,7 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Abnahmekriterien:** Alle Dialoge der Regressionstests erscheinen als HTML; Zurück schließt; Spiellogik unverändert.
 
-**Stand (14.11.):** Grundlage fertig. `GUI_input`, `GUI_radio`/`GUI_bool` und `GUI_dialogbox` melden sich per `EM_JS` an die Seite, das Overlay zeigt Text, Optionen, Eingabefeld und Porträt. Die Box des Spiels wird verdeckt, indem die Ansicht auf dem Bild davor stehen bleibt. Das Spiel bleibt für Ablauf und Ergebnis zuständig. Offen: Testszenario für Eingaben (Geldbetrag, Spielstandname), lange Menüs (Kampf: 13 Einträge) ohne Scrollen.
+**Stand (14.11.):** Grundlage fertig. `GUI_input`, `GUI_radio`/`GUI_bool` und `GUI_dialogbox` melden sich per `EM_JS` an die Seite, das Overlay zeigt Text, Optionen, Eingabefeld und Porträt. Die Box des Spiels wird verdeckt, indem die Ansicht auf dem Bild davor stehen bleibt. Das Spiel bleibt für Ablauf und Ergebnis zuständig. Text- und Zahleneingaben im Overlay auf dem Gerät geprüft (16.11.). Offen: lange Menüs (Kampf: 13 Einträge) ohne Scrollen.
 
 **Merkposten Groß-/Kleinschreibung und Schriftart:** Die Spieltexte liegen im Original nur in Großbuchstaben vor, die Spielschrift hat keine Kleinbuchstaben. Im Overlay ist das lange Fließtext in Versalien (derzeit Georgia). Mögliche Wege:
 - Wörterbuch für die deutsche Großschreibung (Substantive), alles andere klein, Satzanfänge groß. Das Wörterbuch aus den Spieltexten selbst aufbauen und die Sonderfälle von Hand pflegen, etwa Eigennamen, Anreden und Abkürzungen wie „GGST.“.
@@ -225,6 +229,8 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 ## Stufe 11 – Mobiles UI IV: Reisen und Karte
 
+**Stand (16.11.):** Reisekarte zoom- und verschiebbar mit Orts- und Gebietsnamen, Wegweiser-Ziele als Knöpfe (`werkzeuge/karte.js`, `reisekarte.cpp`). Offen: Reiseereignisse durchsehen.
+
 **Umfang:** Reisekarte zoom- und verschiebbar, Ziele antippen statt Rechtsklick-Menü (im Original zeigt der Wegweiser erst die Karte, das Zielmenü öffnet erst ein Rechtsklick; bis dahin: Knopf „Zurück“); Reiseereignisse über die Dialoge aus Stufe 8.
 
 ## Stufe 12 – Mobiles UI V: Kampf
@@ -239,8 +245,8 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 ## Offene Fragen
 
-- **Zielgeräte:** Nur Android, oder auch iOS? (beeinflusst Stufe 4 und 5)
-- **Veröffentlichung:** Nur privat im LAN, oder öffentlich (Code unter GPL, Spieldaten bringt jeder selbst)? Markenrechte „Das Schwarze Auge“ prüfen.
+- **Zielgeräte:** Android und iOS (beide getestet).
+- **Veröffentlichung:** Fassung ohne Spieldaten auf GitHub Pages (Code unter GPL, Spieldaten bringt jeder selbst). Noch offen: Markenrechte „Das Schwarze Auge“ prüfen.
 - **Originaltreue vs. Komfort:** z. B. 0,2 s Doppelklick-Wartezeit nach jedem Klick, Kopierschutzabfrage, Anfängermodus. Als Einstellungen anbieten?
 - **Bugfixes:** Alle übernehmen oder nur „wichtige“ (Stufe 7)?
 - **Upstream:** Sollen die Korrekturen an Henne gehen (Stufe 13), und unter welchem Namen?
