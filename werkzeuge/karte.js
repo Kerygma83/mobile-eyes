@@ -54,13 +54,37 @@ function karteEinrichten(Module, optionen) {
 		const ganz = Math.min(w / 320, h / (200 * PIXEL_HOEHE));
 		return { min: ganz, max: Math.max(ganz * 8, 6), fuellen: Math.max(w / 320, h / (200 * PIXEL_HOEHE)) };
 	}
+	// Namen am Rand ragen über das Bild hinaus (rechts, oben): so weit lässt sich die Karte zusätzlich
+	// verschieben. Oben bleibt etwas mehr Luft, weil iOS den Rand unter der Statusleiste verwischt.
+	const RAND = 6, RAND_OBEN = 18;
+	let ausdehnung = null;     // {l, o, r, u} der Namen in CSS-Pixeln relativ zum Bild; null = neu messen
+	function namenAusdehnung() {
+		if (ausdehnung) return ausdehnung;
+		ausdehnung = { l: 0, o: 0, r: 0, u: 0 };
+		if (!namen) return ausdehnung;
+		const alle = [...namen.orte.values(), ...namen.gebiete];
+		for (const n of alle) {
+			const b = n.el.offsetWidth, hh = n.el.offsetHeight / 2;
+			const x = n.el.classList.contains('gebiet') ? n.x * s - b / 2 : (n.x + 3) * s;
+			const y = n.y * PIXEL_HOEHE * s;
+			ausdehnung.l = Math.min(ausdehnung.l, x);
+			ausdehnung.r = Math.max(ausdehnung.r, x + b);
+			ausdehnung.o = Math.min(ausdehnung.o, y - hh);
+			ausdehnung.u = Math.max(ausdehnung.u, y + hh);
+		}
+		return ausdehnung;
+	}
+	/** Verschiebung auf [ende - groesse, anfang] des Inhalts begrenzen, kleiner Inhalt mittig */
+	const klemmen = (v, platz, bild, anfang, ende) =>
+		Math.min(-anfang, Math.max(platz - ende, ende - anfang <= platz ? (platz - bild) / 2 : v));
 	function begrenzen() {
 		const { w, h } = groesse();
 		const g = grenzen();
 		s = Math.min(g.max, Math.max(g.min, s));
 		const bw = 320 * s, bh = 200 * PIXEL_HOEHE * s;
-		ox = bw <= w ? (w - bw) / 2 : Math.min(0, Math.max(w - bw, ox));
-		oy = bh <= h ? (h - bh) / 2 : Math.min(0, Math.max(h - bh, oy));
+		const a = namenAusdehnung();
+		ox = klemmen(ox, w, bw, Math.min(0, a.l - RAND), Math.max(bw, a.r + RAND));
+		oy = klemmen(oy, h, bh, Math.min(0, a.o - RAND) - RAND_OBEN, Math.max(bh, a.u + RAND));
 	}
 	let alterMassstab = 0;
 	function anwenden() {
@@ -116,6 +140,7 @@ function karteEinrichten(Module, optionen) {
 		anwenden();
 	}
 	function namenSetzen() {
+		ausdehnung = null;
 		if (!namen) return;
 		for (const o of namen.orte.values()) {
 			o.el.style.left = `${(o.x + 3) * s}px`;
@@ -135,6 +160,7 @@ function karteEinrichten(Module, optionen) {
 		wahlSchluessel = schluessel;
 		zieleEl.textContent = '';
 		const ortName = (id) => namen?.orte.get(id)?.name ?? `Ort ${id}`;
+		ausdehnung = null;   // Ziele sind größer geschrieben
 		if (namen) for (const o of namen.orte.values()) o.el.classList.toggle('ziel', false);
 		if (z.wahl?.length) {
 			const h = document.createElement('h3');

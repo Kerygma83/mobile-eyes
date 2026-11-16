@@ -721,6 +721,13 @@ export const szenarien = [
 			{ warteAuf: 'z.ov == 1 && z.dialog == 1', max: 3000 },
 			{ weiter: true },
 			{ warteAuf: 'z.ov == 0 && z.karte == 1', max: 3000 },
+			// Namen am Rand: bis in die rechte obere Ecke gezogen, steht jeder Name ganz in der Fläche
+			// (vorher endete die Karte am Bildrand, Namen oben und rechts waren abgeschnitten)
+			{ ziehen: "(() => { const r = document.querySelector('#karte .flaeche').getBoundingClientRect(); return [r.x + r.width * 0.3, r.y + r.height * 0.7, r.x + r.width * 0.3 - 3000, r.y + r.height * 0.7 + 3000]; })()" },
+			{ ziehen: "(() => { const r = document.querySelector('#karte .flaeche').getBoundingClientRect(); return [r.x + r.width * 0.3, r.y + r.height * 0.7, r.x + r.width * 0.3 - 3000, r.y + r.height * 0.7 + 3000]; })()" },
+			{ warteAuf: "(() => { const f = document.querySelector('#karte .flaeche').getBoundingClientRect(); const n = [...document.querySelectorAll('#karte .namen div')].map((d) => d.getBoundingClientRect()); const oben = Math.min(...n.map((r) => r.top)), rechts = Math.max(...n.map((r) => r.right)); return oben >= f.top + 10 && rechts <= f.right; })()", seite: true, max: 1000 },
+			{ erwarte: 'z.ov == 0 && z.karte == 1', text: 'Ziehen klickt nichts an' },
+			{ bild: 'kartenrand' },
 			// erstes Ziel per Knopf: die Reise beginnt ohne Menü
 			{ js: "document.querySelector('#karte .ziele button').click()" },
 			{ warteAuf: "karte.zustand().reise == 1 && /Unterwegs nach/.test(document.querySelector('#karte .ziele').textContent)", seite: true, max: 5000 },

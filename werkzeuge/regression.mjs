@@ -260,6 +260,13 @@ for (const sz of auswahl) {
 			if (s.tipp) { const [x, y] = await punkt(...s.tipp); await page.touchscreen.tap(x, y); await page.waitForTimeout(250); }
 			// Antippen an einer Seitenposition, die ein Ausdruck in der Seite liefert ([x, y])
 			if (s.tippBei) { const [x, y] = await page.evaluate(s.tippBei); await page.touchscreen.tap(x, y); await page.waitForTimeout(250); }
+			if (s.ziehen) {
+				// mit der Maus ziehen: [x1, y1, x2, y2] (Seitenkoordinaten) aus dem Ausdruck
+				const [x1, y1, x2, y2] = await page.evaluate(s.ziehen);
+				await page.mouse.move(x1, y1); await page.mouse.down();
+				await page.mouse.move(x2, y2, { steps: 8 }); await page.mouse.up();
+				await page.waitForTimeout(250);
+			}
 			if (s.doppeltipp) {
 				const [x, y] = await punkt(...s.doppeltipp);
 				await page.touchscreen.tap(x, y); await page.waitForTimeout(60); await page.touchscreen.tap(x, y);
