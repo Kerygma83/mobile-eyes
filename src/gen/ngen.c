@@ -2577,6 +2577,37 @@ EMSCRIPTEN_KEEPALIVE void web_right_click(void)
 	g_mouse_rightclick_event = 1;
 }
 
+/* Menü der ersten Seite als Knöpfe unter dem Bild (werkzeuge/gen-shell.html):
+ *   web_gen_knoepfe(1)  die Seite zeigt die Knöpfe; das Menü öffnet sich dann nicht von selbst
+ *                       (Start, „Neuer Held“), sonst wie im Original
+ *   web_gen_menue()     {"s": Seite, "t": [Einträge als Hex im DOS-Zeichensatz]} (Einträge nur auf Seite 0,
+ *                       in derselben Reihenfolge wie das Menü)
+ *   web_gen_wahl(n)     Eintrag n wie im Menü wählen (nur Seite 0, in der Hauptschleife von do_gen) */
+static int g_web_gen_knoepfe = 0;
+static int g_web_gen_wahl = 0;
+static int g_web_gen_seite = -1;	/* -1: nicht in der Hauptschleife */
+static const int g_web_gen_texte[9] = { 10, 11, 15, 8, 14, 12, 262, 9, 258 };
+
+EMSCRIPTEN_KEEPALIVE void web_gen_knoepfe(const int an) { g_web_gen_knoepfe = an; }
+EMSCRIPTEN_KEEPALIVE void web_gen_wahl(const int n) { if (g_web_gen_seite == 0 && n >= 1 && n <= 9) g_web_gen_wahl = n; }
+
+EMSCRIPTEN_KEEPALIVE const char* web_gen_menue(void)
+{
+	static char buf[1024];
+	int i, len;
+	const unsigned char *t;
+
+	len = snprintf(buf, sizeof(buf), "{\"s\":%d,\"t\":[", g_web_gen_seite);
+	for (i = 0; g_web_gen_seite == 0 && i < 9 && len < (int)sizeof(buf) - 8; i++) {
+		len += snprintf(buf + len, sizeof(buf) - len, "%s\"", i ? "," : "");
+		for (t = (const unsigned char*)get_text(g_web_gen_texte[i]); t && *t && len < (int)sizeof(buf) - 8; t++)
+			len += snprintf(buf + len, sizeof(buf) - len, "%02x", *t);
+		len += snprintf(buf + len, sizeof(buf) - len, "\"");
+	}
+	snprintf(buf + len, sizeof(buf) - len, "]}");
+	return buf;
+}
+
 /* Browser: regelmäßig abgeben (Asyncify); enter_string() wartet sonst in einer
  * leeren Schleife auf eine Taste und die Seite friert ein */
 static void web_yield(void)
@@ -7234,10 +7265,17 @@ static void do_gen(volatile struct struct_hero *hero, const int init_level)
 	full_refresh = clear_hero(hero);
 
 	/* emulate a right click to open the menu */
+#if defined(__EMSCRIPTEN__)
+	/* Browser mit Menüknöpfen: das Menü steht schon unter dem Bild */
+	if (!g_web_gen_knoepfe)
+#endif
 	g_mouse_rightclick_event = 1;
 
 	/* main loop */
 	while (!done) {
+#if defined(__EMSCRIPTEN__)
+		g_web_gen_seite = page;
+#endif
 
 		if (full_refresh) {
 			print_values(hero, page, level);
@@ -7250,11 +7288,26 @@ static void do_gen(volatile struct struct_hero *hero, const int init_level)
 		handle_input();
 		g_action_table = NULL;
 
-		if (g_mouse_rightclick_event || g_in_key_ext == KEY_PGUP) {
+#if defined(__EMSCRIPTEN__)
+		/* Knopf unter dem Bild: wie Menü öffnen und Eintrag wählen */
+		const int web_wahl = (page == 0) ? g_web_gen_wahl : 0;
+		g_web_gen_wahl = 0;
+		if (web_wahl) g_mouse_rightclick_event = 0;
+#endif
+		if (g_mouse_rightclick_event || g_in_key_ext == KEY_PGUP
+#if defined(__EMSCRIPTEN__)
+			|| web_wahl
+#endif
+			) {
 
 			/* print the menu for each page */
 			if (page == 0) {
 
+#if defined(__EMSCRIPTEN__)
+				if (web_wahl)
+					menu_option = web_wahl;
+				else
+#endif
 				menu_option = gui_radio(get_text(7), 9,
 					get_text(10), get_text(11), get_text(15),
 					get_text(8),  get_text(14), get_text(12),
@@ -7282,6 +7335,9 @@ static void do_gen(volatile struct struct_hero *hero, const int init_level)
 							full_refresh = clear_hero(hero);
 
 							/* imediately open the menu */
+#if defined(__EMSCRIPTEN__)
+							if (!g_web_gen_knoepfe)
+#endif
 							g_mouse_rightclick_event = 1;
 							break;
 						}
@@ -7416,6 +7472,9 @@ static void do_gen(volatile struct struct_hero *hero, const int init_level)
 		if (g_sdl_quit_event) done = 1;
 #endif
 	}
+#if defined(__EMSCRIPTEN__)
+	g_web_gen_seite = -1;
+#endif
 }
 
 /* INTRO */
