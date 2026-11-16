@@ -34,7 +34,7 @@
 	/* 320x200 mit DOS-Pixeln (1,2-mal so hoch wie breit), so groß wie möglich */
 	#canvas {
 		display: block;
-		width: min(100vw, calc((100dvh - 4.5rem) * 4 / 3));   /* Platz für die Leiste */
+		width: min(100vw, calc((100dvh - var(--unten, 4.5rem)) * 4 / 3));   /* Platz für die Leiste */
 		aspect-ratio: 4 / 3;
 		image-rendering: pixelated; image-rendering: crisp-edges;
 		touch-action: none; outline: none;
@@ -51,12 +51,18 @@
 	#leiste { display: flex; gap: 0.6rem; justify-content: center; }
 	#leiste [hidden] { display: none; }
 	#leiste button { min-height: 2.8rem; padding: 0 1.4rem; font-size: 1rem; touch-action: manipulation; }
+	/* Menü der ersten Seite als Knöpfe (statt Rechtsklick → Menü), drei je Reihe */
+	body.knoepfe { --unten: 12.5rem; }
+	#menueknoepfe { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; width: min(100vw - 1rem, 36rem); }
+	#menueknoepfe[hidden] { display: none; }
+	#menueknoepfe button { min-height: 2.8rem; padding: 0.2rem 0.4rem; font-size: 0.95rem; line-height: 1.15; text-align: center; touch-action: manipulation; }
 	#status { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 </style>
 </head>
 <body>
 <div id="status">Lade …</div>
 <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
+<div id="menueknoepfe" hidden></div>
 <div id="leiste">
 	<button type="button" id="menue" title="Menü der Heldenerschaffung (Rechtsklick)">Menü</button>
 	<button type="button" id="ueberspringen" hidden>Intro überspringen</button>
@@ -89,7 +95,42 @@
 	// Textboxen als Overlay wie im Spiel (nicht im Original-Layout: gen.html?…&original).
 	// Solange eines offen ist, gibt ngen selbst keine Bilder aus (vgalib.c), seine Box bleibt unsichtbar.
 	// Die Heldenerschaffung siezt („WÄHLEN SIE …“), das Spiel ihrzt
-	if (!new URLSearchParams(location.search).has('original')) textboxOverlay(Module, { schreibungZusatz: { SIE: 'Sie', IHNEN: 'Ihnen' } });
+	const mitOverlay = !new URLSearchParams(location.search).has('original');
+	const overlay = mitOverlay ? textboxOverlay(Module, { schreibungZusatz: { SIE: 'Sie', IHNEN: 'Ihnen' } }) : null;
+
+	// Menü der ersten Seite (Name, Geschlecht, Werte, Typus, Speichern, Ende) als Knöpfe unter dem Bild;
+	// ein Knopf wirkt wie Menü öffnen und den Eintrag wählen (web_gen_wahl). Auf den übrigen Seiten
+	// (Talente, Zauber) öffnet weiter „Menü“ die Auswahl. Nur mit Overlay, nicht im Intro.
+	if (overlay && !location.search.startsWith('?intro')) {
+		const knoepfeEl = document.getElementById('menueknoepfe');
+		const menueKnopf = document.getElementById('menue');
+		let zuletzt = '';
+		const fertig = Module.onRuntimeInitialized;
+		Module.onRuntimeInitialized = () => {
+			fertig();
+			Module._web_gen_knoepfe(1);   // vor main(): das Menü öffnet sich nicht mehr von selbst
+			const abgleichen = () => {
+				const m = JSON.parse(Module.UTF8ToString(Module._web_gen_menue()));
+				const schluessel = JSON.stringify(m.t) + (overlay.schreibungFertig ? 1 : 0);
+				if (schluessel !== zuletzt) {
+					zuletzt = schluessel;
+					knoepfeEl.replaceChildren(...m.t.map((h, i) => {
+						const b = document.createElement('button');
+						b.type = 'button';
+						b.textContent = overlay.spielText(h.match(/../g).map((x) => parseInt(x, 16)));
+						b.addEventListener('click', () => { if (!overlay.dialoge.length) Module._web_gen_wahl(i + 1); });
+						return b;
+					}));
+				}
+				const zeigen = m.s === 0 && m.t.length > 0;
+				knoepfeEl.hidden = !zeigen;
+				menueKnopf.hidden = zeigen;
+				document.body.classList.toggle('knoepfe', zeigen);
+			};
+			overlay.schreibungBereit?.then?.(() => { overlay.schreibungFertig = true; });
+			setInterval(abgleichen, 200);
+		};
+	}
 </script>
 {{{ SCRIPT }}}
 </body>

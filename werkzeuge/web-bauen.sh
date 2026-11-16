@@ -105,7 +105,7 @@ else
 fi
 emcc "${gobjs[@]}" -o "$out/gen.html" "${glflags[@]}" \
 	-sUSE_SDL=2 -sASYNCIFY -sASYNCIFY_STACK_SIZE=65536 -sALLOW_MEMORY_GROWTH -sSTACK_SIZE=1MB \
-	-sEXPORTED_RUNTIME_METHODS=FS -lidbfs.js \
+	-sEXPORTED_RUNTIME_METHODS=FS,UTF8ToString -lidbfs.js \
 	--pre-js werkzeuge/gen-pre.js --shell-file werkzeuge/gen-shell.html
 cp werkzeuge/dialog.js werkzeuge/ton.js werkzeuge/schreibung.js werkzeuge/wurflog.js werkzeuge/questlog.js werkzeuge/karte.js werkzeuge/daten.js "$out/"
 # Spieldaten eingebaut (1) oder Import im Browser (0): Kennung für daten.js

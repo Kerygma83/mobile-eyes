@@ -23,7 +23,7 @@ Die Schicksalsklinge (DSA 1) als Web-App. Spiellogik aus BrightEyes (`BrightEyes
 
 ## Nützlich
 
-- Start (Web): `main` in seg002 läuft wie im Original (Intro über `web_intro`, Startmenü, `call_gen` → `web_gen`). Die Heldenerschaffung ist ngen (`BrightEyes/src/gen`) als `gen.html` im iframe (`gen-shell.html`, `gen-pre.js`). Tests starten mit `?ohneIntro`; Schritte mit `imGen: true` gelten dem iframe.
+- Start (Web): `main` in seg002 läuft wie im Original (Intro über `web_intro`, Startmenü, `call_gen` → `web_gen`). Die Heldenerschaffung ist ngen (`BrightEyes/src/gen`) als `gen.html` im iframe (`gen-shell.html`, `gen-pre.js`). Tests starten mit `?ohneIntro`; Schritte mit `imGen: true` gelten dem iframe. Das Menü der ersten Seite steht als Knöpfe unter dem Bild (`gen-shell.html`, ngen `web_gen_menue()`/`web_gen_wahl(n)`; mit `web_gen_knoepfe(1)` öffnet es sich nicht mehr von selbst), auf den Talent-/Zauberseiten bleibt „Menü“ (Rechtsklick); im Testzustand `z.gKnoepfe`.
 - Overlays: `werkzeuge/dialog.js` (`textboxOverlay`) für Spiel und Heldenerschaffung; die Programme melden Boxen per `Module.dialogAuf/dialogZu`.
 - Ton: `werkzeuge/ton.js`. Effekte: `play_voc` (seg002) gibt die VOC-Datei an `Module.tonEffekt`. Musik: `CD_set_track`/`CD_audio_pause`/`CD_audio_play` (seg001) spielen `musik/TrackNN.m4a`, die nicht in `index.data` liegt. Ton gibt es erst nach der ersten Berührung.
 - Spielende: alle `exit()` laufen im Browser über `__wrap_exit` (seg002, Linker `--wrap=exit`) → `Module.spielEnde` (Hinweis mit Neustart); `main()` ruft am Ende im Browser `exit(0)`.

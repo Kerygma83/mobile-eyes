@@ -81,6 +81,9 @@ for (const sz of auswahl) {
 			z.gOv = gd && !gd.hidden ? 1 : 0;
 			z.gText = z.gOv ? gd.querySelector('.text').textContent : '';
 			z.gN = z.gOv ? gd.querySelectorAll('.optionen button').length : 0;
+			// Menü der ersten Seite als Knöpfe unter dem Bild (gen-shell.html): Anzahl sichtbarer Knöpfe
+			const gk = !gen.hidden && gen.querySelector('iframe').contentDocument?.getElementById('menueknoepfe');
+			z.gKnoepfe = gk && !gk.hidden ? gk.querySelectorAll('button').length : 0;
 			// Prüfsumme des Bildes der Heldenerschaffung (Canvas), um eine sichtbare Box zu erkennen
 			z.gBild = 0;
 			if (z.gen) {
