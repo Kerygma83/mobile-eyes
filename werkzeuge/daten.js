@@ -20,7 +20,7 @@
 const SPIELDATEN_MD5 = '4ce035f95ead01a8b2553b4487544e5d';   // SCHICKM.EXE, deutsche Fassung 3.02
 // Dateien, die das Spiel liest (wie im README beim Einrichten); Pflicht sind die ersten vier
 const SPIELDATEN_PFLICHT = ['SCHICK.DAT', 'SCHICKM.EXE', 'DSAGEN.DAT', 'FONT.NVF'];
-const SPIELDATEN_MUSTER = /^(SCHICK\.DAT|SCHICKM\.EXE|DSAGEN\.DAT|FONT\.NVF|MOUSE\.NVF|POPUP\.NVF|SOUND\.(CFG|LTX|NVF)|[A-Z0-9_]+\.CHR|INTRODAT\.(DIR|SND|VOL)|[A-Z0-9_]+\.ADV)$/;
+const SPIELDATEN_MUSTER = /^(SCHICK\.DAT|SCHICKM\.EXE|DSAGEN\.DAT|FONT\.NVF|MOUSE\.NVF|POPUP\.NVF|SOUND\.(CFG|LTX|NVF)|[A-Z0-9_]+\.CHR|INTRODAT\.(DIR|SND|VOL)|INTRO_E\.OVL|[A-Z0-9_]+\.ADV)$/;
 const SPIELDATEN_MUSIK = /^TRACK(\d\d)\.OGG$/;
 
 function spieldatenEinrichten(optionen = {}) {
@@ -256,7 +256,7 @@ function spieldatenEinrichten(optionen = {}) {
 						<li><code>SCHICK.DAT</code>, <code>SCHICKM.EXE</code>, <code>DSAGEN.DAT</code></li>
 						<li><code>FONT.NVF</code>, <code>MOUSE.NVF</code>, <code>POPUP.NVF</code></li>
 						<li><code>SOUND.CFG</code>, <code>SOUND.LTX</code>, <code>SOUND.NVF</code></li>
-						<li><code>INTRODAT.DIR</code>, <code>INTRODAT.SND</code>, <code>INTRODAT.VOL</code></li>
+						<li><code>INTRODAT.DIR</code>, <code>INTRODAT.SND</code>, <code>INTRODAT.VOL</code>, <code>INTRO_E.OVL</code> (Intro)</li>
 						<li>alle <code>*.ADV</code> (Sound-Treiber) und <code>*.CHR</code> (vorgefertigte Helden)</li>
 						<li>Musik (optional): <code>Track02.ogg</code> … <code>Track15.ogg</code> aus dem Unterordner <code>MUSIC</code></li>
 					</ul>

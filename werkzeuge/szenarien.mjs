@@ -101,9 +101,23 @@ export const szenarien = [
 			{ erwarte: 'z.ortRand == 0', text: 'Ortszeile beginnt mit ihrer Rahmenlinie' }],
 	},
 	{
-		// Start wie SCHICK.BAT: Logo-Intro (gen.html?intro im iframe, überspringbar), danach das Startmenü
-		name: 'Start mit Intro',
+		// Start wie SCHICK.BAT: Original-Intro (INTRO_E.OVL, ausgeführt von intro.js), überspringbar,
+		// danach das Startmenü
+		name: 'Start mit Original-Intro',
 		adresse: '/',
+		schritte: [
+			{ warteAuf: 'z.intro == 1', max: 15000 },
+			// das Attic-Logo erscheint (blau): das Programm läuft und zeichnet
+			{ warteAuf: "(() => { const d = document.querySelector('#intro canvas').getContext('2d').getImageData(0, 0, 320, 200).data; let n = 0; for (let i = 2; i < d.length; i += 4) if (d[i] > 100) n++; return n > 2000; })()", seite: true, max: 15000 },
+			{ bild: 'intro' },
+			{ knopf: 'Intro überspringen' },
+			{ warteAuf: 'z.intro == 0 && z.gen == 0 && z.ov == 1 && /SCHWIERIGKEITSGRAD/.test(z.ovText)', max: 5000 },
+		],
+	},
+	{
+		// ohne INTRO_E.OVL (Spieldaten vor dem Intro eingelesen): Logo-Intro der Heldenerschaffung (gen.html?intro)
+		name: 'Start mit Logo-Intro',
+		adresse: '/?logoIntro',
 		schritte: [
 			{ warteAuf: 'z.gen == 1', max: 15000 },
 			{ warte: 3000 },

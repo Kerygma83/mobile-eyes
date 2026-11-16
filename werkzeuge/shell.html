@@ -211,6 +211,17 @@
 	#gen[hidden] { display: none; }
 	#gen iframe { width: 100%; height: 100%; border: 0; display: block; }
 
+	/* ---------- Original-Intro (INTRO_E.OVL in intro.js) ---------- */
+	#intro {
+		position: fixed; inset: 0; z-index: 20; background: #000;
+		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+	}
+	#intro[hidden] { display: none; }
+	/* 320×200 mit DOS-Pixeln (1,2-mal so hoch wie breit), Platz für den Knopf darunter */
+	#intro canvas { width: min(100vw, calc((100dvh - 5rem) * 4 / 3)); aspect-ratio: 4 / 3; }
+	#intro button { min-height: 2.8rem; padding: 0 1.4rem; font-size: 1rem; touch-action: manipulation; }
+
 	/* ---------- Update-Hinweis (PWA) ---------- */
 	#update {
 		position: fixed; z-index: 30; left: 50%; transform: translateX(-50%);
@@ -346,6 +357,11 @@
 
 <!-- Heldenerschaffung und Intro (gen.html, eigenes Programm wie GEN.EXE) -->
 <div id="gen" hidden><iframe title="Heldenerschaffung"></iframe></div>
+<!-- Original-Intro: INTRO_E.OVL aus den Spieldaten, ausgeführt von intro.js -->
+<div id="intro" hidden aria-label="Intro">
+	<canvas width="320" height="200"></canvas>
+	<button type="button" class="ueberspringen">Intro überspringen</button>
+</div>
 
 <!-- neue Version der App bereit (Service Worker) -->
 <div id="ende" hidden role="alertdialog" aria-label="Spiel beendet">
@@ -404,6 +420,7 @@
 <script src="wurflog.js"></script>
 <script src="questlog.js"></script>
 <script src="karte.js"></script>
+<script src="intro.js"></script>
 <script>
 	// SDL-Tastencodes, die das Spiel in sdl_event_loop() auswertet
 	const TASTEN = {
@@ -747,8 +764,59 @@
 	const genEl = document.getElementById('gen');
 	const genFrame = genEl.querySelector('iframe');
 	const ohneIntro = new URLSearchParams(location.search).has('ohneIntro');   // Tests
-	Module.genStarten = (parameter) => new Promise((fertig) => {
-		if (parameter === 'intro' && ohneIntro) { fertig(); return; }
+	const logoIntro = new URLSearchParams(location.search).has('logoIntro');   // Tests: Ersatz ohne INTRO_E.OVL
+	Module.genStarten = async (parameter) => {
+		if (parameter === 'intro') {
+			if (ohneIntro) return;
+			// das Original-Intro, wenn INTRO_E.OVL bei den Spieldaten ist; sonst das Logo-Intro der Heldenerschaffung
+			if (!logoIntro && await originalIntro()) return;
+		}
+		await genRahmen(parameter);
+	};
+
+	// Original-Intro (INTRO.EXE startete INTRO_E.OVL): intro.js führt das Programm aus, virtuelle Zeit je Bild
+	// an die echte gekoppelt. Ohne Musik („nomusic“, vom Programm vorgesehen: Szenendauer aus den eigenen Werten).
+	// Nach einem Durchlauf (Titel, zehn Szenen, Abspann) oder mit „Intro überspringen“ geht es ins Startmenü.
+	const introEl = document.getElementById('intro');
+	function originalIntro() {
+		const dateien = {};
+		try {
+			for (const n of ['INTRO_E.OVL', 'INTRODAT.DIR', 'INTRODAT.VOL', 'INTRODAT.SND']) dateien[n] = Module.FS.readFile('/spiel/' + n);
+		} catch (e) { return false; }
+		let intro;
+		try {
+			intro = new Intro(dateien, { argumente: 'nomusic', einDurchlauf: true, log: (t) => console.log('[intro]', t) });
+		} catch (e) { console.warn('Intro nicht gestartet', e); return false; }
+		alleLoslassen();
+		return new Promise((fertig) => {
+			const canvas = introEl.querySelector('canvas'), ctx = canvas.getContext('2d');
+			const bild = ctx.createImageData(320, 200);
+			let zuletzt = performance.now(), ziel = 0, aus = false;
+			const taste = (e) => { e.preventDefault(); e.stopPropagation(); ende(); };   // im Original beendet jede Taste
+			const ende = () => {
+				if (aus) return;
+				aus = true; introEl.hidden = true;
+				window.removeEventListener('keydown', taste, true);
+				if (intro.fehler) console.warn('Intro:', intro.fehler);
+				fertig(true);
+			};
+			const schritt = (jetzt) => {
+				if (aus) return;
+				ziel += Math.min(100, jetzt - zuletzt) * Intro.CPU_HZ / 1000;   // nach einer Pause nicht nachholen
+				zuletzt = jetzt;
+				intro.laufen(ziel);
+				intro.bild(bild.data);
+				ctx.putImageData(bild, 0, 0);
+				if (intro.beendet) ende(); else requestAnimationFrame(schritt);
+			};
+			introEl.querySelector('.ueberspringen').onclick = ende;
+			window.addEventListener('keydown', taste, true);
+			introEl.hidden = false;
+			requestAnimationFrame(schritt);
+		});
+	}
+
+	const genRahmen = (parameter) => new Promise((fertig) => {
 		alleLoslassen();
 		const ende = async (e) => {
 			if (e.source !== genFrame.contentWindow || e.data?.gen !== 'fertig') return;

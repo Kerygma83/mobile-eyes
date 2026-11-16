@@ -34,7 +34,7 @@ if [ ! -f build/spieldaten-test.zip ]; then
 	python3 - <<'PY'
 import zipfile, pathlib, re
 app = pathlib.Path('spieldaten/gog-de/app')
-muster = re.compile(r'^(SCHICK\.DAT|SCHICKM\.EXE|DSAGEN\.DAT|FONT\.NVF|MOUSE\.NVF|POPUP\.NVF|SOUND\.(CFG|LTX|NVF)|\w+\.CHR|INTRODAT\.\w+|\w+\.ADV)$')
+muster = re.compile(r'^(SCHICK\.DAT|SCHICKM\.EXE|DSAGEN\.DAT|FONT\.NVF|MOUSE\.NVF|POPUP\.NVF|SOUND\.(CFG|LTX|NVF)|\w+\.CHR|INTRODAT\.\w+|INTRO_E\.OVL|\w+\.ADV)$')
 with zipfile.ZipFile('build/spieldaten-test.zip', 'w', zipfile.ZIP_DEFLATED) as z:
 	for f in sorted(app.iterdir()):
 		if f.is_file() and muster.match(f.name):

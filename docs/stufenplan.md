@@ -16,7 +16,7 @@ Zufallsläufe (15.11.) in Verlassener Mine, Zwingfeste, Verfallener Herberge und
 
 Spielende im Browser (15.11.): Jedes `exit()` und das Ende von `main()` zeigen „Das Spiel ist beendet“ mit „Neu starten“ (ohne Intro ins Startmenü) statt einer leeren Seite.
 
-Bekannte offene Punkte: Original-Intro (`INTRO.EXE`) nicht nachgebaut. Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
+Original-Intro (16.11.): `INTRO_E.OVL` läuft in einem kleinen 8086-Interpreter (`werkzeuge/intro.js`), ohne Musik. Bekannte offene Punkte: Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
 
 ## Überblick
 
@@ -121,7 +121,7 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Stand (14.11.):**
 - Start wie `SCHICK.BAT`: Intro, Schwierigkeitsgrad, „Hauptprogramm / Generierung“, Spielstand laden oder „Keinen“. Kopierschutz aus.
-- Das animierte Original-Intro (`INTRO.EXE`, `INTRODAT.*`) hat BrightEyes nicht nachgebaut. Gezeigt wird das Logo-Intro der Heldenerschaffung (Attic, Fanpro, Titel), überspringbar. Das echte Intro bleibt eine eigene Aufgabe (Format entschlüsseln).
+- Das animierte Original-Intro (`INTRO.EXE` startet `INTRO_E.OVL`, Bilder in `INTRODAT.VOL`) hat BrightEyes nicht nachgebaut. Im Browser führt `werkzeuge/intro.js` `INTRO_E.OVL` selbst aus (8086-Interpreter); ohne die Datei (früher eingelesene Spieldaten) erscheint das Logo-Intro der Heldenerschaffung.
 - Heldenerschaffung: ngen als `gen.html` (zweites WASM-Modul) in einem iframe. Das Spiel wartet darauf wie auf `spawnl`. Neue CHR-Dateien kommen über IndexedDB `/spielstand` ins Spiel- und TEMP-Verzeichnis.
 - ngen-Korrekturen: Abgabe an den Browser (Namenseingabe fror sonst ein), Tastenreihenfolge (aus „TEST“ wurde „ETS“), Formatfrage im Web fest auf CD.
 - Overlays (`werkzeuge/dialog.js`, gemeinsam mit dem Spiel) für Menüs, Meldungen, Ja/Nein und Namenseingabe. Knopf „Menü“ ersetzt den Rechtsklick.
