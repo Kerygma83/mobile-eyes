@@ -192,6 +192,9 @@
 	.aktionen button.zahnrad, .aktionen button.wuerfel, .aktionen button.quest { width: 2.3rem; padding: 0; }
 	/* J/N wirken nur in Ja/Nein-Menüs (GUI_bool); die kommen im mobilen Layout als Overlay, das die Leiste verdeckt */
 	body.mobil .aktionen button[data-key="j"], body.mobil .aktionen button[data-key="n"] { display: none; }
+	/* mobil: OK und Zurück je halb so breit wie das Steuerkreuz in einer Zeile, darunter Log, Quests, Einstellungen */
+	body.mobil .aktionen { width: calc(3 * 3.3rem + 2 * 0.35rem); max-width: none; }
+	body.mobil .aktionen button[data-key="enter"], body.mobil .aktionen button[data-key="rechtsklick"] { flex: 1 1 calc(50% - 0.35rem); }
 	.aktionen button.zahnrad svg, .aktionen button.wuerfel svg, .aktionen button.quest svg { width: 1.3rem; height: 1.3rem; stroke-width: 2; }
 	.aktionen button.wuerfel[hidden], .aktionen button.quest[hidden] { display: none; }
 	/* neue Einträge seit dem letzten Öffnen des Protokolls bzw. des Questlogs */
