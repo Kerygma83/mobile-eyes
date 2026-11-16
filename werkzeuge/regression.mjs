@@ -81,7 +81,7 @@ for (const sz of auswahl) {
 			z.gOv = gd && !gd.hidden ? 1 : 0;
 			z.gText = z.gOv ? gd.querySelector('.text').textContent : '';
 			z.gN = z.gOv ? gd.querySelectorAll('.optionen button').length : 0;
-			// Menü der ersten Seite als Knöpfe unter dem Bild (gen-shell.html): Anzahl sichtbarer Knöpfe
+			// Menüs als Knöpfe unter dem Bild (gen-shell.html): Anzahl sichtbarer Knöpfe (mit „Abbrechen“)
 			const gk = !gen.hidden && gen.querySelector('iframe').contentDocument?.getElementById('menueknoepfe');
 			z.gKnoepfe = gk && !gk.hidden ? gk.querySelectorAll('button').length : 0;
 			// Prüfsumme des Bildes der Heldenerschaffung (Canvas), um eine sichtbare Box zu erkennen
@@ -281,6 +281,7 @@ for (const sz of auswahl) {
 				await page.mouse.click(b.x + (s.genTipp[0] + 0.5) / 320 * b.width, b.y + (s.genTipp[1] + 0.5) / 200 * b.height);
 				await page.waitForTimeout(400);
 			}
+			if (s.genKnopfNr) { await page.frameLocator('#gen iframe').locator('#menueknoepfe button').nth(s.genKnopfNr - 1).tap(); await page.waitForTimeout(400); }
 			if (s.genKnopf) { await page.frameLocator('#gen iframe').getByRole('button', { name: s.genKnopf, exact: true }).tap(); await page.waitForTimeout(400); }
 			if (s.genWiederhole) {
 				// solange die Frage im Overlay der Heldenerschaffung passt: Eintrag wählen

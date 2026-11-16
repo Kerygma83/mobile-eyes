@@ -27,7 +27,8 @@
 		-webkit-touch-callout: none;
 	}
 	body {
-		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+		/* oben bündig: wechselnde Knöpfe unter dem Bild verschieben es nicht (Intro: mittig) */
+		display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 1rem;
 		height: 100dvh;
 		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 	}
@@ -51,11 +52,20 @@
 	#leiste { display: flex; gap: 0.6rem; justify-content: center; }
 	#leiste [hidden] { display: none; }
 	#leiste button { min-height: 2.8rem; padding: 0 1.4rem; font-size: 1rem; touch-action: manipulation; }
-	/* Menü der ersten Seite als Knöpfe (statt Rechtsklick → Menü), drei je Reihe */
-	body.knoepfe { --unten: 12.5rem; }
-	#menueknoepfe { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; width: min(100vw - 1rem, 36rem); }
+	/* Menüs als Knöpfe unter dem Bild (statt Rechtsklick → Menü): Spalten je Menü (--spalten),
+	   „Abbrechen“ allein über die ganze Breite; --unten (Platz unter dem Bild) setzt das Skript */
+	#menueknoepfe { display: grid; grid-template-columns: repeat(var(--spalten, 3), 1fr); gap: 0.45rem; width: min(100vw - 1rem, 36rem); }
 	#menueknoepfe[hidden] { display: none; }
-	#menueknoepfe button { min-height: 2.8rem; padding: 0.2rem 0.4rem; font-size: 0.95rem; line-height: 1.15; text-align: center; touch-action: manipulation; }
+	#menueknoepfe button { min-height: 2.6rem; padding: 0.2rem 0.4rem; font-size: 0.95rem; line-height: 1.15; text-align: center; touch-action: manipulation; }
+	#menueknoepfe .titel { grid-column: 1 / -1; text-align: center; color: var(--leise); font-size: 0.9rem; }
+	#menueknoepfe .abbrechen { grid-column: 1 / -1; }
+	body.intro { justify-content: center; }
+	/* Seite blättern wie die roten Pfeile im Bild (nur „Fortgeschrittene“), unten bündig */
+	#pfeile { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between;
+		padding: 0.5rem calc(0.5rem + env(safe-area-inset-right)) calc(0.5rem + env(safe-area-inset-bottom)) calc(0.5rem + env(safe-area-inset-left)); pointer-events: none; }
+	#pfeile[hidden] { display: none; }
+	#pfeile button { pointer-events: auto; width: 4.2rem; height: 3.2rem; touch-action: manipulation; }
+	#pfeile svg { width: 1.7rem; height: 1.7rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 	#status { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 </style>
 </head>
@@ -63,6 +73,10 @@
 <div id="status">Lade …</div>
 <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
 <div id="menueknoepfe" hidden></div>
+<div id="pfeile" hidden>
+	<button type="button" data-taste="1073741904" aria-label="Seite zurück" title="Seite zurück (←)"><svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+	<button type="button" data-taste="1073741903" aria-label="Seite vor" title="Seite vor (→)"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+</div>
 <div id="leiste">
 	<button type="button" id="menue" title="Menü der Heldenerschaffung (Rechtsklick)">Menü</button>
 	<button type="button" id="ueberspringen" hidden>Intro überspringen</button>
@@ -87,6 +101,7 @@
 	// Intro: nur „Überspringen“ (meldet dem Spiel sofort „fertig“, das schließt den Rahmen)
 	if (location.search.startsWith('?intro')) {
 		document.getElementById('menue').hidden = true;
+		document.body.classList.add('intro');
 		const weg = document.getElementById('ueberspringen');
 		weg.hidden = false;
 		weg.addEventListener('click', () => melden());
@@ -98,38 +113,91 @@
 	const mitOverlay = !new URLSearchParams(location.search).has('original');
 	const overlay = mitOverlay ? textboxOverlay(Module, { schreibungZusatz: { SIE: 'Sie', IHNEN: 'Ihnen' } }) : null;
 
-	// Menü der ersten Seite (Name, Geschlecht, Werte, Typus, Speichern, Ende) als Knöpfe unter dem Bild;
-	// ein Knopf wirkt wie Menü öffnen und den Eintrag wählen (web_gen_wahl). Auf den übrigen Seiten
-	// (Talente, Zauber) öffnet weiter „Menü“ die Auswahl. Nur mit Overlay, nicht im Intro.
+	// Menüs als Knöpfe unter dem Bild; ein Knopf wirkt wie Menü öffnen und den Eintrag wählen
+	// (web_gen_wahl). Erste Seite: Hauptmenü (drei je Reihe); Talente/Zauber: Gruppen (einer je Reihe)
+	// bzw. Zauber, AT/PA: Waffen (zwei je Reihe). Die Auswahl danach (Talent, Zauber, AT oder PA) meldet
+	// ngen mit spalten > 0: sie erscheint ebenfalls hier statt im Overlay. Nur mit Overlay, nicht im Intro.
 	if (overlay && !location.search.startsWith('?intro')) {
 		const knoepfeEl = document.getElementById('menueknoepfe');
 		const menueKnopf = document.getElementById('menue');
+		const knopf = (text, klick, klasse) => {
+			const b = document.createElement('button');
+			b.type = 'button';
+			b.textContent = text;
+			if (klasse) b.className = klasse;
+			b.addEventListener('click', klick);
+			return b;
+		};
+		const bytes = (h) => (h.match(/../g) || []).map((x) => parseInt(x, 16));
+		const anzeigen = (spalten, kinder) => {
+			knoepfeEl.style.setProperty('--spalten', spalten);
+			knoepfeEl.replaceChildren(...kinder);
+			knoepfeEl.hidden = false;
+		};
+		const pfeileEl = document.getElementById('pfeile');
+		// SDLK_LEFT/RIGHT: ngen blättert wie mit den Pfeilen im Bild (ohne Typus: Meldung wie im Original)
+		for (const b of pfeileEl.querySelectorAll('button')) {
+			b.addEventListener('click', () => { if (!overlay.dialoge.length && !auswahl) Module._web_key(+b.dataset.taste); });
+		}
+		const platzSetzen = () => {
+			const h = knoepfeEl.hidden ? 0 : knoepfeEl.getBoundingClientRect().height;
+			const l = menueKnopf.hidden ? 0 : document.getElementById('leiste').getBoundingClientRect().height;
+			const p = pfeileEl.hidden ? 0 : pfeileEl.getBoundingClientRect().height;
+			document.body.style.setProperty('--unten', `${Math.ceil(h + l + p) + 40}px`);
+		};
+
+		// Auswahl nach einem Knopf (unter dem Bild statt im Overlay)
+		const stapel = [];   // je offene Box: true = unter dem Bild
+		let auswahl = null;
+		const aufOverlay = Module.dialogAuf, zuOverlay = Module.dialogZu;
+		Module.dialogAuf = (d) => {
+			if (!d.spalten) { stapel.push(false); aufOverlay(d); return; }
+			stapel.push(true);
+			auswahl = d;
+			let gesendet = false;
+			const senden = (f) => { if (!gesendet) { gesendet = true; f(); } };
+			const kinder = [];
+			if (d.text) { const t = document.createElement('div'); t.className = 'titel'; t.textContent = overlay.spielText(d.text); kinder.push(t); }
+			d.optionen.forEach((o, i) => kinder.push(knopf(overlay.spielText(o), () => senden(() => Module._web_menu_select(i + 1)))));
+			kinder.push(knopf('Abbrechen', () => senden(() => Module._web_right_click()), 'abbrechen'));
+			anzeigen(d.spalten, kinder);
+			menueKnopf.hidden = true;
+			zuletzt = '';
+			platzSetzen();
+		};
+		Module.dialogZu = () => {
+			if (stapel.pop()) { auswahl = null; abgleichen(); } else zuOverlay();
+		};
+
+		// erste Auswahl der Seite
 		let zuletzt = '';
+		const abgleichen = () => {
+			if (auswahl) return;
+			const m = JSON.parse(Module.UTF8ToString(Module._web_gen_menue()));
+			const zeigen = m.t.length > 0;
+			const schluessel = JSON.stringify(m) + (overlay.schreibungFertig ? 1 : 0);
+			if (schluessel !== zuletzt) {
+				zuletzt = schluessel;
+				if (zeigen) {
+					anzeigen(m.n, m.t.map((h, i) => knopf(overlay.spielText(bytes(h)), () => {
+						if (!overlay.dialoge.length && !auswahl) Module._web_gen_wahl(i + 1);
+					})));
+				}
+			}
+			knoepfeEl.hidden = !zeigen;
+			menueKnopf.hidden = zeigen;
+			pfeileEl.hidden = !(m.s >= 0 && m.l === 2);
+			platzSetzen();
+		};
+
 		const fertig = Module.onRuntimeInitialized;
 		Module.onRuntimeInitialized = () => {
 			fertig();
 			Module._web_gen_knoepfe(1);   // vor main(): das Menü öffnet sich nicht mehr von selbst
-			const abgleichen = () => {
-				const m = JSON.parse(Module.UTF8ToString(Module._web_gen_menue()));
-				const schluessel = JSON.stringify(m.t) + (overlay.schreibungFertig ? 1 : 0);
-				if (schluessel !== zuletzt) {
-					zuletzt = schluessel;
-					knoepfeEl.replaceChildren(...m.t.map((h, i) => {
-						const b = document.createElement('button');
-						b.type = 'button';
-						b.textContent = overlay.spielText(h.match(/../g).map((x) => parseInt(x, 16)));
-						b.addEventListener('click', () => { if (!overlay.dialoge.length) Module._web_gen_wahl(i + 1); });
-						return b;
-					}));
-				}
-				const zeigen = m.s === 0 && m.t.length > 0;
-				knoepfeEl.hidden = !zeigen;
-				menueKnopf.hidden = zeigen;
-				document.body.classList.toggle('knoepfe', zeigen);
-			};
 			overlay.schreibungBereit?.then?.(() => { overlay.schreibungFertig = true; });
 			setInterval(abgleichen, 200);
 		};
+		addEventListener('resize', platzSetzen);
 	}
 </script>
 {{{ SCRIPT }}}

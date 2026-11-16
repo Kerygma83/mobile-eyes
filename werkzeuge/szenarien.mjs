@@ -9,6 +9,7 @@
 //   { doppeltipp: [ausschnitt, x, y] }
 //   { tippBei: 'karte.punkt(120, 80)' } Antippen an der Seitenposition [x, y], die der Ausdruck liefert
 //   { knopf: 'Vorwärts' }            Knopf der Steuerleiste (aria-label oder Text)
+//   { genKnopf: 'NAME' }             Knopf der Heldenerschaffung (Text); { genKnopfNr: 2 } n-ter Knopf unter dem Bild
 //   { schnell: ['…', '…'] }          mehrere Knöpfe ohne Pause
 //   { wahl: 2 } / { wahl: 'Text' }  Eintrag im Overlay antippen (Nummer ab 1 oder Textteil)
 //   { weiter: true }                 Meldung im Overlay antippen
@@ -504,37 +505,100 @@ export const szenarien = [
 			{ wahl: 'KRIEGER', imGen: true },
 			{ warteAuf: 'z.gOv == 0', max: 3000 },
 			{ genTipp: [294, 185] }, { warte: 800 },       // Pfeil rechts: Talente Kampf/Körper
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 2', max: 3000, text: 'Gruppen als Knöpfe' },
 			{ bild: 'talente' },
-			{ genKnopf: 'Menü' },
-			{ warteAuf: 'z.gOv == 1', max: 3000 },
-			{ warteAuf: 'z.gOv == 1 && /TALENTGRUPPE/.test(z.gText)', max: 3000 },
-			{ wahl: 1, imGen: true },                       // Kampf
-			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
-			{ wahl: 8, imGen: true },                       // Schußwaffen
+			{ genKnopfNr: 1 },                               // Gruppe Kampf
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 10', max: 3000 },   // 9 Talente + Abbrechen unter dem Bild
+			{ genKnopfNr: 8 },                               // Schußwaffen
 			{ warteAuf: 'z.gOv == 1 && z.gN == 0', max: 3000 },   // Meldung: gelungen / misslungen
 			{ weiter: true, imGen: true },
-			{ warteAuf: 'z.gOv == 1 && /TALENTGRUPPE/.test(z.gText)', max: 3000 },
-			{ wahl: 1, imGen: true },                       // Kampf
-			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
-			{ wahl: 8, imGen: true },                       // Schußwaffen
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 2', max: 3000, text: 'nach der Meldung wieder die Gruppen' },
+			{ genKnopfNr: 1 },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 10', max: 3000 },
+			{ bild: 'talentliste' },
+			{ genKnopfNr: 8 },
+			{ warteAuf: 'z.gOv == 1 && z.gN == 0', max: 3000 },
+			{ weiter: true, imGen: true },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 2', max: 3000 },
+			{ genKnopfNr: 1 },                               // Gruppe Kampf
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 10', max: 3000 },   // 9 Talente + Abbrechen unter dem Bild
+			{ genKnopfNr: 8 },                               // Schußwaffen
 			{ warteAuf: 'z.gOv == 1 && z.gN == 0', max: 3000 },   // Meldung: gelungen / misslungen
 			{ weiter: true, imGen: true },
-			{ warteAuf: 'z.gOv == 1 && /TALENTGRUPPE/.test(z.gText)', max: 3000 },
-			{ wahl: 1, imGen: true },                       // Kampf
-			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
-			{ wahl: 8, imGen: true },                       // Schußwaffen
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 2', max: 3000, text: 'nach der Meldung wieder die Gruppen' },
+			{ genKnopfNr: 1 },                               // Gruppe Kampf
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 10', max: 3000 },   // 9 Talente + Abbrechen unter dem Bild
+			{ genKnopfNr: 8 },                               // Schußwaffen
 			{ warteAuf: 'z.gOv == 1 && z.gN == 0', max: 3000 },   // Meldung: gelungen / misslungen
 			{ weiter: true, imGen: true },
-			{ warteAuf: 'z.gOv == 1 && /TALENTGRUPPE/.test(z.gText)', max: 3000 },
-			{ wahl: 1, imGen: true },                       // Kampf
-			{ warteAuf: 'z.gOv == 1 && z.gN == 9', max: 3000 },
-			{ wahl: 8, imGen: true },                       // Schußwaffen
-			{ warteAuf: 'z.gOv == 1 && z.gN == 0', max: 3000 },   // Meldung: gelungen / misslungen
-			{ weiter: true, imGen: true },
-			{ warteAuf: 'z.gOv == 1 && /TALENTGRUPPE/.test(z.gText)', max: 3000, text: 'nach der Meldung wieder die Gruppenauswahl' },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 2', max: 3000, text: 'nach der Meldung wieder die Gruppen' },
 			{ bild: 'nach-steigern' },
-			{ abbrechen: true, imGen: true },
-			{ warteAuf: 'z.gOv == 0', max: 3000, text: 'nach dem Abbrechen kein Overlay mehr offen' },
+			{ genKnopfNr: 2 },                               // Gruppe Körper: 10 Talente + Abbrechen
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 11', max: 3000 },
+			{ genKnopf: 'Abbrechen' },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 2', max: 3000, text: 'nach dem Abbrechen wieder die Gruppen' },
+			{ genTipp: [294, 185] }, { warte: 800 },       // Seite 2: Talente Natur/Wissen
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 2', max: 3000 },
+			{ genTipp: [294, 185] }, { warte: 800 },       // Seite 3: drei Gruppen
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 3', max: 3000 },
+			{ genTipp: [294, 185] }, { warte: 800 },       // Seite 4: AT/PA, sieben Waffen
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 7', max: 3000 },
+			{ bild: 'atpa' },
+			{ genKnopfNr: 3 },                               // dritte Waffe
+			{ warteAuf: '(z.gOv == 0 && z.gKnoepfe == 3) || (z.gOv == 1 && z.gN == 0)', max: 3000, text: 'AT oder PA (+ Abbrechen) oder Meldung' },
+		],
+	},
+	{
+		// Zauberseiten (5–10) mit Knöpfen unter dem Bild: Gruppen einer je Reihe, Zauberlisten zwei je Reihe
+		name: 'Heldenerschaffung: Zauber steigern',
+		schritte: [
+			...startMenue(2),
+			{ wahl: 'GENERIERUNG' },
+			{ warteAuf: 'z.gen == 1 && z.gOv == 0 && z.gKnoepfe == 9', max: 15000 },
+			{ genKnopf: 'NEUE WERTE' },
+			{ warteAuf: 'z.gOv == 1 && /WURF/.test(z.gText)', max: 3000 },
+			{ genWiederhole: { solange: 'WURF', wahl: 1 } },
+			{ warteAuf: 'z.gOv == 0', max: 3000 },
+			{ genKnopf: 'TYPUS FREI WÄHLEN' },
+			{ warteAuf: 'z.gOv == 1 && /AUTOMATISCH/.test(z.gText)', max: 3000 },
+			{ wahl: 'JA', imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /TYPUS/.test(z.gText) && z.gN == 12', max: 3000 },
+			{ wahl: 'HEXE', imGen: true },
+			{ warteAuf: 'z.gOv == 1 && /UMWANDELN/.test(z.gText)', max: 3000 },
+			{ wahl: 2, imGen: true },                       // Steigerungsversuche nicht umwandeln
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 9', max: 3000 },
+			// Seiten 1–4 (Talente, AT/PA), dann die Zauber; Pfeile unten wie die roten Pfeile im Bild
+			{ warteAuf: "!document.querySelector('#gen iframe').contentDocument.getElementById('pfeile').hidden", seite: true, max: 3000 },
+			{ genKnopf: 'Seite vor' },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 2', max: 3000 },
+			{ genKnopf: 'Seite vor' },
+			{ genKnopf: 'Seite vor' },
+			{ genKnopf: 'Seite vor' },
+			{ genKnopf: 'Seite vor' },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 3', max: 3000, text: 'Seite 5: 3 Knöpfe' },
+			{ genKnopfNr: 1 },                               // erste Gruppe
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 6', max: 3000, text: '5 Zauber + Abbrechen' },
+			{ bild: 'zaubergruppe' },
+			{ genKnopf: 'Abbrechen' },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 3', max: 3000 },
+			{ genKnopf: 'Seite vor' },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 3', max: 3000, text: 'Seite 6: 3 Knöpfe' },
+			{ genKnopf: 'Seite vor' },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 3', max: 3000, text: 'Seite 7: 3 Knöpfe' },
+			{ genKnopf: 'Seite vor' },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 3', max: 3000, text: 'Seite 8: 3 Knöpfe' },
+			{ genKnopf: 'Seite vor' },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 16', max: 3000, text: 'Seite 9: 16 Knöpfe' },
+			{ bild: 'zauberliste' },
+			{ genKnopfNr: 1 },                               // erster Zauber: steigern
+			{ warteAuf: 'z.gOv == 1 && z.gN == 0', max: 3000 },   // Meldung: gelungen / misslungen
+			{ weiter: true, imGen: true },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 16', max: 3000, text: 'nach der Meldung wieder die Zauber' },
+			{ genKnopf: 'Seite vor' },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 10', max: 3000, text: 'Seite 10: 10 Knöpfe' },
+			{ genKnopf: 'Seite zurück' },
+			{ warteAuf: 'z.gOv == 0 && z.gKnoepfe == 16', max: 3000, text: 'zurück auf Seite 9' },
+			{ bild: 'pfeile' },
 		],
 	},
 	{
@@ -544,6 +608,7 @@ export const szenarien = [
 			...startMenue(1),
 			{ wahl: 'GENERIERUNG' },
 			{ warteAuf: 'z.gen == 1 && z.gOv == 0 && z.gKnoepfe == 9', max: 15000 },   // Menü der Erschaffung als Knöpfe
+			{ warteAuf: "document.querySelector('#gen iframe').contentDocument.getElementById('pfeile').hidden", seite: true, max: 1000 },   // Anfänger: keine weiteren Seiten
 			{ bild: 'gen-menue' },
 			{ genKnopf: 'NAME' },
 			{ warteAuf: 'z.gOv == 1 && /NAME/.test(z.gText)', max: 3000 },
