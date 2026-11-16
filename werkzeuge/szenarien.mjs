@@ -107,11 +107,17 @@ export const szenarien = [
 		adresse: '/',
 		schritte: [
 			{ warteAuf: 'z.intro == 1', max: 15000 },
+			// Ton erst nach einer Berührung: Hinweis oben, bis getippt wird
+			{ warteAuf: "!document.getElementById('tonhinweis').hidden", seite: true, max: 1000 },
 			// das Attic-Logo erscheint (blau): das Programm läuft und zeichnet
 			{ warteAuf: "(() => { const d = document.querySelector('#intro canvas').getContext('2d').getImageData(0, 0, 320, 200).data; let n = 0; for (let i = 2; i < d.length; i += 4) if (d[i] > 100) n++; return n > 2000; })()", seite: true, max: 15000 },
 			{ bild: 'intro' },
+			// Musik wie in der GOG-Fassung: zuerst CD-Track 2 (Logos, Titel)
+			{ warteAuf: "ton.track === 2", seite: true, max: 3000 },
 			{ knopf: 'Intro überspringen' },
 			{ warteAuf: 'z.intro == 0 && z.gen == 0 && z.ov == 1 && /SCHWIERIGKEITSGRAD/.test(z.ovText)', max: 5000 },
+			{ warteAuf: 'ton.track === 0', seite: true, max: 1000 },          // Intro-Musik aus
+			{ warteAuf: "document.getElementById('tonhinweis').hidden", seite: true, max: 2000 },
 		],
 	},
 	{
@@ -851,6 +857,26 @@ export const szenarien = [
 			{ wahl: 'GENERIERUNG' },
 			{ warteAuf: 'z.gen == 1 && z.gOv == 0 && z.gKnoepfe == 9', max: 15000 },
 			{ bild: 'heldenerschaffung' },
+		],
+	},
+	{
+		// Spieldaten aus einer älteren Version (ohne INTRO_E.OVL): beim Start erscheint der Dialog wieder,
+		// mit den fehlenden Dateien; nach erneutem Einlesen startet das Spiel
+		name: 'Spieldaten: unvollständig, noch einmal einlesen',
+		wurzel: 'frei',
+		schritte: [
+			{ warteAuf: "document.querySelector('#spieldaten .waehlen')", seite: true, max: 15000 },
+			{ dateiWahl: '/app/build/spieldaten-test.zip' },
+			{ warteAuf: "!document.getElementById('spieldaten')", seite: true, max: 60000 },
+			...startMenue(2),
+			{ js: "new Promise((ok) => { const r = indexedDB.open('mobile-eyes-spieldaten', 1); r.onsuccess = () => { const tx = r.result.transaction('dateien', 'readwrite'); tx.objectStore('dateien').delete('INTRO_E.OVL'); tx.oncomplete = () => { r.result.close(); ok(); }; }; })" },
+			{ js: "setTimeout(() => location.reload(), 0)" },
+			{ warte: 1500 },
+			{ warteAuf: "!document.querySelector('#spieldaten .nachtrag')?.hidden && /INTRO_E\\.OVL/.test(document.querySelector('#spieldaten .fehlt').textContent)", seite: true, max: 15000 },
+			{ bild: 'nachtrag' },
+			{ dateiWahl: '/app/build/spieldaten-test.zip' },
+			{ warteAuf: "!document.getElementById('spieldaten')", seite: true, max: 60000 },
+			...startMenue(2),
 		],
 	},
 	{

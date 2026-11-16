@@ -18,8 +18,11 @@
 'use strict';
 
 const SPIELDATEN_MD5 = '4ce035f95ead01a8b2553b4487544e5d';   // SCHICKM.EXE, deutsche Fassung 3.02
-// Dateien, die das Spiel liest (wie im README beim Einrichten); Pflicht sind die ersten vier
-const SPIELDATEN_PFLICHT = ['SCHICK.DAT', 'SCHICKM.EXE', 'DSAGEN.DAT', 'FONT.NVF'];
+// Dateien, die das Spiel liest (wie im README beim Einrichten). Pflicht: alle mit festem Namen (auch fürs Intro);
+// Helden (*.CHR) und Sound-Treiber (*.ADV) nur, soweit vorhanden. Fehlt beim Start etwas (Import aus einer
+// älteren Version), erscheint der Dialog noch einmal.
+const SPIELDATEN_PFLICHT = ['SCHICK.DAT', 'SCHICKM.EXE', 'DSAGEN.DAT', 'FONT.NVF', 'MOUSE.NVF', 'POPUP.NVF',
+	'SOUND.CFG', 'SOUND.LTX', 'SOUND.NVF', 'INTRODAT.DIR', 'INTRODAT.SND', 'INTRODAT.VOL', 'INTRO_E.OVL'];
 const SPIELDATEN_MUSTER = /^(SCHICK\.DAT|SCHICKM\.EXE|DSAGEN\.DAT|FONT\.NVF|MOUSE\.NVF|POPUP\.NVF|SOUND\.(CFG|LTX|NVF)|[A-Z0-9_]+\.CHR|INTRODAT\.(DIR|SND|VOL)|INTRO_E\.OVL|[A-Z0-9_]+\.ADV)$/;
 const SPIELDATEN_MUSIK = /^TRACK(\d\d)\.OGG$/;
 
@@ -65,15 +68,17 @@ function spieldatenEinrichten(optionen = {}) {
 		for (const [n, b] of roh) ergebnis.set(n, new Uint8Array(b));
 		return ergebnis;
 	}
-	const vollstaendig = (namen) => SPIELDATEN_PFLICHT.every((p) => namen.includes(p));
+	const fehlend = (namen) => SPIELDATEN_PFLICHT.filter((p) => !namen.includes(p));
 
 	async function holen(nur) {
 		if (eingebaut) return new Map();
 		let namen = [];
 		try { namen = await schluessel(); } catch (e) { console.warn('Spieldaten: kein IndexedDB', e); }
-		if (!vollstaendig(namen)) {
+		const fehlt = fehlend(namen);
+		if (fehlt.length) {
 			if (optionen.ohneDialog) throw new Error('Spieldaten fehlen');
-			await dialog();
+			// schon eingelesen, aber unvollständig: Hinweis, was fehlt
+			await dialog(namen.includes('SCHICK.DAT') ? fehlt : null);
 		}
 		return ausDb(nur);
 	}
@@ -214,7 +219,7 @@ function spieldatenEinrichten(optionen = {}) {
 
 	// ---------- Dialog ----------
 	let dialogPromise = null;
-	function dialog() {
+	function dialog(fehlt = null) {
 		dialogPromise ??= new Promise((fertig) => {
 			const stil = document.createElement('style');
 			stil.textContent = `
@@ -226,6 +231,7 @@ function spieldatenEinrichten(optionen = {}) {
 			#spieldaten h2 { margin: 0; font: bold 1.3rem Georgia, serif; color: var(--gold, #d8b25a); }
 			#spieldaten p { margin: 0; line-height: 1.45; }
 			#spieldaten .leise { color: var(--leise, #a99); font-size: 0.9rem; }
+			#spieldaten .nachtrag { color: var(--gold, #c9a45c); }
 			#spieldaten label { display: flex; gap: 0.5rem; align-items: center; }
 			#spieldaten button { min-height: 3rem; font-size: 1.05rem; touch-action: manipulation; }
 			#spieldaten details { font-size: 0.9rem; border: 1px solid var(--rand, #4a3b2c); border-radius: 0.6rem; padding: 0.5rem 0.8rem; }
@@ -245,6 +251,8 @@ function spieldatenEinrichten(optionen = {}) {
 			el.innerHTML = `
 			<div class="karte">
 				<h2>Spieldaten einlesen</h2>
+				<p class="nachtrag" hidden>Diese Version braucht weitere Dateien aus der GOG-Fassung
+				(<span class="fehlt"></span>). Bitte die Spieldaten noch einmal einlesen; Spielstände bleiben erhalten.</p>
 				<p>Mobile Eyes enthält keine Spieldaten. Nötig ist die deutsche GOG-Fassung von
 				„Realms of Arkania 1 – Blade of Destiny Classic“ (Sprache Deutsch).</p>
 				<p>Bitte den <b>GOG-Installer</b> (.exe, rund 120 MB) oder eine <b>ZIP-Datei</b> mit dem Ordner
@@ -265,7 +273,7 @@ function spieldatenEinrichten(optionen = {}) {
 				<label class="musik"><input type="checkbox" checked> CD-Musik übernehmen (rund 80 MB)</label>
 				<p class="leise musik-hinweis" hidden>Dieser Browser spielt die Musik (OGG) nicht ab; sie wird nicht übernommen.</p>
 				<button type="button" class="waehlen">Datei wählen …</button>
-				<input type="file" multiple hidden accept=".exe,.zip,application/zip,application/x-msdownload,.DAT,.EXE,.NVF,.CHR,.ADV,.CFG,.LTX,.DIR,.SND,.VOL,.ogg">
+				<input type="file" multiple hidden accept=".exe,.zip,application/zip,application/x-msdownload,.DAT,.EXE,.NVF,.CHR,.ADV,.CFG,.LTX,.DIR,.SND,.VOL,.OVL,.ogg">
 				<p class="status" aria-live="polite"></p>
 				<p class="fehler" role="alert"></p>
 				<p class="leise">Die Dateien bleiben in diesem Browser auf diesem Gerät, nichts wird hochgeladen.
@@ -274,6 +282,10 @@ function spieldatenEinrichten(optionen = {}) {
 				bitte <b>Erlauben</b> wählen. Sonst kann er die Spieldaten und Spielstände bei Platzmangel löschen.</p>
 			</div>`;
 			document.body.append(el);
+			if (fehlt?.length) {
+				el.querySelector('.fehlt').textContent = fehlt.join(', ');
+				el.querySelector('.nachtrag').hidden = false;
+			}
 			const auswahl = el.querySelector('input[type=file]');
 			const knopf = el.querySelector('.waehlen');
 			const status = el.querySelector('.status');

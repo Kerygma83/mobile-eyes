@@ -16,7 +16,7 @@ Zufallsläufe (15.11.) in Verlassener Mine, Zwingfeste, Verfallener Herberge und
 
 Spielende im Browser (15.11.): Jedes `exit()` und das Ende von `main()` zeigen „Das Spiel ist beendet“ mit „Neu starten“ (ohne Intro ins Startmenü) statt einer leeren Seite.
 
-Original-Intro (16.11.): `INTRO_E.OVL` läuft in einem kleinen 8086-Interpreter (`werkzeuge/intro.js`), ohne Musik. Bekannte offene Punkte: Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
+Original-Intro (16.11.): `INTRO_E.OVL` läuft in einem kleinen 8086-Interpreter (`werkzeuge/intro.js`), Musik wie bei GOG (Track 2, dann Track 3). Bekannte offene Punkte: Behoben (14.11.): falsche Häuserfarben nach dem Tempel (Paletten nativ nicht zusammenhängend, seg066/seg075), Mauszeiger im mobilen Layout (ausgeblendet), Spielstände (Stufe 3). Kein Fehler: Reisemenü am Wegweiser erst nach Rechtsklick ist Originalverhalten (siehe Stufe 11).
 
 ## Überblick
 

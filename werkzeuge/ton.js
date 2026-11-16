@@ -32,6 +32,7 @@ function tonEinrichten(Module) {
 		// iOS: ein Audio-Element darf später nur abspielen, wenn es einmal in einer Geste gestartet wurde
 		musik.play().catch(() => {}).finally(() => { if (!musikLaeuft()) musik.pause(); });
 		musikAktualisieren();
+		schnittstelle.beimFreischalten?.();
 	}
 	for (const typ of ['pointerdown', 'keydown', 'touchend']) {
 		window.addEventListener(typ, freischalten, { capture: true, passive: true });
@@ -143,10 +144,13 @@ function tonEinrichten(Module) {
 	Module.musikPause = () => { musikPausiert = true; musik.pause(); };
 	Module.musikWeiter = () => { musikPausiert = false; musikAktualisieren(); };
 
-	return {
+	const schnittstelle = {
 		musik,
 		get ctx() { return ctx; },
 		get track() { return musikTrack; },     // gewünschter CD-Track
+		get freigeschaltet() { return freigeschaltet; },   // nach der ersten Berührung
+		beimFreischalten: null,                 // Rückruf der Seite (Hinweis „Einmal tippen für Ton“ ausblenden)
 		get geladen() { return musikGeladen; }, // Track, dessen Datei bereitsteht
 	};
+	return schnittstelle;
 }

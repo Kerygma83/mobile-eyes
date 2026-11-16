@@ -4,7 +4,8 @@
 //
 // Im Original startet SCHICK.BAT erst INTRO.EXE, das den Musiktreiber lädt und INTRO_E.OVL ausführt
 // (Turbo Pascal, Modus 13h). Musik fordert das Intro über int 80h an (ax=1: Stück bx, ax=2: Stopp,
-// ax=3: Abfrage); hier meldet introStarten() das über optionen.musik.
+// ax=3: Abfrage). Hier läuft es ohne Treiber („nomusic“); welches Stück dran ist, meldet musikMarke() an
+// optionen.musik.
 //
 // Zeit ist virtuell: der Prozessor rechnet CPU_HZ Befehle je Sekunde, der Zeitgeber (PIT) feuert nach
 // virtueller Zeit; die Seite gleicht die virtuelle mit der echten Zeit je Bild ab.
@@ -42,6 +43,17 @@
 			this.biosEinrichten();
 			this.laden(optionen.programm || 'INTRO_E.OVL', optionen.argumente || '');
 			if (optionen.einDurchlauf) this.durchlaufMarke();
+			if (optionen.musik) this.musikMarke();
+		}
+
+		// Musik: das Intro fordert seine Stücke über die Prozedur 0x6f an (Stück 0: Logos und Titel, Stück 1: Szenen),
+		// die im Modus „nomusic“ nichts tut. Ihr Anfang (push bp; mov bp,sp) wird zu einem Dienst, der das Stück an
+		// optionen.musik meldet und den Anfang nachholt.
+		musikMarke() {
+			const a = (this.s[1] << 4) + 0x6f;
+			const erwartet = [0x55, 0x89, 0xe5, 0x80, 0x3e, 0x2a, 0x30, 0x01];
+			if (!erwartet.every((b, i) => this.m[a + i] === b)) return;
+			this.m[a] = 0xf1; this.m[a + 1] = 0xfd; this.m[a + 2] = 0x90;
 		}
 
 		// Das Original wiederholt das Intro (Titel, Szenen, Abspann) endlos bis zu einer Taste. Der Sprung zurück
@@ -661,6 +673,9 @@
 				case 0x21: return this.dos(ah, al, cf);
 				case 0x20: this.ende(0); return;
 				case 0x80: return this.musik(r[0], r[3]);
+				case 0xfd:                               // Marke aus musikMarke(): Stück [sp+2] anfordern
+					this.optionen.musik?.('spielen', this.rw(this.s[2], r[4] + 2));
+					this.push(r[5]); r[5] = r[4]; this.ip = 0x72; return;
 				case 0xfe:                               // Marke aus durchlaufMarke(): Anfang der Intro-Schleife
 					if (++this.durchlaeufe > 1) { this.ende(0); return; }
 					this.push((this.ip + 1) & 0xffff); this.ip = 0x3459; return;
