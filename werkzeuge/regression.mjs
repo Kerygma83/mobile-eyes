@@ -46,6 +46,8 @@ for (const sz of auswahl) {
 	// Szenarien vergleichen mit den Texten des Spiels (Großbuchstaben); die normale Schreibung
 	// (schreibung.js) nur in Szenarien mit schreibung: true
 	if (!sz.schreibung) await ctx.addInitScript(() => { try { localStorage.setItem('schreibung', 'original'); } catch (e) {} });
+	// Szenarien tippen auf die Icons des Originals; Aktionsknöpfe (aktionen.js) nur mit aktionsknoepfe: true
+	if (!sz.aktionsknoepfe) await ctx.addInitScript(() => { try { localStorage.setItem('aktionen', 'icons'); } catch (e) {} });
 	const page = await ctx.newPage();
 	const konsole = [];
 	let laufzeitfehler = null;
@@ -371,7 +373,9 @@ for (const sz of auswahl) {
 			}
 			if (s.erwarte) {
 				const z = await zustand();
-				if (!bewerte(s.erwarte, z, m)) {
+				const ok = s.seite ? await mitFrist(page.evaluate(`(() => { try { return !!(${s.erwarte}); } catch (e) { return false; } })()`), 5000, s.erwarte)
+					: bewerte(s.erwarte, z, m);
+				if (!ok) {
 					throw new Error(`Erwartung verfehlt: ${s.text || s.erwarte}\n  ${s.erwarte}\n  Zustand: ${JSON.stringify(z)}\n  Gemerkt: ${JSON.stringify(m)}`);
 				}
 			}

@@ -37,7 +37,7 @@ Aufwand in Arbeitsstunden (gemeinsame Sitzungen mit Claude, grob geschätzt; Feh
 | | **Meilenstein B: Installierbare App** ✓ | Auf echtem Android- und iOS-Gerät getestet | |
 | 7 | Bugfixes übernehmen | Fehlerkorrekturen aus MeowMuhMuhCow/NRS als Schalter | 8–16 h |
 | 8 | Mobiles UI I: Dialoge (weitgehend) | Alle `GUI_*`-Dialoge als HTML (große Schrift, Touch) | 8–12 h |
-| 9 | Mobiles UI II: Bewegung und Orte | Wischgesten, Ortsaktionen als Knöpfe statt Icon-Leiste | 8–12 h |
+| 9 | Mobiles UI II: Bewegung und Orte (teilweise) | Wischgesten, Ortsaktionen als Knöpfe statt Icon-Leiste | 8–12 h |
 | 10 | Mobiles UI III: Helden und Inventar | Charakterbogen und Inventar als native Ansicht | 12–20 h |
 | 11 | Mobiles UI IV: Reisen und Karte (weitgehend) | Ziele antippen, Reiseereignisse als Dialoge | 6–10 h |
 | 12 | Mobiles UI V: Kampf | Felder antippen, Aktionsleiste, Zoom | 12–20 h |
@@ -47,7 +47,7 @@ Aufwand in Arbeitsstunden (gemeinsame Sitzungen mit Claude, grob geschätzt; Feh
 
 Summe bis Meilenstein A: ca. 18–28 h · bis B: ca. 31–48 h · bis C: ca. 85–138 h.
 
-**Nächste Schritte (16.11.):** Stufe 9 (Ortsaktionen als Knöpfe, Wischgesten), danach 10 und 12. Kleine Reste: langes Kampfmenü ohne Scrollen (Stufe 8), Spielstand der DOS-Fassung laden (Stufe 3), Reiseereignisse als Dialoge prüfen (Stufe 11).
+**Nächste Schritte (17.11.):** Rest von Stufe 9 (Wischgesten, Beschriftungen prüfen), danach 10 und 12. Kleine Reste: langes Kampfmenü ohne Scrollen (Stufe 8), Spielstand der DOS-Fassung laden (Stufe 3), Reiseereignisse als Dialoge prüfen (Stufe 11).
 
 Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander parallel. 4 braucht 3 und kommt erst vor einer Veröffentlichung. 5 zunächst mit eingebauten Spieldaten (intern), die Variante ohne Daten folgt mit 4. 6 unabhängig ab 1. 7 jederzeit ab 1. 8 vor 9–12 (gemeinsame Brücke C ↔ HTML). 9–12 untereinander frei.
 
@@ -218,6 +218,8 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 - Als Einstellung anbieten (Original-Versalien / normale Schreibung / Schriftart).
 
 ## Stufe 9 – Mobiles UI II: Bewegung und Orte
+
+**Stand (17.11.):** Ortsaktionen als beschriftete Knöpfe direkt unter dem Bild (`werkzeuge/aktionen.js`, seg029 `web_icons()`), darunter Steuerkreuz und eine Reihe für Protokoll, Aufträge und Einstellungen; OK und Zurück nur noch in den Vollbild-Ansichten. Auf dem iPhone getestet. Abschaltbar in den Einstellungen, im flachen Querformat die Icons. Offen: Beschriftungen bei Händler, Heiler, Taverne, Lager und im Dungeon prüfen; Wischgesten.
 
 **Umfang:** Wischen (vor/zurück/drehen) auf der 3D-Ansicht; die Icon-Leiste rechts wird zu beschrifteten Knöpfen aus den Aktionstabellen des Spiels (je nach Ort: Tempel, Händler, Taverne …); Hochformat-Layout: Ansicht oben, Gruppe und Aktionen darunter.
 

@@ -1,7 +1,8 @@
 // Regressionstests für ./pruefen.sh (ausgeführt von werkzeuge/regression.mjs)
 //
 // Je Szenario: name, schritte, optional adresse (Standard '/?ohneIntro'), schreibung: true (Textboxen
-// in normaler Schreibung statt in Großbuchstaben wie im Original).
+// in normaler Schreibung statt in Großbuchstaben wie im Original), aktionsknoepfe: true (Knöpfe mit
+// Text statt der Icons, aktionen.js; sonst Icons wie im Original, die Szenarien tippen dorthin).
 //
 // Schritte:
 //   { tipp: [ausschnitt, x, y] }     Antippen im mobilen Layout, x/y in Spielkoordinaten (320x200);
@@ -27,6 +28,7 @@
 //   { warteAuf: 'js', seite: true }  Bedingung als Ausdruck in der Seite (FS, DOM)
 //   { merke: 'start' }               Zustand unter einem Namen merken (m.start)
 //   { erwarte: 'z.richtung == m.start.richtung', text: '…' }
+//   { erwarte: 'js', seite: true }   Erwartung als Ausdruck in der Seite (DOM)
 //   { bild: 'name' }                 Screenshot der Seite
 //   { groesse: [844, 390] }          Fenstergröße ändern (etwa Querformat), gilt bis zum Ende des Szenarios
 //
@@ -808,6 +810,60 @@ export const szenarien = [
 			// Hochformat unverändert: Ansicht über die volle Breite
 			{ groesse: [390, 844] },
 			{ warteAuf: "Math.abs(document.querySelector('#mobil > .teil').getBoundingClientRect().width - document.getElementById('mobil').getBoundingClientRect().width) < 1", seite: true, max: 2000 },
+		],
+	},
+	{
+		// Aktionsknöpfe (aktionen.js) statt der Icons: Beschriftung je Ort, Antippen wie ein Klick aufs Icon,
+		// im flachen Querformat wieder die Icons
+		name: 'Aktionsknöpfe: Tempel und Stadt',
+		aktionsknoepfe: true,
+		schritte: [
+			...spielBereit,
+			{ warteAuf: "document.querySelectorAll('#aktionsknoepfe button').length == 9", seite: true, max: 3000 },
+			{ erwarte: "[...document.querySelectorAll('#aktionsknoepfe button')].map((b) => b.textContent).join('|') == 'Held aufnehmen|Held entlassen|Held löschen|Spiel laden|Spiel speichern|Spiel beenden|Beten|Opfern|Verlassen'", seite: true, text: 'Tempel: neun Knöpfe in der Reihenfolge der Icons' },
+			{ erwarte: "getComputedStyle(document.getElementById('icons-halter')).display == 'none'", seite: true, text: 'Icons ausgeblendet' },
+			{ erwarte: "[...document.querySelectorAll('#aktionsknoepfe canvas')].every((c) => c.getContext('2d').getImageData(0, 0, 24, 24).data.some((v, i) => i % 4 < 3 && v > 0))", seite: true, text: 'Icon im Knopf gezeichnet' },
+			{ bild: 'aktionsknoepfe-tempel' },
+			{ knopf: 'Held aufnehmen' },
+			{ warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
+			{ wahl: 1 }, { warteAuf: 'z.helden == 1 && z.ov == 1', max: 3000 },
+			{ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 },
+			...ohneZufall,
+			{ knopf: 'Verlassen' },
+			{ warteAuf: `z.ort == 0 && z.stadt == ${THORWAL} && z.haupt == 1`, max: 5000 },
+			{ warteAuf: "[...document.querySelectorAll('#aktionsknoepfe button')].map((b) => b.textContent).slice(0, 3).join('|') == 'Gruppe teilen|Gruppen vereinen|Gruppe wechseln'", seite: true, max: 3000 },
+			{ erwarte: "document.querySelector('#aktionsknoepfe button[data-icon=\"45\"]')?.classList.contains('grau')", seite: true, text: 'Gruppen vereinen ausgegraut' },
+			{ warte: 500 }, { bild: 'aktionsknoepfe-stadt' },
+			// direkt unter dem Bild (Datumszeile), Leiste ganz sichtbar
+			{ erwarte: "[...document.querySelectorAll('#aktionsknoepfe button')].every((b) => b.getBoundingClientRect().bottom <= document.getElementById('mobil').getBoundingClientRect().bottom + 0.5)", seite: true, text: 'Aktionsknöpfe nicht abgeschnitten' },
+			{ erwarte: "Math.abs(document.getElementById('aktionsknoepfe').getBoundingClientRect().top - document.getElementById('datum').getBoundingClientRect().bottom) < 4", seite: true, text: 'Knöpfe bündig unter dem Bild' },
+			{ erwarte: "document.getElementById('leiste').getBoundingClientRect().bottom <= innerHeight + 0.5", seite: true, text: 'Leiste ganz sichtbar' },
+			{ erwarte: "[...document.querySelectorAll('#leiste .text')].every((t) => t.offsetParent && t.scrollWidth <= t.clientWidth)", seite: true, text: 'Protokoll, Aufträge, Einstellungen ungekürzt' },
+			// OK und Zurück nur in den Vollbild-Ansichten (Infobildschirm schließt über das Menü des Rechtsklicks)
+			{ erwarte: "!document.querySelector('#leiste [data-key=enter]').offsetParent && !document.querySelector('#leiste [data-key=rechtsklick]').offsetParent", seite: true, text: 'Hauptbildschirm ohne OK und Zurück' },
+			{ knopf: 'Info' },
+			{ warteAuf: 'z.haupt == 0 && z.vollbild == 1 && z.ov == 0', max: 5000 },
+			{ warteAuf: "!!document.querySelector('#leiste [data-key=rechtsklick]').offsetParent && getComputedStyle(document.getElementById('aktionsknoepfe')).display == 'none'", seite: true, max: 2000 },
+			{ erwarte: "Math.abs(document.querySelector('#mobil > .voll').getBoundingClientRect().bottom + 3 - document.getElementById('leiste').getBoundingClientRect().top) < 4", seite: true, text: 'Vollbild: Leiste direkt unter dem Bild' },
+			{ bild: 'aktionsknoepfe-vollbild' },
+			{ knopf: 'Zurück' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 9', max: 3000 },
+			{ wahl: 9 },
+			{ warteAuf: 'z.ov == 0 && z.haupt == 1 && z.vollbild == 0', max: 5000 },
+			// Reisekarte behält den Platz über der Leiste
+			{ js: 'Module._web_test_sign(1)' },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: 'z.karte == 1', max: 5000 },
+			{ warteAuf: "karte.aktiv() && document.querySelectorAll('#karte .ziele button').length >= 2 && document.querySelector('#karte .flaeche').getBoundingClientRect().height > innerHeight * 0.4", seite: true, max: 5000 },
+			{ erwarte: "document.getElementById('leiste').getBoundingClientRect().bottom <= innerHeight + 0.5", seite: true, text: 'Reisekarte: Leiste ganz sichtbar' },
+			{ erwarte: "!document.querySelector('#leiste .kreuz').offsetParent && !document.querySelector('#leiste [data-key=rechtsklick]').offsetParent && !document.querySelector('#leiste [data-key=enter]').offsetParent", seite: true, text: 'Reisekarte: ohne Kreuz, OK und Zurück der Leiste' },
+			{ bild: 'aktionsknoepfe-reisekarte' },
+			{ tippBei: "(() => { const r = document.querySelector('#karte .ziele button.zurueck').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()" },
+			{ warteAuf: 'z.karte == 0 && z.haupt == 1 && z.ov == 0', max: 5000 },
+			{ groesse: [844, 390] },
+			{ warteAuf: "getComputedStyle(document.getElementById('aktionsknoepfe')).display == 'none' && document.getElementById('icons').offsetParent !== null", seite: true, max: 2000 },
+			{ groesse: [390, 844] },
+			{ warteAuf: "getComputedStyle(document.getElementById('aktionsknoepfe')).display == 'grid'", seite: true, max: 2000 },
 		],
 	},
 	{
