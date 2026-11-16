@@ -2518,7 +2518,7 @@ static signed long process_nvf(struct nvf_desc *nvf)
  * Ablauf und Ergebnis zuständig, die Seite schickt Tasten oder wählt einen Eintrag.
  *   art: 0 = Meldung, 1 = Texteingabe, 2 = Auswahl, 3 = Ja/Nein, 4 = Zahleneingabe */
 EM_JS(int, web_dialog_auf_js, (int art, const char *name, const char *text, int n, const char **optionen,
-	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild), {
+	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild, int spalten), {
 	if (!Module.dialogAuf) return 0;   /* Original-Layout: kein Overlay */
 	const s = (p) => {
 		if (!p) return null;
@@ -2529,7 +2529,7 @@ EM_JS(int, web_dialog_auf_js, (int art, const char *name, const char *text, int 
 	const opt = [];
 	for (let i = 0; i < n; i++) opt.push(s(HEAPU32[(optionen >> 2) + i]));
 	Module.dialogAuf({ art, name: s(name), text: s(text), optionen: opt, zeichen, vorwahl, hervor,
-		vorgabe: s(vorgabe), bild });
+		vorgabe: s(vorgabe), bild, spalten });
 	return 1;
 });
 EM_JS(void, web_dialog_zu_js, (void), { if (Module.dialogZu) Module.dialogZu(); });
@@ -2539,10 +2539,15 @@ EM_JS(void, web_dialog_zu_js, (void), { if (Module.dialogZu) Module.dialogZu(); 
  * Bild fest). Danach einmal alles neu zeichnen. */
 extern int g_web_freeze_display;	/* vgalib.c */
 
+/* 1 = Auswahl nach einem Knopf unter dem Bild (Talent, Zauber, AT/PA): erscheint ebenfalls unter
+ * dem Bild, zwei Einträge je Reihe (spalten an die Seite), nicht als Overlay */
+static int g_web_gen_inline = 0;
+
 static void web_dialog_auf(int art, const char *name, const char *text, int n, const char **optionen,
 	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild)
 {
-	if (web_dialog_auf_js(art, name, text, n, optionen, zeichen, vorwahl, hervor, vorgabe, bild)) {
+	if (web_dialog_auf_js(art, name, text, n, optionen, zeichen, vorwahl, hervor, vorgabe, bild,
+		(art == 2 && g_web_gen_inline) ? 2 : 0)) {
 		g_web_freeze_display++;
 	}
 }
@@ -2577,37 +2582,75 @@ EMSCRIPTEN_KEEPALIVE void web_right_click(void)
 	g_mouse_rightclick_event = 1;
 }
 
-/* Menü der ersten Seite als Knöpfe unter dem Bild (werkzeuge/gen-shell.html):
+/* Menüs als Knöpfe unter dem Bild (werkzeuge/gen-shell.html):
  *   web_gen_knoepfe(1)  die Seite zeigt die Knöpfe; das Menü öffnet sich dann nicht von selbst
  *                       (Start, „Neuer Held“), sonst wie im Original
- *   web_gen_menue()     {"s": Seite, "t": [Einträge als Hex im DOS-Zeichensatz]} (Einträge nur auf Seite 0,
- *                       in derselben Reihenfolge wie das Menü)
- *   web_gen_wahl(n)     Eintrag n wie im Menü wählen (nur Seite 0, in der Hauptschleife von do_gen) */
+ *   web_gen_menue()     {"s": Seite, "l": Stufe, "n": Spalten, "t": [Einträge als Hex im DOS-Zeichensatz]}: die erste
+ *                       Auswahl der Seite in derselben Reihenfolge wie das Menü (Seite 0: Hauptmenü;
+ *                       Talente/Zauber: Gruppen bzw. Zauber; AT/PA: Waffen)
+ *   web_gen_wahl(n)     Eintrag n wie im Menü wählen (in der Hauptschleife von do_gen); auf den übrigen
+ *                       Seiten folgt die nächste Auswahl unter dem Bild, danach zurück zu den Knöpfen */
 static int g_web_gen_knoepfe = 0;
 static int g_web_gen_wahl = 0;
+static int g_web_gen_vorwahl = 0;	/* erste Auswahl der Seite, schon per Knopf getroffen */
 static int g_web_gen_seite = -1;	/* -1: nicht in der Hauptschleife */
-static const int g_web_gen_texte[9] = { 10, 11, 15, 8, 14, 12, 262, 9, 258 };
+static int g_web_gen_stufe = 0;	/* 1 Anfänger, 2 Fortgeschrittene (weitere Seiten, Pfeile) */
+
+/* Texte der ersten Auswahl je Seite (wie in do_gen, select_skill, select_atpa, select_spell), 0 = Ende */
+static const int g_web_gen_menues[11][17] = {
+	{ 10, 11, 15, 8, 14, 12, 262, 9, 258 },
+	{ 86, 87 }, { 88, 89 }, { 90, 91, 92 },
+	{ 95, 96, 97, 98, 99, 100, 101 },
+	{ 157, 162, 158 }, { 158, 159, 160 }, { 161, 163, 164 }, { 164, 86, 166 },
+	{ 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243 },
+	{ 244, 245, 246, 247, 248, 249, 250, 251, 252, 253 },
+};
+/* Spalten: Hauptmenü 3, Gruppen 1, Talente/Zauber 2 */
+static const int g_web_gen_spalten[11] = { 3, 1, 1, 1, 2, 1, 1, 1, 1, 2, 2 };
+
+static int web_gen_anzahl(const int seite)
+{
+	int n = 0;
+	if (seite < 0 || seite > 10) return 0;
+	while (n < 17 && g_web_gen_menues[seite][n]) n++;
+	return n;
+}
+
+/* erste Auswahl einer Seite: per Knopf schon getroffen oder wie im Original das Menü */
+static int web_gen_erste(void)
+{
+	const int n = g_web_gen_vorwahl;
+	g_web_gen_vorwahl = 0;
+	return n;
+}
+#define WEB_ERSTE(aufruf) (g_web_gen_vorwahl ? web_gen_erste() : (aufruf))
 
 EMSCRIPTEN_KEEPALIVE void web_gen_knoepfe(const int an) { g_web_gen_knoepfe = an; }
-EMSCRIPTEN_KEEPALIVE void web_gen_wahl(const int n) { if (g_web_gen_seite == 0 && n >= 1 && n <= 9) g_web_gen_wahl = n; }
+EMSCRIPTEN_KEEPALIVE void web_gen_wahl(const int n) { if (n >= 1 && n <= web_gen_anzahl(g_web_gen_seite)) g_web_gen_wahl = n; }
 
 EMSCRIPTEN_KEEPALIVE const char* web_gen_menue(void)
 {
-	static char buf[1024];
+	static char buf[2048];
+	const int seite = g_web_gen_seite, anzahl = web_gen_anzahl(seite);
 	int i, len;
 	const unsigned char *t;
 
-	len = snprintf(buf, sizeof(buf), "{\"s\":%d,\"t\":[", g_web_gen_seite);
-	for (i = 0; g_web_gen_seite == 0 && i < 9 && len < (int)sizeof(buf) - 8; i++) {
+	len = snprintf(buf, sizeof(buf), "{\"s\":%d,\"l\":%d,\"n\":%d,\"t\":[", seite, g_web_gen_stufe,
+		anzahl ? g_web_gen_spalten[seite] : 0);
+	for (i = 0; i < anzahl && len < (int)sizeof(buf) - 8; i++) {
 		len += snprintf(buf + len, sizeof(buf) - len, "%s\"", i ? "," : "");
-		for (t = (const unsigned char*)get_text(g_web_gen_texte[i]); t && *t && len < (int)sizeof(buf) - 8; t++)
+		for (t = (const unsigned char*)get_text(g_web_gen_menues[seite][i]); t && *t && len < (int)sizeof(buf) - 8; t++)
 			len += snprintf(buf + len, sizeof(buf) - len, "%02x", *t);
 		len += snprintf(buf + len, sizeof(buf) - len, "\"");
 	}
 	snprintf(buf + len, sizeof(buf) - len, "]}");
 	return buf;
 }
+#else
+#define WEB_ERSTE(aufruf) (aufruf)
+#endif
 
+#if defined(__EMSCRIPTEN__)
 /* Browser: regelmäßig abgeben (Asyncify); enter_string() wartet sonst in einer
  * leeren Schleife auf eine Taste und die Seite friert ein */
 static void web_yield(void)
@@ -6600,7 +6643,7 @@ static void select_skill(volatile struct struct_hero *hero, const int page)
 
 		if (page == 1) {
 
-			group = gui_radio(get_text(93), 2, get_text(86), get_text(87));
+			group = WEB_ERSTE(gui_radio(get_text(93), 2, get_text(86), get_text(87)));
 
 			if (group != -1) {
 				if (group == 1) {
@@ -6634,7 +6677,7 @@ static void select_skill(volatile struct struct_hero *hero, const int page)
 
 		} else if (page == 2) {
 
-			group = gui_radio(get_text(93), 2, get_text(88), get_text(89));
+			group = WEB_ERSTE(gui_radio(get_text(93), 2, get_text(88), get_text(89)));
 
 			if (group != -1) {
 				if (group == 1) {
@@ -6665,7 +6708,7 @@ static void select_skill(volatile struct struct_hero *hero, const int page)
 
 		} else if (page == 3) {
 
-			group = gui_radio(get_text(93), 3, get_text(90), get_text(91), get_text(92));
+			group = WEB_ERSTE(gui_radio(get_text(93), 3, get_text(90), get_text(91), get_text(92)));
 
 			if (group != -1) {
 				if (group == 1) {
@@ -6708,6 +6751,10 @@ static void select_skill(volatile struct struct_hero *hero, const int page)
 			print_values(hero, page, 2);
 		}
 
+#if defined(__EMSCRIPTEN__)
+		/* per Knopf gewählt: zurück zu den Knöpfen unter dem Bild statt wieder ins Menü */
+		if (g_web_gen_inline) break;
+#endif
 	} while (group != -1);
 }
 
@@ -6798,9 +6845,9 @@ static void select_spell(volatile struct struct_hero *hero, const int page)
 
 		switch (page) {
 			case 5: {
-				group = gui_radio(get_text(155), 3,
+				group = WEB_ERSTE(gui_radio(get_text(155), 3,
 						get_text(157), get_text(162),
-						get_text(158));
+						get_text(158)));
 				if (group != -1) {
 				switch (group)
 				{
@@ -6849,9 +6896,9 @@ static void select_spell(volatile struct struct_hero *hero, const int page)
 				break;
 			}
 			case 6: {
-				group = gui_radio(get_text(155), 3,
+				group = WEB_ERSTE(gui_radio(get_text(155), 3,
 						get_text(158), get_text(159),
-						get_text(160));
+						get_text(160)));
 				if (group != -1) {
 
 				switch (group) {
@@ -6901,9 +6948,9 @@ static void select_spell(volatile struct struct_hero *hero, const int page)
 				break;
 			}
 			case 7: {
-				group = gui_radio(get_text(155), 3,
+				group = WEB_ERSTE(gui_radio(get_text(155), 3,
 						get_text(161), get_text(163),
-						get_text(164));
+						get_text(164)));
 				if (group != -1) {
 
 				switch (group) {
@@ -6954,9 +7001,9 @@ static void select_spell(volatile struct struct_hero *hero, const int page)
 				break;
 			}
 			case 8: {
-				group = gui_radio(get_text(155), 3,
+				group = WEB_ERSTE(gui_radio(get_text(155), 3,
 						get_text(164), get_text(86),
-						get_text(166));
+						get_text(166)));
 				if (group != -1) {
 				switch (group) {
 					case 1: {
@@ -6999,7 +7046,7 @@ static void select_spell(volatile struct struct_hero *hero, const int page)
 				break;
 			}
 			case 9: {
-				spell = gui_radio(get_text(156), 16,
+				spell = WEB_ERSTE(gui_radio(get_text(156), 16,
 						get_text(228), get_text(229),
 						get_text(230), get_text(231),
 						get_text(232), get_text(233),
@@ -7007,7 +7054,7 @@ static void select_spell(volatile struct struct_hero *hero, const int page)
 						get_text(236), get_text(237),
 						get_text(238), get_text(239),
 						get_text(240), get_text(241),
-						get_text(242), get_text(243)) - 1;
+						get_text(242), get_text(243))) - 1;
 
 				if (spell != -2) {
 					spell += 60;
@@ -7018,12 +7065,12 @@ static void select_spell(volatile struct struct_hero *hero, const int page)
 				break;
 			}
 			case 10: {
-				spell = gui_radio(get_text(156), 10,
+				spell = WEB_ERSTE(gui_radio(get_text(156), 10,
 						get_text(244), get_text(245),
 						get_text(246), get_text(247),
 						get_text(248), get_text(249),
 						get_text(250), get_text(251),
-						get_text(252), get_text(253)) - 1;
+						get_text(252), get_text(253))) - 1;
 
 				if (spell != -2) {
 					spell += 76;
@@ -7041,6 +7088,10 @@ static void select_spell(volatile struct struct_hero *hero, const int page)
 			print_values(hero, page, 2);
 		}
 
+#if defined(__EMSCRIPTEN__)
+		/* per Knopf gewählt: zurück zu den Knöpfen unter dem Bild statt wieder ins Menü */
+		if (g_web_gen_inline) break;
+#endif
 	} while (group != -1);
 }
 
@@ -7062,9 +7113,9 @@ static int select_atpa(volatile struct struct_hero *hero, const int page, const 
 		int full_refresh = 0;
 
 		/* print menu with all melee weapons skills */
-		skill = gui_radio(get_text(78), 7,
+		skill = WEB_ERSTE(gui_radio(get_text(78), 7,
 			get_text(95), get_text(96), get_text(97), get_text(98),
-			get_text(99), get_text(100), get_text(101)) - 1;
+			get_text(99), get_text(100), get_text(101))) - 1;
 
 		if (skill != -2) {
 			if (hero->skills[skill] <= 0) {
@@ -7108,6 +7159,10 @@ static int select_atpa(volatile struct struct_hero *hero, const int page, const 
 
 		if (full_refresh) print_values(hero, page, level);
 
+#if defined(__EMSCRIPTEN__)
+		/* per Knopf gewählt: zurück zu den Knöpfen unter dem Bild statt wieder ins Menü */
+		if (g_web_gen_inline) break;
+#endif
 	} while (skill != -2);
 
 	g_text_x_mod = 0;
@@ -7275,6 +7330,7 @@ static void do_gen(volatile struct struct_hero *hero, const int init_level)
 	while (!done) {
 #if defined(__EMSCRIPTEN__)
 		g_web_gen_seite = page;
+		g_web_gen_stufe = level;
 #endif
 
 		if (full_refresh) {
@@ -7289,10 +7345,17 @@ static void do_gen(volatile struct struct_hero *hero, const int init_level)
 		g_action_table = NULL;
 
 #if defined(__EMSCRIPTEN__)
-		/* Knopf unter dem Bild: wie Menü öffnen und Eintrag wählen */
-		const int web_wahl = (page == 0) ? g_web_gen_wahl : 0;
+		/* Knopf unter dem Bild: wie Menü öffnen und Eintrag wählen; auf den übrigen Seiten ist das
+		 * die erste Auswahl (Gruppe, Waffe, Zauber), die nächste erscheint ebenfalls unter dem Bild */
+		const int web_wahl = g_web_gen_wahl;
 		g_web_gen_wahl = 0;
-		if (web_wahl) g_mouse_rightclick_event = 0;
+		if (web_wahl) {
+			g_mouse_rightclick_event = 0;
+			if (page != 0) {
+				g_web_gen_vorwahl = web_wahl;
+				g_web_gen_inline = 1;
+			}
+		}
 #endif
 		if (g_mouse_rightclick_event || g_in_key_ext == KEY_PGUP
 #if defined(__EMSCRIPTEN__)
@@ -7369,6 +7432,10 @@ static void do_gen(volatile struct struct_hero *hero, const int init_level)
 			  else if (page == 4)			select_atpa(hero, page, level);
 			  else if ((5 <= page) && (page <= 10)) select_spell(hero, page);
 		}
+#if defined(__EMSCRIPTEN__)
+		g_web_gen_vorwahl = 0;
+		g_web_gen_inline = 0;
+#endif
 
 		if (g_in_key_ext == KEY_CTRL_F3)
 			full_refresh = change_sex(hero);
