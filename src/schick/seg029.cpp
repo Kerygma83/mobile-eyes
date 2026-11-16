@@ -28,6 +28,24 @@
 
 static signed char g_loaded_menu_icons[9] = { -2, -2, -2, -2, -2, -2, -2, -2, -2 }; // ds:0x5ecc
 
+#if defined(__EMSCRIPTEN__)
+#include <stdio.h>
+#include <emscripten.h>
+
+/* Aktionsknöpfe der Web-Oberfläche: die gezeichneten Icons (MENU_ICON_*, -1 leer, -2 noch nie
+ * gezeichnet) als „a,b,…“ in der Reihenfolge der Felder. g_loaded_menu_icons statt
+ * g_new_menu_icons: zeigt genau, was draw_icons() zuletzt ins Bild gebracht hat. */
+extern "C" EMSCRIPTEN_KEEPALIVE const char* web_icons(void)
+{
+	static char buf[9 * 4 + 1];
+	int i, n = 0;
+
+	for (i = 0; i < 9; i++)
+		n += snprintf(buf + n, sizeof(buf) - n, i ? ",%d" : "%d", g_loaded_menu_icons[i]);
+	return buf;
+}
+#endif
+
 #if 0
 struct coord {
 	signed int x;
