@@ -688,8 +688,13 @@ export const szenarien = [
 			{ warteAuf: "(() => { const r = document.querySelector('#karte .flaeche').getBoundingClientRect(); return r.height > window.innerHeight * 0.4 && /^thorwal$/i.test(document.querySelector('#karte [data-ort=\"1\"]').textContent); })()", seite: true, max: 1000 },
 			{ warte: 3000 },                               // Timer zeichnet die Gruppenmarkierung
 			{ bild: 'reisekarte' },
-			{ js: "window.massstab = karte.zustand().s; document.querySelector('#karte [data-zoom=\"+\"]').click()" },
+			// Zoom-Knopf mit dem Finger: vergrößert, klickt aber nicht die Karte dahinter (sonst Ortsbeschreibung)
+			{ js: "window.massstab = karte.zustand().s; window.kartenKlicks = 0; const k = Module._web_click; Module._web_click = (...a) => { window.kartenKlicks++; return k(...a); }" },
+			{ tippBei: "(() => { const r = document.querySelector('#karte [data-zoom=\"+\"]').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()" },
 			{ warteAuf: 'karte.zustand().s > window.massstab * 1.4', seite: true, max: 1000 },
+			{ warte: 500 },
+			{ warteAuf: 'window.kartenKlicks === 0', seite: true, max: 1000 },
+			{ erwarte: 'z.ov == 0 && z.karte == 1', text: 'keine Ortsbeschreibung nach dem Zoom-Knopf' },
 			// Antippen eines Orts: Beschreibung wie im Original (Klick an der Kartenposition)
 			{ tippBei: "(() => { const o = [...document.querySelectorAll('#karte .ziel')][0]; return karte.punkt(...o.dataset.pos.split(',').map(Number)); })()" },
 			{ warteAuf: 'z.ov == 1 && z.dialog == 1', max: 3000 },
@@ -714,8 +719,9 @@ export const szenarien = [
 			{ js: 'Module._web_test_talk(2, 15, 0)' },             // Kräuterhändler (talk_merchant)
 			{ warteAuf: 'z.ov == 1', max: 5000 },
 			{ bild: 'haendler' },
-			// Begrüßung ist eine von vier Varianten (Zufall): wörtliche Rede und drei Antworten
-			{ erwarte: 'z.ovN == 3 && /^<[A-ZÄÖÜ ,.!?]+>$/.test(z.ovText)', text: 'Begrüßung des Händlers mit drei Antworten' },
+			// Begrüßung ist eine von vier Varianten (Zufall): wörtliche Rede und drei Antworten; eine Variante
+			// beginnt mit einer Erzählung („NACHDEM IHR EINIGE ZEIT VOR DER THEKE …“) vor der Rede
+			{ erwarte: 'z.ovN == 3 && /^[A-ZÄÖÜ ,.!?]*<[A-ZÄÖÜ ,.!?]+>$/.test(z.ovText)', text: 'Begrüßung des Händlers mit drei Antworten' },
 			{ abbrechen: true },
 			{ warte: 1000 },
 			{ js: 'Module._web_test_talk(1, 6, 1)' },              // Hjore in Thorwal (do_talk)
