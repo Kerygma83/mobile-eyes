@@ -202,7 +202,13 @@ function spieldatenEinrichten(optionen = {}) {
 		for (const [n, b] of ablage) puffer.push([n, await b.arrayBuffer()]);
 		await loeschen();
 		await tx('readwrite', (s) => { for (const [n, b] of puffer) s.put(b, n); });
-		try { await navigator.storage?.persist?.(); } catch (e) {}
+		// Firefox fragt hier nach („Daten im dauerhaften Speicher speichern?“) und wartet auf die Antwort
+		try {
+			if (!(await navigator.storage?.persisted?.())) {
+				fortschritt?.('Falls der Browser fragt: dauerhaftes Speichern bitte erlauben …');
+				await navigator.storage?.persist?.();
+			}
+		} catch (e) {}
 		return ablage.size;
 	}
 
@@ -264,6 +270,8 @@ function spieldatenEinrichten(optionen = {}) {
 				<p class="fehler" role="alert"></p>
 				<p class="leise">Die Dateien bleiben in diesem Browser auf diesem Gerät, nichts wird hochgeladen.
 				Einmal eingelesen, startet das Spiel künftig direkt (auch offline).</p>
+				<p class="leise">Fragt der Browser, ob die Seite Daten im <b>dauerhaften Speicher</b> ablegen darf,
+				bitte <b>Erlauben</b> wählen. Sonst kann er die Spieldaten und Spielstände bei Platzmangel löschen.</p>
 			</div>`;
 			document.body.append(el);
 			const auswahl = el.querySelector('input[type=file]');
