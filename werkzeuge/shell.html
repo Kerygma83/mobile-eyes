@@ -187,7 +187,8 @@
 		padding: 0.6rem 0.8rem; background: var(--bg); border: 1px solid var(--rand); border-radius: 0.6rem;
 		font: calc(1.12rem * var(--schrift, 1))/1.45 Georgia, 'Times New Roman', serif; letter-spacing: 0.02em;
 	}
-	#einstellungen .fuss { display: flex; justify-content: flex-end; }
+	#einstellungen .fuss { display: flex; justify-content: space-between; align-items: center; }
+	#einstellungen .version { color: var(--leise); font-size: 0.85rem; }
 	.aktionen button.zahnrad, .aktionen button.wuerfel, .aktionen button.quest { width: 2.3rem; padding: 0; }
 	/* J/N wirken nur in Ja/Nein-Menüs (GUI_bool); die kommen im mobilen Layout als Overlay, das die Leiste verdeckt */
 	body.mobil .aktionen button[data-key="j"], body.mobil .aktionen button[data-key="n"] { display: none; }
@@ -331,7 +332,7 @@
 			<h3>Anzeige</h3>
 			<button type="button" id="vollbild">Vollbild</button>
 		</section>
-		<div class="fuss"><button type="button" class="schliessen">Schließen</button></div>
+		<div class="fuss"><span class="version" title="Version von Mobile Eyes">Mobile Eyes v__APPVERSION__</span><button type="button" class="schliessen">Schließen</button></div>
 	</div>
 </div>
 

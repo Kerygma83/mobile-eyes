@@ -66,6 +66,9 @@
 	#pfeile[hidden] { display: none; }
 	#pfeile button { pointer-events: auto; width: 4.2rem; height: 3.2rem; touch-action: manipulation; }
 	#pfeile svg { width: 1.7rem; height: 1.7rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+	/* Versionsnummer unten im Intro (setzt web-bauen.sh aus VERSION) */
+	#version { position: fixed; left: 0; right: 0; bottom: calc(0.4rem + env(safe-area-inset-bottom)); text-align: center; font-size: 0.8rem; color: var(--leise); pointer-events: none; }
+	#version[hidden] { display: none; }
 	#status { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 </style>
 </head>
@@ -77,6 +80,7 @@
 	<button type="button" data-taste="1073741904" aria-label="Seite zurück" title="Seite zurück (←)"><svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
 	<button type="button" data-taste="1073741903" aria-label="Seite vor" title="Seite vor (→)"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
 </div>
+<div id="version" hidden>Mobile Eyes v__APPVERSION__</div>
 <div id="leiste">
 	<button type="button" id="menue" title="Menü der Heldenerschaffung (Rechtsklick)">Menü</button>
 	<button type="button" id="ueberspringen" hidden>Intro überspringen</button>
@@ -102,6 +106,7 @@
 	if (location.search.startsWith('?intro')) {
 		document.getElementById('menue').hidden = true;
 		document.body.classList.add('intro');
+		document.getElementById('version').hidden = false;
 		const weg = document.getElementById('ueberspringen');
 		weg.hidden = false;
 		weg.addEventListener('click', () => melden());

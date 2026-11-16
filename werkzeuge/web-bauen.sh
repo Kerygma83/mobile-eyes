@@ -110,6 +110,8 @@ emcc "${gobjs[@]}" -o "$out/gen.html" "${glflags[@]}" \
 cp werkzeuge/dialog.js werkzeuge/ton.js werkzeuge/schreibung.js werkzeuge/wurflog.js werkzeuge/questlog.js werkzeuge/karte.js werkzeuge/daten.js "$out/"
 # Spieldaten eingebaut (1) oder Import im Browser (0): Kennung für daten.js
 sed -i "s/__SPIELDATEN__/${SPIELDATEN:-0}/" "$out/index.html" "$out/gen.html"
+# Versionsnummer der App (Datei VERSION) für Intro und Einstellungen
+sed -i "s/__APPVERSION__/$(tr -d '[:space:]' < VERSION)/" "$out/index.html" "$out/gen.html"
 # ohne Spieldaten: Import des GOG-Installers (innoextract als WebAssembly, einmal gebaut)
 rm -f "$out"/innoextract.* "$out/daten-worker.js"
 if [ "${SPIELDATEN:-0}" != 1 ]; then
