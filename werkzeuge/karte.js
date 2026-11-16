@@ -183,6 +183,8 @@ function karteEinrichten(Module, optionen) {
 		}
 	}
 	flaeche.addEventListener('pointerdown', (e) => {
+		// Knöpfe (+/−) liegen auf der Karte: ihr Tippen ist keine Geste, sonst klickt es auch den Ort dahinter
+		if (e.target.closest('button')) return;
 		e.preventDefault();
 		flaeche.setPointerCapture?.(e.pointerId);
 		zeiger.set(e.pointerId, punktIn(e));
