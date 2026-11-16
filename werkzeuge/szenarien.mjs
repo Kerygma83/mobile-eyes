@@ -28,6 +28,7 @@
 //   { merke: 'start' }               Zustand unter einem Namen merken (m.start)
 //   { erwarte: 'z.richtung == m.start.richtung', text: '…' }
 //   { bild: 'name' }                 Screenshot der Seite
+//   { groesse: [844, 390] }          Fenstergröße ändern (etwa Querformat), gilt bis zum Ende des Szenarios
 //
 // Zustand z: timer, stadt, ort, dungeon, x, y, richtung, helden, kampf, dialog, menue, karte, haupt, spielzustand,
 //   von der Seite: ov (Overlay sichtbar), ovText, ovN (Anzahl Einträge), vollbild (Ausschnitte ausgeblendet)
@@ -761,6 +762,25 @@ export const szenarien = [
 			{ knopf: 'Vorwärts' },
 			{ warteAuf: 'z.y != m.start.y || z.x != m.start.x || z.ov == 1', max: 5000 },
 			{ bild: 'mine' },
+		],
+	},
+	{
+		// Im Querformat reichte die Ansicht (volle Breite) unter die Leiste, Ortszeile und Gruppe fehlten
+		name: 'Querformat: Bild endet über der Leiste, Textbox so breit wie das Bild',
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen,
+			{ groesse: [844, 390] },
+			{ warteAuf: "(() => { const l = document.getElementById('leiste').getBoundingClientRect().top; const t = [...document.querySelectorAll('#mobil > .teil')].filter((c) => c.offsetParent); return t.length >= 3 && t.every((c) => c.getBoundingClientRect().bottom <= l + 0.5); })()", seite: true, max: 2000 },
+			// Textbox (Antippen der Datumszeile) nicht breiter als das Bild darüber
+			{ tippBei: "(() => { const r = document.getElementById('datum').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()" },
+			{ warteAuf: 'z.ov == 1', max: 3000 },
+			{ warteAuf: "(() => { const k = document.querySelector('#dialog .karte').getBoundingClientRect(), b = document.querySelector('#mobil > .teil').getBoundingClientRect(); return k.width <= Math.max(b.width, 22 * 16) + 1 && Math.abs(k.left + k.width / 2 - b.left - b.width / 2) < 1; })()", seite: true, max: 2000 },
+			{ bild: 'querformat' },
+			{ weiter: true },
+			{ warteAuf: 'z.ov == 0', max: 3000 },
+			// Hochformat unverändert: Ansicht über die volle Breite
+			{ groesse: [390, 844] },
+			{ warteAuf: "Math.abs(document.querySelector('#mobil > .teil').getBoundingClientRect().width - document.getElementById('mobil').getBoundingClientRect().width) < 1", seite: true, max: 2000 },
 		],
 	},
 	{

@@ -254,6 +254,8 @@ for (const sz of auswahl) {
 		for (const s of sz.schritte) {
 			if (laufzeitfehler) throw laufzeitfehler;
 			if (s.warte) await page.waitForTimeout(s.warte);
+			// Fenstergröße ändern, etwa Querformat ([Breite, Höhe]; gilt bis zum Ende des Szenarios)
+			if (s.groesse) { await page.setViewportSize({ width: s.groesse[0], height: s.groesse[1] }); await page.waitForTimeout(300); }
 			if (s.tipp) { const [x, y] = await punkt(...s.tipp); await page.touchscreen.tap(x, y); await page.waitForTimeout(250); }
 			// Antippen an einer Seitenposition, die ein Ausdruck in der Seite liefert ([x, y])
 			if (s.tippBei) { const [x, y] = await page.evaluate(s.tippBei); await page.touchscreen.tap(x, y); await page.waitForTimeout(250); }

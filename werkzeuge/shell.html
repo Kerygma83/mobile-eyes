@@ -65,15 +65,20 @@
 	body.mobil #canvas-halter { position: absolute; }
 
 	/* ---------- Layout „Mobil“: Ausschnitte frei angeordnet ---------- */
-	#mobil { display: none; flex: 1; min-height: 0; flex-direction: column; gap: 3px; overflow: hidden; }
+	#mobil { display: none; flex: 1; min-height: 0; flex-direction: column; align-items: center; gap: 3px; overflow: hidden; container-type: size; }
 	body.mobil #mobil { display: flex; }
 	/* DOS-Pixel sind 1,2-mal so hoch wie breit */
 	canvas.aus, #datum { width: 100%; height: auto; background: #000; }
+	/* Querformat: nicht höher als der Platz über der Leiste. Höhe je Breite (mit 1,2): Ansicht 240×136 → 0,68,
+	   Ortszeile und Datum 320×18 → 0,0675, Gruppe 320×43 → 0,16125, zusammen 0,97625 plus drei Abstände;
+	   ganzer Bildschirm 320×200 → 0,75 */
+	#mobil > .teil { width: min(100%, calc((100cqh - 9px) / 0.97625)); }
+	#mobil > .voll { width: min(100%, calc(100cqh / 0.75)); }
 	#mobil .voll { display: none; }
 	#mobil.vollbild .teil { display: none; }
 	#mobil.vollbild .voll { display: block; }
 	/* Reisekarte (karte.js): statt des ganzen Bildschirms zoom- und verschiebbar, darunter die Ziele */
-	#karte { display: none; flex: 1; min-height: 0; flex-direction: column; gap: 0.5rem; }
+	#karte { display: none; flex: 1; min-height: 0; align-self: stretch; flex-direction: column; gap: 0.5rem; }
 	#mobil.karte .voll { display: none; }
 	#mobil.karte #karte { display: flex; }
 	#karte #datum { display: block; flex: none; }
@@ -463,6 +468,17 @@
 		if (datumMitRahmen) Module._web_click?.(280, 38, 1);   // auf der Reisekarte läge dort ein Gebiet
 	});
 	datumEl.addEventListener('contextmenu', (e) => e.preventDefault());
+	// Textboxen (dialog.js) nicht breiter als das Bild darüber (Querformat: Bild schmaler als das Fenster).
+	// Breite der sichtbaren Ausschnitte; Reisekarte und Original-Layout: volle Breite
+	const bildBreiteSetzen = () => {
+		const w = Math.max(0, ...[...mobilEl.querySelectorAll(':scope > .teil, :scope > .voll')].map((c) => c.offsetParent ? c.getBoundingClientRect().width : 0));
+		if (w > 0) document.documentElement.style.setProperty('--dialog-breite', `${Math.round(w)}px`);
+		else document.documentElement.style.removeProperty('--dialog-breite');
+	};
+	const bildBeobachter = new ResizeObserver(bildBreiteSetzen);
+	for (const c of mobilEl.querySelectorAll('canvas.aus')) bildBeobachter.observe(c);
+	bildBeobachter.observe(datumEl);
+	bildBeobachter.observe(document.getElementById('karte'));
 
 	// vom Spiel nach jedem geänderten Bild aufgerufen (RGBA, Alpha 0)
 	// Mauszeiger nur im Original-Layout: vor dem Start nur merken (onRuntimeInitialized),

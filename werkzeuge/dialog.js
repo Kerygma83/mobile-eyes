@@ -35,7 +35,10 @@ function textboxOverlay(Module, optionen = {}) {
 	#dialog .karte {
 		display: flex; flex-direction: column; gap: 0.9rem;
 		max-height: 78dvh; overflow-y: auto; overscroll-behavior: contain;
-		margin: 0 0.5rem 0.5rem;
+		/* höchstens so breit wie das Bild darüber (--dialog-breite setzt die Seite, sonst volle Breite),
+		   mindestens 22rem (Hinweis und Knöpfe), mittig */
+		align-self: center; width: min(100% - 1rem, max(var(--dialog-breite, 100%), 22rem));
+		margin: 0 0 0.5rem;
 		padding: 1.1rem 1.1rem 1rem;
 		background: var(--panel); color: var(--text);
 		border: 1px solid var(--rand); border-radius: 0.9rem;
