@@ -1929,7 +1929,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_key(const int sym)
 
 
 /* Klick an eine Spielkoordinate (320x200), z.B. aus einem Bildausschnitt
- * des mobilen Layouts. button: 1 = links, 3 = rechts */
+ * des mobilen Layouts. button: 1 = links, 3 = rechts, 0 = nur den Zeiger bewegen */
 extern "C" EMSCRIPTEN_KEEPALIVE void web_click(const int x, const int y, const int button)
 {
 	SDL_Event e;
@@ -1938,6 +1938,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_click(const int x, const int y, const i
 	e.motion.x = x * sdl_get_ratio();
 	e.motion.y = y * sdl_get_ratio();
 	SDL_PushEvent(&e);
+	if (button <= 0) return;
 	memset(&e, 0, sizeof(e));
 	e.type = SDL_MOUSEBUTTONDOWN;
 	e.button.button = button;
