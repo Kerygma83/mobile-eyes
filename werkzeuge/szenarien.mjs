@@ -170,7 +170,7 @@ export const szenarien = [
 			{ erwarte: '/^[A-ZÄÖÜ][a-zäöüß]/.test(z.ovText) && z.ovText != z.ovText.toUpperCase()', text: 'Satzanfang groß, sonst normale Schreibung' },
 			{ warteAuf: "[...document.querySelectorAll('#dialog .optionen button')].some((b) => b.textContent == 'Keinen')", seite: true, max: 2000 },
 			// das Overlay deckt die Leiste ab: Einstellungen über die Seite öffnen
-			{ js: "document.getElementById('einstellungen-knopf').click()" },
+			{ js: "einstellungenOeffnen('menue')" },
 			{ knopf: 'GROSS (Original)' }, { knopf: 'Schrift sehr groß' },
 			{ warteAuf: 'z.ov == 1 && z.ovText == m.normal.ovText.toUpperCase()', max: 2000 },
 			{ warteAuf: "getComputedStyle(document.getElementById('dialog')).getPropertyValue('--schrift') == '1.3'", seite: true, max: 2000 },
@@ -233,9 +233,9 @@ export const szenarien = [
 			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen,
 			{ warte: 800 },
 			{ merke: 'mobil' },
-			{ knopf: 'Einstellungen' }, { knopf: 'Original' }, { knopf: 'Schließen' }, { warte: 800 },
+			{ knopf: 'Menü' }, { knopf: 'Einstellungen' }, { knopf: 'Original' }, { knopf: 'Schließen' }, { warte: 800 },
 			{ merke: 'original' },
-			{ knopf: 'Einstellungen' }, { knopf: 'Mobil' }, { knopf: 'Schließen' }, { warte: 800 },
+			{ knopf: 'Menü' }, { knopf: 'Einstellungen' }, { knopf: 'Mobil' }, { knopf: 'Schließen' }, { warte: 800 },
 			{ merke: 'wieder' },
 			{ erwarte: 'm.original.zeiger > m.mobil.zeiger', text: 'im Original-Layout ist der Zeiger zu sehen' },
 			{ erwarte: 'm.wieder.zeiger == m.mobil.zeiger', text: 'zurück im mobilen Layout wieder verschwunden' },
@@ -291,7 +291,7 @@ export const szenarien = [
 		name: 'Schneller Autokampf',
 		schritte: [
 			...spielBereit, ...heldenAufnehmen(3), ...tempelVerlassen, ...ohneZufall,
-			{ knopf: 'Einstellungen' }, { knopf: 'Schnell' }, { knopf: 'Schließen' },
+			{ knopf: 'Menü' }, { knopf: 'Einstellungen' }, { knopf: 'Schnell' }, { knopf: 'Schließen' },
 			{ warteAuf: "localStorage.getItem('autokampf') === 'schnell'", seite: true, max: 2000 },
 			{ js: `Module._web_test_fight(${KAMPF_THOR8})` },   // startet in game_loop() ohne Schritt
 			{ warteAuf: 'z.kampf == 1 && z.menue == 1', max: 15000 },
@@ -496,8 +496,8 @@ export const szenarien = [
 			{ erwarte: 'z.x == m.gespeichert.x && z.y == m.gespeichert.y && z.ort == m.gespeichert.ort', text: 'Position wie beim Speichern' },
 			{ bild: 'geladen' },
 			// Export und Import als Datei
-			{ knopf: 'Einstellungen' },
-			{ knopf: 'Spielstände exportieren und importieren …' },
+			{ knopf: 'Menü' },
+			{ knopf: 'Spielstände sichern und einlesen' },
 			{ bild: 'verwaltung' },
 			{ exportiere: 'TEST', datei: 'KOPIE.GAM' },
 			{ importiere: 2, datei: 'KOPIE.GAM' },
@@ -843,8 +843,8 @@ export const szenarien = [
 		aktionsknoepfe: true,
 		schritte: [
 			...spielBereit,
-			{ warteAuf: "document.querySelectorAll('#aktionsknoepfe button').length == 9", seite: true, max: 3000 },
-			{ erwarte: "[...document.querySelectorAll('#aktionsknoepfe button')].map((b) => b.textContent).join('|') == 'Held aufnehmen|Held entlassen|Held löschen|Spiel laden|Spiel speichern|Spiel beenden|Beten|Opfern|Verlassen'", seite: true, text: 'Tempel: neun Knöpfe in der Reihenfolge der Icons' },
+			{ warteAuf: "document.querySelectorAll('#aktionsknoepfe button').length == 6", seite: true, max: 3000 },
+			{ erwarte: "[...document.querySelectorAll('#aktionsknoepfe button')].map((b) => b.textContent).join('|') == 'Held aufnehmen|Held entlassen|Held löschen|Beten|Opfern|Verlassen'", seite: true, text: 'Tempel: neun Knöpfe in der Reihenfolge der Icons' },
 			{ erwarte: "getComputedStyle(document.getElementById('icons-halter')).display == 'none'", seite: true, text: 'Icons ausgeblendet' },
 			{ erwarte: "[...document.querySelectorAll('#aktionsknoepfe canvas')].every((c) => c.getContext('2d').getImageData(0, 0, 24, 24).data.some((v, i) => i % 4 < 3 && v > 0))", seite: true, text: 'Icon im Knopf gezeichnet' },
 			{ bild: 'aktionsknoepfe-tempel' },
@@ -862,17 +862,17 @@ export const szenarien = [
 			{ erwarte: "[...document.querySelectorAll('#aktionsknoepfe button')].every((b) => b.getBoundingClientRect().bottom <= document.getElementById('mobil').getBoundingClientRect().bottom + 0.5)", seite: true, text: 'Aktionsknöpfe nicht abgeschnitten' },
 			{ erwarte: "Math.abs(document.getElementById('aktionsknoepfe').getBoundingClientRect().top - document.getElementById('datum').getBoundingClientRect().bottom) < 4", seite: true, text: 'Knöpfe bündig unter dem Bild' },
 			{ erwarte: "document.getElementById('leiste').getBoundingClientRect().bottom <= innerHeight + 0.5", seite: true, text: 'Leiste ganz sichtbar' },
-			{ erwarte: "[...document.querySelectorAll('#leiste .text')].every((t) => t.offsetParent && t.scrollWidth <= t.clientWidth)", seite: true, text: 'Protokoll, Aufträge, Einstellungen ungekürzt' },
-			// OK und Zurück nur in den Vollbild-Ansichten (Infobildschirm schließt über das Menü des Rechtsklicks)
+			{ erwarte: "[...document.querySelectorAll('#leiste .text')].every((t) => t.offsetParent && t.scrollWidth <= t.clientWidth)", seite: true, text: 'Protokoll, Aufträge, Menü ungekürzt' },
+			// Info (Spieloptionen) und Karte nicht im Raster: im Menü bzw. unter der Minimap
+			{ erwarte: "!document.querySelector('#aktionsknoepfe [data-icon=\"37\"]') && !document.querySelector('#aktionsknoepfe [data-icon=\"39\"]') && !!document.querySelector('#karte-unter [data-icon=\"39\"]')", seite: true, text: 'ohne Info, Karte unter der Minimap' },
+			// OK und Zurück nur in den Vollbild-Ansichten (Tagebuch schließt mit OK)
 			{ erwarte: "!document.querySelector('#leiste [data-key=enter]').offsetParent && !document.querySelector('#leiste [data-key=rechtsklick]').offsetParent", seite: true, text: 'Hauptbildschirm ohne OK und Zurück' },
-			{ knopf: 'Info' },
+			{ knopf: 'Menü' }, { knopf: 'Tagebuch' },
 			{ warteAuf: 'z.haupt == 0 && z.vollbild == 1 && z.ov == 0', max: 5000 },
 			{ warteAuf: "!!document.querySelector('#leiste [data-key=rechtsklick]').offsetParent && getComputedStyle(document.getElementById('aktionsknoepfe')).display == 'none'", seite: true, max: 2000 },
 			{ erwarte: "Math.abs(document.querySelector('#mobil > .voll').getBoundingClientRect().bottom + 3 - document.getElementById('leiste').getBoundingClientRect().top) < 4", seite: true, text: 'Vollbild: Leiste direkt unter dem Bild' },
 			{ bild: 'aktionsknoepfe-vollbild' },
-			{ knopf: 'Zurück' },
-			{ warteAuf: 'z.ov == 1 && z.ovN == 9', max: 3000 },
-			{ wahl: 9 },
+			{ knopf: 'OK' },
 			{ warteAuf: 'z.ov == 0 && z.haupt == 1 && z.vollbild == 0', max: 5000 },
 			// Reisekarte behält den Platz über der Leiste
 			{ js: 'Module._web_test_sign(1)' },
@@ -912,7 +912,7 @@ export const szenarien = [
 			{ bild: 'minimap-stadt' },
 			// breites Browserfenster: Leiste so breit wie Bild und Aktionsknöpfe, nicht über die ganze Breite
 			{ groesse: [1600, 900] },
-			{ warteAuf: "(() => { const a = document.getElementById('aktionsknoepfe').getBoundingClientRect(); return a.width < 1000 && [document.querySelector('#leiste .rechts'), document.getElementById('minimap'), document.querySelector('#leiste .kreuz'), document.querySelector('#leiste .zahnrad')].every((e) => { const r = e.getBoundingClientRect(); return r.left >= a.left - 0.5 && r.right <= a.right + 0.5; }); })()", seite: true, max: 2000 },
+			{ warteAuf: "(() => { const a = document.getElementById('aktionsknoepfe').getBoundingClientRect(); return a.width < 1000 && [document.querySelector('#leiste .rechts'), document.getElementById('minimap'), document.querySelector('#leiste .kreuz'), document.querySelector('#leiste .menue')].every((e) => { const r = e.getBoundingClientRect(); return r.left >= a.left - 0.5 && r.right <= a.right + 0.5; }); })()", seite: true, max: 2000 },
 			{ bild: 'minimap-breit' },
 			{ groesse: [390, 844] },
 			{ js: "window.__mm = [minimap.stand.x, minimap.stand.y, minimap.stand.d].join()" },
@@ -925,13 +925,11 @@ export const szenarien = [
 			{ knopf: 'Vorwärts' },
 			{ warteAuf: "[minimap.stand.x, minimap.stand.y].join() != window.__mm", seite: true, max: 3000 },
 			{ warteAuf: "(() => { const s = minimap.stand; for (let y = Math.max(0, s.y - 1); y <= Math.min(15, s.y + 1); y++) for (let x = Math.max(0, s.x - 1); x <= Math.min(s.w - 1, s.x + 1); x++) if (s.felder.substr(2 * (x + y * s.w), 2) == 'ff') return false; return true; })()", seite: true, max: 1000 },
-			// Infobildschirm (Vollbild): ohne Minimap
-			{ knopf: 'Info' },
+			// Tagebuch (Vollbild): ohne Minimap
+			{ knopf: 'Menü' }, { knopf: 'Tagebuch' },
 			{ warteAuf: 'z.haupt == 0 && z.vollbild == 1 && z.ov == 0', max: 5000 },
 			{ warteAuf: "!document.getElementById('minimap').offsetParent", seite: true, max: 2000 },
-			{ knopf: 'Zurück' },
-			{ warteAuf: 'z.ov == 1 && z.ovN == 9', max: 3000 },
-			{ wahl: 9 },
+			{ knopf: 'OK' },
 			{ warteAuf: 'z.ov == 0 && z.haupt == 1 && z.vollbild == 0', max: 5000 },
 			// Dungeon: 16 Spalten, folgt beim Laufen
 			{ js: 'Module._web_test_dungeon(13)' },
@@ -947,6 +945,79 @@ export const szenarien = [
 			{ js: "einstellung.minimap.setze('aus')" },
 			{ warteAuf: "!document.getElementById('minimap').offsetParent && !!document.querySelector('#leiste .kreuz').offsetParent", seite: true, max: 2000 },
 			{ js: "einstellung.minimap.setze('an')" },
+		],
+	},
+	{
+		// Menü (menue.js) statt Einstellungen in der Leiste: Speichern und Laden im Tempel (wie die Icons) und in
+		// der Stadt (wie die Spieloptionen, mit AP-Rückfrage), Tagebuch, Hyggeliks Karte, Einstellungen mit Ton
+		// und Kampftempo, zurück zum Startmenü
+		name: 'Menü: Speichern, Laden, Tagebuch, Einstellungen',
+		aktionsknoepfe: true,
+		schritte: [
+			...spielBereit,
+			{ knopf: 'Held aufnehmen' },
+			{ warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
+			{ wahl: 1 }, { warteAuf: 'z.helden == 1 && z.ov == 1', max: 3000 },
+			{ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 },
+			// Tempel: sechs Knöpfe, Menü mit Speichern
+			{ erwarte: "document.querySelectorAll('#aktionsknoepfe button').length == 6 && !document.getElementById('aktionsknoepfe').classList.contains('vier')", seite: true, text: 'Tempel: zwei Reihen zu drei' },
+			{ knopf: 'Menü' },
+			{ warteAuf: "!document.getElementById('menue').hidden && !document.querySelector('[data-menue=speichern]').disabled", seite: true, max: 2000 },
+			{ bild: 'menue-tempel' },
+			{ knopf: 'Spiel speichern' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 3000 },   // fünf Plätze + Abbrechen
+			{ wahl: 1 },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 0', max: 3000 },   // Name
+			{ tippen: 'MENUE' },
+			{ warteAuf: 'z.ov == 0 && z.dialog == 0 && z.haupt == 1', max: 5000 },
+			{ warteAuf: "FS.readdir('/spielstand').includes('MENUE___.GAM')", seite: true, max: 5000 },
+			// Stadt: Speichern wie in den Spieloptionen (ohne AP-Verlust: Feature-Mod 4); Abbrechen lässt alles, wie es ist
+			...ohneZufall,
+			{ knopf: 'Verlassen' },
+			{ warteAuf: `z.ort == 0 && z.stadt == ${THORWAL} && z.haupt == 1`, max: 5000 },
+			{ warteAuf: "document.querySelectorAll('#aktionsknoepfe button').length <= 6", seite: true, max: 2000 },
+			{ knopf: 'Menü' },
+			{ warteAuf: "!document.getElementById('menue').hidden && !document.querySelector('[data-menue=speichern]').disabled", seite: true, max: 2000 },
+			{ knopf: 'Spiel speichern' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 3000 },
+			{ bild: 'menue-speichern-stadt' },
+			{ abbrechen: true },
+			{ warteAuf: 'z.ov == 0 && z.haupt == 1', max: 5000 },
+			// Tagebuch (Vollbild), zurück mit OK
+			{ knopf: 'Menü' }, { knopf: 'Tagebuch' },
+			{ warteAuf: 'z.haupt == 0 && z.vollbild == 1', max: 5000 },
+			{ bild: 'menue-tagebuch' },
+			{ knopf: 'OK' },
+			{ warteAuf: 'z.haupt == 1 && z.vollbild == 0 && z.ov == 0', max: 5000 },
+			// Hyggeliks Karte: noch keine Teile → Meldung des Spiels
+			{ knopf: 'Menü' }, { knopf: 'Hyggeliks Karte' },
+			{ warteAuf: 'z.ov == 1', max: 3000 },
+			{ weiter: true },
+			{ warteAuf: 'z.ov == 0 && z.haupt == 1', max: 3000 },
+			// Laden in der Stadt: zurück in den Tempel
+			{ knopf: 'Menü' }, { knopf: 'Spiel laden' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 3000 },
+			{ wahl: 'MENUE' },
+			{ warteAuf: `z.ort == ${ORT_TEMPEL} && z.haupt == 1 && z.ov == 0`, max: 8000 },
+			// Einstellungen aus dem Menü: Ton, Kampftempo, zurück zum Menü
+			{ knopf: 'Menü' }, { knopf: 'Einstellungen' },
+			{ warteAuf: "!document.getElementById('einstellungen').hidden", seite: true, max: 2000 },
+			{ bild: 'einstellungen-ton' },
+			{ knopf: 'Musik aus' },
+			{ js: "(() => { const r = document.querySelector('[data-ton=effekte] input'); r.value = 40; r.dispatchEvent(new Event('input')); })()" },
+			{ knopf: 'Kampftempo schnell' },
+			{ erwarte: "localStorage.getItem('ton_musik') == 'aus' && localStorage.getItem('ton_effekte_vol') == '40' && localStorage.getItem('kampftempo') == '2' && JSON.parse(Module.UTF8ToString(Module._web_menue_status())).kampftempo == 2", seite: true, text: 'Ton und Kampftempo gemerkt' },
+			{ knopf: 'Zurück zum Menü' },
+			{ warteAuf: "!document.getElementById('menue').hidden && document.getElementById('einstellungen').hidden", seite: true, max: 2000 },
+			// zurück zum Startmenü
+			{ knopf: 'Zurück zum Startmenü' },
+			{ warteAuf: 'z.start == 1', max: 20000 },
+			{ erwarte: "localStorage.getItem('ton_musik') == 'aus'", seite: true, text: 'Einstellungen bleiben' },
+			// Einstellungen aus dem Startmenü: mit Spielständen, ohne „‹ Menü“
+			{ tippBei: "(() => { const r = document.querySelector('#start .einstellungen').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()" },
+			{ warteAuf: "!document.getElementById('einstellungen').hidden && !!document.getElementById('spielstaende-knopf').offsetParent && !document.querySelector('#einstellungen .zurueck').offsetParent", seite: true, max: 2000 },
+			{ knopf: 'Musik an' }, { knopf: 'Kampftempo normal' },
+			{ knopf: 'Schließen' },
 		],
 	},
 	{
@@ -1050,8 +1121,8 @@ export const szenarien = [
 			{ tippen: 'TESTGRUP' },
 			{ warteAuf: 'z.ov == 0 && z.dialog == 0', max: 5000 },
 			{ warteAuf: "FS.readdir('/spielstand').some((d) => d.startsWith('TESTGRUP'))", seite: true, max: 5000 },
-			{ knopf: 'Einstellungen' },
-			{ knopf: 'Spielstände exportieren und importieren …' },
+			{ knopf: 'Menü' },
+			{ knopf: 'Spielstände sichern und einlesen' },
 			{ exportiere: 'TESTGRUP', datei: 'TESTGRUPPE.GAM' },
 			// lässt sich laden
 			{ neuLaden: true }, ...spielBereit,

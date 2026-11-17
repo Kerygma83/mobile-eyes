@@ -19,16 +19,22 @@ const AKTION_TEXTE = {
 	50: 'Taverne', 51: 'Kampftempo', 52: 'Tagebuch', 53: 'Ton', 54: 'Lager aufschlagen',
 };
 const AKTION_GRAU = new Set([45]);   // MENU_ICON_MERGE_GROUP_GRAYED: das Spiel lehnt ab, Knopf bleibt antippbar
+// im Menü der Seite (menue.js) statt als Knopf: Spiel laden, speichern, beenden (Tempel), Info (Spieloptionen)
+const AKTION_IM_MENUE = new Set([3, 4, 5, 37]);
+const AKTION_KARTE = 39;   // MENU_ICON_MAP: unter der Minimap, wenn sie zu sehen ist
 
-function aktionenEinrichten(Module, { el }) {
+// el: Raster der Knöpfe (zwei Reihen, drei Spalten, bei mehr als sechs Knöpfen vier);
+// kartenEl: Platz unter der Minimap; karteUnterMinimap(): ob die Minimap zu sehen ist
+function aktionenEinrichten(Module, { el, kartenEl, karteUnterMinimap = () => false }) {
 	let stand = '';
 	const felder = [];   // je Knopf: Feldnummer und Canvas fürs Icon
 
-	function aufbauen(ids) {
+	function aufbauen(ids, unterMinimap) {
 		el.textContent = '';
+		if (kartenEl) kartenEl.textContent = '';
 		felder.length = 0;
 		ids.forEach((id, i) => {
-			if (id < 0) return;
+			if (id < 0 || AKTION_IM_MENUE.has(id)) return;
 			const b = document.createElement('button');
 			b.type = 'button';
 			b.className = 'aktion' + (AKTION_GRAU.has(id) ? ' grau' : '');
@@ -47,16 +53,20 @@ function aktionenEinrichten(Module, { el }) {
 				Module._web_click?.(x, y, 1);
 			});
 			b.addEventListener('contextmenu', (e) => e.preventDefault());
-			el.append(b);
+			(id === AKTION_KARTE && unterMinimap && kartenEl ? kartenEl : el).append(b);
 			felder.push({ i, ctx });
 		});
+		el.classList.toggle('vier', el.children.length > 6);
+		if (kartenEl) kartenEl.hidden = kartenEl.children.length === 0;
 	}
 
 	return {
 		// bei jedem Bild des Hauptbildschirms (quelle: das ganze 320×200-Bild)
 		zeichnen(quelle) {
-			const neu = Module._web_icons ? Module.UTF8ToString(Module._web_icons()) : '';
-			if (neu !== stand) { stand = neu; aufbauen(neu.split(',').map(Number)); }
+			const icons = Module._web_icons ? Module.UTF8ToString(Module._web_icons()) : '';
+			const unter = karteUnterMinimap();
+			const neu = icons + (unter ? '|m' : '');
+			if (neu !== stand) { stand = neu; aufbauen(icons.split(',').map(Number), unter); }
 			for (const { i, ctx } of felder) {
 				ctx.drawImage(quelle, 241 + 27 * (i % 3), 57 + 27 * Math.floor(i / 3), 24, 24, 0, 0, 24, 24);
 			}

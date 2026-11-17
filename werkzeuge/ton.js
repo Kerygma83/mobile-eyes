@@ -7,9 +7,21 @@
 //   Module.musikPause() / Module.musikWeiter()
 // Browser erlauben Ton erst nach einer Berührung; bis dahin wird er still übergangen und
 // die Musik beginnt mit dem ersten Tippen.
+// Einstellungen (Menü der Seite, im Browser gemerkt): Musik und Effekte je an/aus und Lautstärke
+// (localStorage ton_musik, ton_musik_vol, ton_effekte, ton_effekte_vol). Die Musik läuft dafür über
+// Web Audio: iOS ändert die Lautstärke eines Audio-Elements nicht.
 'use strict';
 
 function tonEinrichten(Module) {
+	const lies = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+	const merke = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+	const einst = {
+		musik: lies('ton_musik') !== 'aus',
+		musikVol: Number(lies('ton_musik_vol') ?? 80),
+		effekte: lies('ton_effekte') !== 'aus',
+		effekteVol: Number(lies('ton_effekte_vol') ?? 90),   // Original: SND_set_volume(90)
+	};
+	let musikGain = null;
 	let ctx = null;            // AudioContext für die Effekte
 	let effekt = null;         // laufender Effekt (das Original spielt immer nur einen)
 	const musik = new Audio();
@@ -28,6 +40,10 @@ function tonEinrichten(Module) {
 		try {
 			ctx = new (window.AudioContext || window.webkitAudioContext)();
 			ctx.resume?.();
+			// Musik über einen Gain-Knoten (Lautstärke auch auf iOS)
+			musikGain = ctx.createGain();
+			musikGain.gain.value = einst.musikVol / 100;
+			ctx.createMediaElementSource(musik).connect(musikGain).connect(ctx.destination);
 		} catch (e) { console.warn('kein Web Audio', e); }
 		// iOS: ein Audio-Element darf später nur abspielen, wenn es einmal in einer Geste gestartet wurde
 		musik.play().catch(() => {}).finally(() => { if (!musikLaeuft()) musik.pause(); });
@@ -80,14 +96,14 @@ function tonEinrichten(Module) {
 			const { rate, samples } = vocLesen(bytes);
 			if (!samples.length) return 0;
 			const dauer = samples.length / rate * 1000;
-			if (!ctx || ctx.state !== 'running') return dauer;   // noch nicht freigeschaltet: still
+			if (!ctx || ctx.state !== 'running' || !einst.effekte) return dauer;   // still (nicht freigeschaltet, aus)
 			const puffer = ctx.createBuffer(1, samples.length, rate);
 			puffer.copyToChannel(samples, 0);
 			try { effekt?.stop(); } catch (e) {}
 			effekt = ctx.createBufferSource();
 			effekt.buffer = puffer;
 			const lautstaerke = ctx.createGain();
-			lautstaerke.gain.value = 0.9;                       // Original: SND_set_volume(90)
+			lautstaerke.gain.value = einst.effekteVol / 100;
 			effekt.connect(lautstaerke).connect(ctx.destination);
 			effekt.start();
 			return dauer;
@@ -98,7 +114,7 @@ function tonEinrichten(Module) {
 	};
 
 	// ---------- Musik (CD-Tracks) ----------
-	const musikLaeuft = () => musikTrack && !musikPausiert && document.visibilityState === 'visible';
+	const musikLaeuft = () => einst.musik && musikTrack && !musikPausiert && document.visibilityState === 'visible';
 
 	async function musikAktualisieren() {
 		if (!musikLaeuft()) { musik.pause(); return; }
@@ -146,6 +162,18 @@ function tonEinrichten(Module) {
 
 	const schnittstelle = {
 		musik,
+		// Einstellungen: { musik, musikVol, effekte, effekteVol } (an/aus, 0–100)
+		get einstellungen() { return { ...einst }; },
+		setze(neu) {
+			Object.assign(einst, neu);
+			merke('ton_musik', einst.musik ? 'an' : 'aus');
+			merke('ton_musik_vol', String(einst.musikVol));
+			merke('ton_effekte', einst.effekte ? 'an' : 'aus');
+			merke('ton_effekte_vol', String(einst.effekteVol));
+			if (musikGain) musikGain.gain.value = einst.musikVol / 100;   // vor dem Freischalten: beim Anlegen
+			if (!einst.effekte) { try { effekt?.stop(); } catch (e) {} }
+			musikAktualisieren();
+		},
 		get ctx() { return ctx; },
 		get track() { return musikTrack; },     // gewünschter CD-Track
 		get freigeschaltet() { return freigeschaltet; },   // nach der ersten Berührung
