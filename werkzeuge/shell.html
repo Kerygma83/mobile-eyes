@@ -162,6 +162,21 @@
 		body.mobil.aktionsknoepfe #mobil.karte ~ #leiste .rechts { container-type: normal; }
 		body.mobil.aktionsknoepfe #mobil.karte ~ #leiste :is(.kreuz, button[data-key="enter"], button[data-key="rechtsklick"]) { display: none; }
 		body.mobil.aktionsknoepfe #mobil.karte #karte { background: var(--panel); }
+		/* Minimap (minimap.js) in Stadt und Dungeon: links, das Kreuz rückt nach rechts */
+		/* Karte quadratisch (halbe Breite), das Kreuz so groß wie möglich und mittig im Rest */
+		body.mobil.aktionsknoepfe.minimap #mobil:not(.vollbild) ~ #leiste :is(#minimap, .kreuz) {
+			--m: min(50cqw - 0.4rem, 100cqh - 2.6rem - 1rem);
+			--rest: calc(100cqw - var(--m) - 0.4rem);
+		}
+		body.mobil.aktionsknoepfe.minimap #mobil:not(.vollbild) ~ #leiste .kreuz {
+			grid-column: 1 / -1; justify-self: end;
+			--k: clamp(2.8rem, min((100cqh - 2.6rem - 1rem - 0.35rem) / 2, (var(--rest) - 0.7rem) / 3), 5.5rem);
+			margin-right: calc((var(--rest) - 3 * var(--k) - 0.7rem) / 2);
+		}
+		body.mobil.aktionsknoepfe.minimap #mobil:not(.vollbild) ~ #leiste #minimap {
+			display: block; grid-column: 1 / -1; grid-row: 1; place-self: center start;
+			width: var(--m); height: var(--m);
+		}
 		body.mobil.aktionsknoepfe .kreuz button { font-size: calc(var(--k) * 0.45); }
 		body.mobil.aktionsknoepfe .kreuz button svg { width: calc(var(--k) * 0.45); height: calc(var(--k) * 0.45); }
 		body.mobil.aktionsknoepfe .aktionen button[data-key="enter"] { grid-column: 1 / 4; grid-row: 2; }
@@ -176,6 +191,7 @@
 		body.mobil.aktionsknoepfe .aktionen :is(.wuerfel, .quest, .zahnrad) svg { flex: none; width: 1.15rem; height: 1.15rem; }
 		body.mobil.aktionsknoepfe .aktionen button .text { display: inline; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; }
 	}
+	#minimap { display: none; image-rendering: pixelated; border: 1px solid var(--rand); border-radius: 0.4rem; background: #000; }
 	#aktionsknoepfe button {
 		justify-content: flex-start; gap: 0.4rem; padding: 0 0.4rem; min-width: 0;
 		font-size: 0.8rem; line-height: 1.1; text-align: left; touch-action: manipulation;
@@ -459,6 +475,13 @@
 				<button type="button" data-wert="aus">Aus</button>
 			</div>
 		</section>
+		<section>
+			<h3>Minimap</h3>
+			<div class="wahl" data-einstellung="minimap" aria-label="Minimap">
+				<button type="button" data-wert="an">Neben dem Steuerkreuz</button>
+				<button type="button" data-wert="aus">Aus</button>
+			</div>
+		</section>
 		<section id="spieldaten-teil" hidden>
 			<h3>Spieldaten</h3>
 			<p class="spieldaten-info"></p>
@@ -527,6 +550,7 @@
 		<canvas id="icons" class="aus" data-aus="241,57,78,78" aria-label="Aktionen"></canvas>
 	</div>
 	<div class="rechts">
+		<canvas id="minimap" aria-label="Karte der Umgebung"></canvas>
 		<div class="kreuz" aria-label="Bewegung">
 			<button data-key="left" data-wdh aria-label="Links drehen" title="Links drehen (←)">
 				<svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
@@ -569,6 +593,7 @@
 <script src="questlog.js"></script>
 <script src="karte.js"></script>
 <script src="aktionen.js"></script>
+<script src="minimap.js"></script>
 <script src="startmenue.js"></script>
 <script src="intro.js"></script>
 <script>
@@ -681,7 +706,8 @@
 		if (haupt && document.body.classList.contains('mobil')) {
 			datumZeichnen(false);
 			if (document.body.classList.contains('aktionsknoepfe')) aktionen.zeichnen(ganz);
-		}
+			minimap.aktualisieren();
+		} else minimap.aus();
 	}
 
 	var Module = {
@@ -698,6 +724,7 @@
 			zeigerGesetzt = true;
 			autokampfSetzen();
 			questLog.starten();
+			minimapStarten();   // erst jetzt: vorher gibt es web_screen_mode noch nicht
 		},
 		onFrame: neuesBild,
 		datumZeile: (heap, ptr, w, h) => {
@@ -767,6 +794,15 @@
 	Module.startmenue = () => { alleLoslassen(); return startmenue.zeigen(); };
 	// Aktionsknöpfe (aktionen.js): die Icons des Hauptbildschirms beschriftet
 	const aktionen = aktionenEinrichten(Module, { el: document.getElementById('aktionsknoepfe') });
+	// Minimap (minimap.js): Automap von Stadt oder Dungeon neben dem Steuerkreuz
+	const minimap = minimapEinrichten(Module, { canvas: document.getElementById('minimap'),
+		an: () => einstellung.minimap.lies() === 'an' });
+	// zusätzlich laufend abgleichen: das Spiel deckt die Felder um die Gruppe erst nach dem Bild des
+	// Schritts auf (seg066 nach town_direction_change, seg076 nach DNG_update_pos), ohne neues Bild
+	const minimapStarten = () => setInterval(() => {
+		if (!document.hidden && document.body.classList.contains('mobil') && dialoge.length == 0 &&
+			!mobilEl.classList.contains('vollbild') && Module._web_screen_mode?.() === 1) minimap.aktualisieren();
+	}, 250);
 	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
 
 	function taste(name) {
@@ -1074,6 +1110,9 @@
 			setze: (v) => { merke('wurflog', v); wurflogKnopfZeigen(); } },
 		questlog: { lies: () => lies('questlog') === 'aus' ? 'aus' : 'an',
 			setze: (v) => { merke('questlog', v); questlogKnopfZeigen(); } },
+		// Minimap neben dem Steuerkreuz (minimap.js), nur mit Aktionsknöpfen im Hochformat
+		minimap: { lies: () => lies('minimap') === 'aus' ? 'aus' : 'an',
+			setze: (v) => { merke('minimap', v); if (Module._web_screen_mode?.() === 1) minimap.aktualisieren(); } },
 		// Aktionsknöpfe mit Text statt der Icons (aktionen.js), gilt nur im mobilen Layout
 		aktionen: { lies: () => lies('aktionen') === 'icons' ? 'icons' : 'knoepfe',
 			setze: (v) => { merke('aktionen', v); aktionenZeigen(); } },

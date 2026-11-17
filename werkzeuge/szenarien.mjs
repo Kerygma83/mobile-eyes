@@ -259,7 +259,7 @@ export const szenarien = [
 	{
 		name: 'Kampf bis zum Ende (Computerkampf)',
 		schritte: [
-			...spielBereit, ...heldenAufnehmen(3), ...tempelVerlassen,
+			...spielBereit, ...heldenAufnehmen(3), ...tempelVerlassen, ...ohneZufall,
 			// Würfelprotokoll vor dem Kampf: Knopf in der Leiste, noch leer bis auf die Aufnahme
 			{ knopf: 'Würfelprotokoll' },
 			{ warteAuf: "!document.getElementById('wurflog').hidden", seite: true, max: 2000 },
@@ -290,7 +290,7 @@ export const szenarien = [
 		// Wartezeiten; derselbe Kampf dauert normal rund 50 s
 		name: 'Schneller Autokampf',
 		schritte: [
-			...spielBereit, ...heldenAufnehmen(3), ...tempelVerlassen,
+			...spielBereit, ...heldenAufnehmen(3), ...tempelVerlassen, ...ohneZufall,
 			{ knopf: 'Einstellungen' }, { knopf: 'Schnell' }, { knopf: 'Schließen' },
 			{ warteAuf: "localStorage.getItem('autokampf') === 'schnell'", seite: true, max: 2000 },
 			{ js: `Module._web_test_fight(${KAMPF_THOR8})` },   // startet in game_loop() ohne Schritt
@@ -790,7 +790,7 @@ export const szenarien = [
 		// Spielende wie im Original (Kampf verlassen, keinen Spielstand laden): vorher blieb eine leere Seite
 		name: 'Spielende: Hinweis und Neustart',
 		schritte: [
-			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen,
+			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen, ...ohneZufall,
 			{ js: `Module._web_test_fight(${KAMPF_THOR8})` },
 			{ knopf: 'Vorwärts' },
 			{ warteAuf: 'z.ov == 1 && /WAS WILLST DU TUN/.test(z.ovText)', max: 15000 },
@@ -888,6 +888,60 @@ export const szenarien = [
 			{ warteAuf: "getComputedStyle(document.getElementById('aktionsknoepfe')).display == 'none' && document.getElementById('icons').offsetParent !== null", seite: true, max: 2000 },
 			{ groesse: [390, 844] },
 			{ warteAuf: "getComputedStyle(document.getElementById('aktionsknoepfe')).display == 'grid'", seite: true, max: 2000 },
+		],
+	},
+	{
+		// Minimap (minimap.js) links neben dem Steuerkreuz: in der Stadt und im Dungeon, folgt der Gruppe,
+		// nicht in Vollbild-Ansichten, abschaltbar
+		name: 'Minimap: Stadt und Dungeon',
+		aktionsknoepfe: true,
+		schritte: [
+			...spielBereit,
+			{ knopf: 'Held aufnehmen' },
+			{ warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
+			{ wahl: 1 }, { warteAuf: 'z.helden == 1 && z.ov == 1', max: 3000 },
+			{ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 },
+			...ohneZufall,
+			{ knopf: 'Verlassen' },
+			{ warteAuf: `z.ort == 0 && z.stadt == ${THORWAL} && z.haupt == 1`, max: 5000 },
+			{ warteAuf: "document.body.classList.contains('minimap') && minimap.stand?.w == 32", seite: true, max: 3000 },
+			{ erwarte: "(() => { const s = minimap.stand; return s.felder.length == 2 * 32 * 16 && s.felder.match(/../g).filter((v) => v != 'ff').length >= 4; })()", seite: true, text: 'Thorwal: 32 Spalten, Umgebung erkundet' },
+			// Kreuz rechts, Minimap links, beide ganz in der Leiste, quadratisch
+			{ erwarte: "(() => { const m = document.getElementById('minimap').getBoundingClientRect(), k = document.querySelector('#leiste .kreuz').getBoundingClientRect(), l = document.getElementById('leiste').getBoundingClientRect(); return m.width > 100 && Math.abs(m.width - m.height) < 1 && m.right <= k.left && m.left >= l.left && k.right <= l.right + 0.5 && m.bottom <= l.bottom; })()", seite: true, text: 'Minimap links, Kreuz rechts' },
+			{ erwarte: "(() => { const d = document.getElementById('minimap').getContext('2d').getImageData(0, 0, 192, 192).data; for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 200 && d[i + 2] < 60) return true; return false; })()", seite: true, text: 'gelber Pfeil der Gruppe' },
+			{ bild: 'minimap-stadt' },
+			{ js: "window.__mm = [minimap.stand.x, minimap.stand.y, minimap.stand.d].join()" },
+			{ knopf: 'Rechts drehen' },
+			{ warteAuf: "[minimap.stand.x, minimap.stand.y, minimap.stand.d].join() != window.__mm", seite: true, max: 3000 },
+			// ein Schritt: die Felder um die Gruppe erscheinen ohne weiteres Bild (das Spiel deckt sie erst
+			// nach dem Bild des Schritts auf); Blick nach Westen → zweimal links, dann nach Osten
+			...wege('LL'),
+			{ js: "window.__mm = [minimap.stand.x, minimap.stand.y].join()" },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: "[minimap.stand.x, minimap.stand.y].join() != window.__mm", seite: true, max: 3000 },
+			{ warteAuf: "(() => { const s = minimap.stand; for (let y = Math.max(0, s.y - 1); y <= Math.min(15, s.y + 1); y++) for (let x = Math.max(0, s.x - 1); x <= Math.min(s.w - 1, s.x + 1); x++) if (s.felder.substr(2 * (x + y * s.w), 2) == 'ff') return false; return true; })()", seite: true, max: 1000 },
+			// Infobildschirm (Vollbild): ohne Minimap
+			{ knopf: 'Info' },
+			{ warteAuf: 'z.haupt == 0 && z.vollbild == 1 && z.ov == 0', max: 5000 },
+			{ warteAuf: "!document.getElementById('minimap').offsetParent", seite: true, max: 2000 },
+			{ knopf: 'Zurück' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 9', max: 3000 },
+			{ wahl: 9 },
+			{ warteAuf: 'z.ov == 0 && z.haupt == 1 && z.vollbild == 0', max: 5000 },
+			// Dungeon: 16 Spalten, folgt beim Laufen
+			{ js: 'Module._web_test_dungeon(13)' },
+			{ warteAuf: 'z.dungeon == 13 && z.haupt == 1', max: 10000 },
+			{ warteAuf: "minimap.stand?.dungeon == 13 && minimap.stand.w == 16 && !!document.getElementById('minimap').offsetParent", seite: true, max: 3000 },
+			{ js: "window.__mm = [minimap.stand.x, minimap.stand.y].join()" },
+			{ merke: 'start' },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: 'z.y != m.start.y || z.x != m.start.x || z.ov == 1', max: 5000 },
+			{ warteAuf: "[minimap.stand.x, minimap.stand.y].join() != window.__mm", seite: true, max: 3000 },
+			{ bild: 'minimap-dungeon' },
+			// abschaltbar
+			{ js: "einstellung.minimap.setze('aus')" },
+			{ warteAuf: "!document.getElementById('minimap').offsetParent && !!document.querySelector('#leiste .kreuz').offsetParent", seite: true, max: 2000 },
+			{ js: "einstellung.minimap.setze('an')" },
 		],
 	},
 	{
