@@ -132,6 +132,7 @@ set(SCHICK_SOURCES
     reisekarte.cpp
     minimap.cpp
     webmenue.cpp
+    heldenbogen.cpp
 )
 
 # Define header files

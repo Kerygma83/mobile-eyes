@@ -24,6 +24,9 @@
 #include "seg106.h"
 #include "seg107.h"
 #include "seg108.h"
+#if defined(__EMSCRIPTEN__)
+#include "heldenbogen.h"
+#endif
 
 static const struct struct_point g_invslot_borderxy_table[25] = {
 	{ 0x0044, 0x0037 },
@@ -136,6 +139,11 @@ void status_menu(signed int hero_pos)
 
 	load_ggsts_nvf();
 
+#if defined(__EMSCRIPTEN__)
+	/* Heldenbogen der Web-Oberfläche: Kacheln und Aktionen unter dem Bild (heldenbogen.cpp) */
+	web_heldenbogen_offen(1);
+#endif
+
 	g_request_refresh = 1;
 	g_action = 0;
 	g_status_page_mode = 1;
@@ -197,6 +205,13 @@ void status_menu(signed int hero_pos)
 		}
 
 		handle_input();
+
+#if defined(__EMSCRIPTEN__)
+		/* Schritte der Web-Oberfläche (heldenbogen.cpp), über dieselben Eingaben wie hier */
+		if (web_heldenbogen_weiter(hero_pos, hero1 == hero2)) {
+			flag1 = 1;
+		}
+#endif
 
 		/* RIGHT_KEY */
 		if ((g_action == ACTION_ID_RIGHT) && (gs_group_member_counts[gs_active_group_id] > 1)) {
@@ -320,7 +335,12 @@ void status_menu(signed int hero_pos)
 					g_action = ACTION_ID_RETURN;
 				} else if (g_action <= 150) {
 					g_statuspage_sel_inv_slot_3 = g_action - 128;
+#if defined(__EMSCRIPTEN__)
+					/* mobiles Layout mit Kacheln: Antippen wählt nur aus (Aktionen unter dem Bild) */
+					g_action = web_heldenbogen_nur_waehlen() ? 0 : ACTION_ID_RETURN;
+#else
 					g_action = ACTION_ID_RETURN;
+#endif
 				}
 			}
 
@@ -898,6 +918,10 @@ lab3:
 			g_current_cursor = g_current_cursor_bak;
 		}
 	}
+
+#if defined(__EMSCRIPTEN__)
+	web_heldenbogen_offen(0);
+#endif
 
 	/* restore text file except for CHARTEXT.LTX, TAVERN.TLK and except for dialogs */
 	if ((file_bak != -1) &&	(file_bak != ARCHIVE_FILE_CHARTEXT_LTX) &&
