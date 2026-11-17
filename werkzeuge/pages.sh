@@ -6,8 +6,24 @@
 # Branch nach origin (Forgejo), der Push-Mirror bringt ihn zu GitHub (GitHub Pages: gh-pages, /).
 # gh-pages muss auf Forgejo liegen: der Mirror löscht auf GitHub Branches, die es dort nicht gibt.
 # Jede Veröffentlichung ist ein einzelner Commit (Force-Push), die Historie wächst nicht.
+# Mit --push bekommt der veröffentlichte Stand von main den Tag v<VERSION> (annotiert, nach origin);
+# dafür muss das Arbeitsverzeichnis sauber sein, und der Tag darf nicht schon auf einem anderen
+# Commit liegen (dann zuerst VERSION erhöhen). Erneutes Veröffentlichen desselben Stands geht.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+if [ "${1:-}" = --push ]; then
+	tag="v$(tr -d '[:space:]' < VERSION)"
+	if [ -n "$(git status --porcelain)" ]; then
+		echo "STOPP: Arbeitsverzeichnis nicht sauber (der Tag $tag muss den veröffentlichten Stand treffen)" >&2
+		exit 1
+	fi
+	if git rev-parse -q --verify "refs/tags/$tag" >/dev/null && \
+		[ "$(git rev-parse "$tag^{commit}")" != "$(git rev-parse HEAD)" ]; then
+		echo "STOPP: $tag liegt schon auf $(git rev-parse --short "$tag^{commit}"); VERSION erhöhen" >&2
+		exit 1
+	fi
+fi
 
 ./werkzeug.sh werkzeuge/web-bauen.sh
 
@@ -48,4 +64,8 @@ echo "→ build/pages: $(git log --oneline -1)"
 
 if [ "${1:-}" = --push ]; then
 	git push -f "$(git -C ../.. remote get-url origin)" gh-pages
+	cd ../..
+	git rev-parse -q --verify "refs/tags/$tag" >/dev/null || git tag -a "$tag" -m "Mobile Eyes $tag"
+	git push -q origin "refs/tags/$tag"
+	echo "→ Tag $tag auf $stand"
 fi
