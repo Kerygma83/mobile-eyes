@@ -13,6 +13,9 @@
 #include "common.h"
 
 #include "seg002.h"
+#if defined(__EMSCRIPTEN__)
+#include "webmenue.h"
+#endif
 #include "seg003.h"
 #include "seg004.h"
 #include "seg007.h"
@@ -1287,6 +1290,10 @@ signed int town_step(void)
 	gs_y_target_bak = gs_y_target;
 
 	handle_gui_input();
+#if defined(__EMSCRIPTEN__)
+	/* Menü der Web-Oberfläche: Speichern, Laden, Tagebuch, Karte (webmenue.cpp) */
+	web_menue_stadt();
+#endif
 
 	if (g_mouse_rightclick_event || g_action == ACTION_ID_PAGE_UP) {
 

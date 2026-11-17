@@ -17,6 +17,9 @@
 #include "common.h"
 
 #include "seg002.h"
+#if defined(__EMSCRIPTEN__)
+#include "webmenue.h"
+#endif
 #include "seg003.h"
 #include "seg007.h"
 #include "seg025.h"
@@ -478,6 +481,10 @@ signed int DNG_step(void)
 	gs_direction_bak = gs_direction;
 
 	handle_gui_input();
+#if defined(__EMSCRIPTEN__)
+	/* Menü der Web-Oberfläche: Speichern, Laden, Tagebuch, Karte (webmenue.cpp) */
+	web_menue_stadt();
+#endif
 
 	if (g_mouse_rightclick_event || g_action == ACTION_ID_PAGE_UP)
 	{

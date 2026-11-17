@@ -23,6 +23,9 @@
 #include "common.h"
 
 #include "seg002.h"
+#if defined(__EMSCRIPTEN__)
+#include "webmenue.h"
+#endif
 #include "seg004.h"
 #include "seg007.h"
 #include "seg025.h"
@@ -137,6 +140,13 @@ void do_temple(void)
 		}
 
 		handle_gui_input();
+#if defined(__EMSCRIPTEN__)
+		/* Menü der Web-Oberfläche: Laden und Speichern wie die Icons (webmenue.cpp) */
+		{
+			const signed int web_aktion = web_menue_tempel();
+			if (web_aktion) g_action = web_aktion;
+		}
+#endif
 
 		/* input window */
 		if (g_mouse_rightclick_event || g_action == ACTION_ID_PAGE_UP) {

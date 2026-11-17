@@ -131,6 +131,7 @@ set(SCHICK_SOURCES
     datumzeile.cpp
     reisekarte.cpp
     minimap.cpp
+    webmenue.cpp
 )
 
 # Define header files
