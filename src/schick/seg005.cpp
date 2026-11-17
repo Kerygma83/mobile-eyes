@@ -34,6 +34,7 @@
 #include "seg027.h"
 #if defined(__EMSCRIPTEN__)
 #include <emscripten.h>
+#include "kampf.h"
 #endif
 #include "seg032.h"
 #include "seg096.h"
@@ -261,6 +262,10 @@ static signed int fight_printer(void)
 
 				get_textcolor(&fg_bak, &bg_bak);
 
+#if defined(__EMSCRIPTEN__)
+				/* Web: ohne Treffersterne, wenn die Seite den Kampfverlauf selbst zeigt (kampf.cpp) */
+				if (!g_web_kampf_ohne_sterne) {
+#endif
 				FIG_set_star_color(g_fig_star_gfx, 3724, g_fig_star_colors[f_action - 1]);
 
 				g_pic_copy.x1 = 0;
@@ -284,6 +289,9 @@ static signed int fight_printer(void)
 					x = GUI_get_first_pos_centered(str, 30, 20, 0);
 					GUI_print_string(str, x, 170);
 				}
+#if defined(__EMSCRIPTEN__)
+				}
+#endif
 
 				/* Generate textmessage */
 				if (g_fig_msg_dtps[f_action - 1]) {
