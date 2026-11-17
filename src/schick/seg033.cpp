@@ -28,6 +28,9 @@
 #include "seg098.h"
 #include "seg105.h"
 #include "seg106.h"
+#if defined(__EMSCRIPTEN__)
+#include "kampf.h"
+#endif
 
 signed char g_finalfight_tumult = 0; // ds:0x5f30
 signed char g_autofight_magic = 0; // ds:0x5f31
@@ -107,6 +110,10 @@ void FIG_menu(struct struct_hero *hero, const signed int hero_pos, signed int x,
 			done = 1;
 		} else {
 
+#if defined(__EMSCRIPTEN__)
+			/* Web: Bedienfeld des Kampfs (kampf.cpp) zeigt Menü und Listen dieses Helden */
+			web_kampf_held(hero_pos);
+#endif
 			selected = -1;
 			do {
 				g_basepos_x = ((x + y < 15) ? 90 : -90);
@@ -140,6 +147,9 @@ void FIG_menu(struct struct_hero *hero, const signed int hero_pos, signed int x,
 				}
 
 				/* show radion menu */
+#if defined(__EMSCRIPTEN__)
+				web_kampf_menue(l1 != 0);
+#endif
 				selected = GUI_radio(g_dtp2, l1 != 0 ? 13 : 12,
 							get_tx(19),
 							get_tx(20),
@@ -479,6 +489,9 @@ void FIG_menu(struct struct_hero *hero, const signed int hero_pos, signed int x,
 							tw_bak = g_textbox_width;
 							g_textbox_width = 6;
 
+#if defined(__EMSCRIPTEN__)
+							web_kampf_liste(hero, slots, radio_i);
+#endif
 							selected = GUI_radio(g_text_output_buf, radio_i,
 									g_radio_name_list[0], g_radio_name_list[1],
 									g_radio_name_list[2], g_radio_name_list[3],
@@ -542,6 +555,9 @@ void FIG_menu(struct struct_hero *hero, const signed int hero_pos, signed int x,
 							tw_bak = g_textbox_width;
 							g_textbox_width = 6;
 
+#if defined(__EMSCRIPTEN__)
+							web_kampf_liste(hero, slots, radio_i);
+#endif
 							selected = GUI_radio(g_text_output_buf, radio_i,
 									g_radio_name_list[0], g_radio_name_list[1],
 									g_radio_name_list[2], g_radio_name_list[3],
@@ -747,6 +763,9 @@ void FIG_menu(struct struct_hero *hero, const signed int hero_pos, signed int x,
 						tw_bak = g_textbox_width;
 						g_textbox_width = 6;
 
+#if defined(__EMSCRIPTEN__)
+						web_kampf_liste(hero, slots, radio_i);
+#endif
 						selected = GUI_radio(g_text_output_buf, radio_i,
 								g_radio_name_list[0], g_radio_name_list[1],
 								g_radio_name_list[2], g_radio_name_list[3],
@@ -830,6 +849,10 @@ void FIG_menu(struct struct_hero *hero, const signed int hero_pos, signed int x,
 			}
 		}
 	}
+
+#if defined(__EMSCRIPTEN__)
+	web_kampf_held(-1);
+#endif
 
 	/* final fight vs. Orkchampion */
 	if ((g_current_fight_no == FIGHTS_F144) &&

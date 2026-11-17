@@ -133,6 +133,7 @@ set(SCHICK_SOURCES
     minimap.cpp
     webmenue.cpp
     heldenbogen.cpp
+    kampf.cpp
 )
 
 # Define header files

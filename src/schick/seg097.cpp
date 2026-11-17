@@ -38,6 +38,7 @@
 #if defined(__EMSCRIPTEN__)
 #include <emscripten.h>
 #include "vgalib.h"
+#include "kampf.h"
 
 /* Mobile Oberfläche: Textboxen zusätzlich als HTML-Overlay zeigen.
  * Das Spiel zeichnet seine Box weiter selbst und bleibt für Eingabe, Zeitablauf
@@ -48,7 +49,7 @@
  *        4 = Zahleneingabe (alle Zahlenabfragen des Spiels haben höchstens 3 Stellen,
  *            Texteingaben wie Spielstandnamen oder Rätsellösungen 8 und mehr) */
 EM_JS(void, web_dialog_auf_js, (int art, const char *name, const char *text, int n, const char **optionen,
-	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild), {
+	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild, int kampf), {
 	if (!Module.dialogAuf) return;
 	const s = (p) => {
 		if (!p) return null;
@@ -59,15 +60,18 @@ EM_JS(void, web_dialog_auf_js, (int art, const char *name, const char *text, int
 	const opt = [];
 	for (let i = 0; i < n; i++) opt.push(s(HEAPU32[(optionen >> 2) + i]));
 	Module.dialogAuf({ art, name: s(name), text: s(text), optionen: opt, zeichen, vorwahl, hervor,
-		vorgabe: s(vorgabe), bild });
+		vorgabe: s(vorgabe), bild, kampf });
 });
 /* Vorher das aktuelle Bild ausgeben: die Seite hält es fest, solange das Overlay
  * offen ist, und zeigt so die Box des Spiels nicht (nur unsere Darstellung). */
 static void web_dialog_auf(int art, const char *name, const char *text, int n, const char **optionen,
 	int zeichen, int vorwahl, int hervor, const char *vorgabe, int bild)
 {
+	/* Kampfmenü und Auswahllisten im Kampf (kampf.cpp): gilt nur für diese Box */
+	const int kampf = g_web_kampf_dialog;
+	g_web_kampf_dialog = 0;
 	sdl_present_if_changed();
-	web_dialog_auf_js(art, name, text, n, optionen, zeichen, vorwahl, hervor, vorgabe, bild);
+	web_dialog_auf_js(art, name, text, n, optionen, zeichen, vorwahl, hervor, vorgabe, bild, kampf);
 }
 EM_JS(void, web_dialog_bild, (int x, int y), { Module.dialogBild?.(x, y); });
 EM_JS(void, web_dialog_zu, (void), { Module.dialogZu?.(); });

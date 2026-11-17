@@ -21,6 +21,9 @@
 #include "seg039.h"
 #include "seg096.h"
 #include "seg097.h"
+#if defined(__EMSCRIPTEN__)
+#include "kampf.h"
+#endif
 
 const signed int g_cb_obj_nonobstacle[27] = {
        	0x0017, 0x0018, 0x0019, 0x001a, 0x001b,
@@ -218,6 +221,9 @@ signed char FIG_cb_select_target(signed int *px, signed int *py, const signed in
 	g_fig_cb_selector_id[0] = FIG_add_to_list(-1);
 
 	draw_fight_screen_pal(0);
+#if defined(__EMSCRIPTEN__)
+	web_kampf_phase(2, *px, *py);
+#endif
 
 	do {
 		handle_input();
@@ -233,6 +239,9 @@ signed char FIG_cb_select_target(signed int *px, signed int *py, const signed in
 			g_fig_cb_selector_id[0] = -1;
 
 			draw_fight_screen_pal(0);
+#if defined(__EMSCRIPTEN__)
+			web_kampf_phase(0, 0, 0);
+#endif
 
 			return -99;
 		}
@@ -335,6 +344,9 @@ signed char FIG_cb_select_target(signed int *px, signed int *py, const signed in
 
 			g_fig_list_elem.cbx = *px;
 			g_fig_list_elem.cby = *py;
+#if defined(__EMSCRIPTEN__)
+			web_kampf_marke(*px, *py);
+#endif
 
 			FIG_add_to_list(g_fig_cb_selector_id[0]);
 			FIG_draw_figures();
@@ -348,6 +360,9 @@ signed char FIG_cb_select_target(signed int *px, signed int *py, const signed in
 	g_fig_cb_selector_id[0] = -1;
 
 	draw_fight_screen_pal(0);
+#if defined(__EMSCRIPTEN__)
+	web_kampf_phase(0, 0, 0);
+#endif
 
 	return get_cb_val(*px, *py);
 }
@@ -590,6 +605,9 @@ void FIG_move_hero(struct struct_hero *hero, const signed int hero_pos, signed i
 	g_fig_cb_selector_id[0] = FIG_add_to_list(-1);
 
 	draw_fight_screen_pal(0);
+#if defined(__EMSCRIPTEN__)
+	web_kampf_phase(3, *px, *py);
+#endif
 
 	do {
 		handle_input();
@@ -666,6 +684,9 @@ void FIG_move_hero(struct struct_hero *hero, const signed int hero_pos, signed i
 
 			g_fig_list_elem.cbx = sel_x;
 			g_fig_list_elem.cby = sel_y;
+#if defined(__EMSCRIPTEN__)
+			web_kampf_marke(sel_x, sel_y);
+#endif
 			g_fig_list_elem.gfxbuf = g_fig_cb_selector_buf;
 			g_fig_list_elem.double_size = -1;
 			g_fig_cb_selector_id[0] = FIG_add_to_list(-1);
@@ -875,6 +896,9 @@ void FIG_move_hero(struct struct_hero *hero, const signed int hero_pos, signed i
 						(problem == 4 ? get_tx(48) : /* Target: no way */
 						g_dtp2))), /* Target: %d BP */
 					 5, 190);
+#if defined(__EMSCRIPTEN__)
+			web_kampf_weg(problem, bp_cost);
+#endif
 
 			set_textcolor(fg_bak, bg_bak);
 		}
@@ -887,6 +911,9 @@ void FIG_move_hero(struct struct_hero *hero, const signed int hero_pos, signed i
 		}
 
 	} while (g_action != ACTION_ID_RETURN);
+#if defined(__EMSCRIPTEN__)
+	web_kampf_phase(0, 0, 0);
+#endif
 
 	get_textcolor(&fg_bak, &bg_bak);
 	set_textcolor(255, 0);
