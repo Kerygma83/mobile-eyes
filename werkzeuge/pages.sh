@@ -18,6 +18,12 @@ if compgen -G 'build/web-frei/*.data' >/dev/null || [ -d build/web-frei/musik ] 
 	exit 1
 fi
 
+# Ohne spiel/ baut web-bauen.sh kein Wörterbuch: die Seite zeigt dann alles in Großbuchstaben
+if [ ! -f build/web-frei/schreibung.json ]; then
+	echo "STOPP: build/web-frei/schreibung.json fehlt (spiel/ für die knappe Fassung nötig)" >&2
+	exit 1
+fi
+
 stand=$(git rev-parse --short HEAD)
 quelle=$(git -C BrightEyes rev-parse --short HEAD)
 version=$(tr -d '[:space:]' < VERSION)
