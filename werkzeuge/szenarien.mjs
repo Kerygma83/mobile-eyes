@@ -656,6 +656,7 @@ export const szenarien = [
 			{ knopf: 'Generierung' },
 			{ warteAuf: 'z.gen == 1 && z.gOv == 0 && z.gKnoepfe == 9', max: 15000 },   // Menü der Erschaffung als Knöpfe
 			{ warteAuf: "document.querySelector('#gen iframe').contentDocument.getElementById('pfeile').hidden", seite: true, max: 1000 },   // Anfänger: keine weiteren Seiten
+			{ warteAuf: 'ton.track === 4', seite: true, max: 1000 },        // Musik der Heldenerschaffung (ngen start_music)
 			{ bild: 'gen-menue' },
 			{ genKnopf: 'NAME' },
 			{ warteAuf: 'z.gOv == 1 && /NAME/.test(z.gText)', max: 3000 },
@@ -681,6 +682,7 @@ export const szenarien = [
 			{ wahl: 'JA', imGen: true },
 			// zurück im Spiel: Spielstand laden → „Keinen“, dann Tempel
 			{ warteAuf: 'z.gen == 0 && z.ov == 1 && z.ovN == 6', max: 10000 },
+			{ warteAuf: 'ton.track !== 4', seite: true, max: 1000 },        // danach wieder die Musik des Spiels
 			{ wahl: 6 },
 			{ warteAuf: `z.timer == 1 && z.ort == ${ORT_TEMPEL} && z.haupt == 1`, max: 20000 },
 			{ tipp: ['Aktionen', 252, 69] },                // Helden aufnehmen
@@ -721,6 +723,12 @@ export const szenarien = [
 			{ warteAuf: 'z.ov == 1', max: 3000 },
 			{ warteAuf: 'window.effekte.length > 0 && window.effekte[0] > 50', seite: true, max: 3000 },
 			{ warteAuf: 'ton.geladen == 7 && ton.musik.src.startsWith("blob:")', seite: true, max: 15000 },
+			// angehaltener AudioContext (iOS nach App-Wechsel, Touch ohne Geste): die nächste Berührung setzt ihn fort
+			{ warteAuf: "ton.ctx.state === 'running'", seite: true, max: 3000 },
+			{ js: 'ton.ctx.suspend()' },
+			{ warteAuf: "ton.ctx.state === 'suspended'", seite: true, max: 3000 },
+			{ weiter: true },
+			{ warteAuf: "ton.ctx.state === 'running'", seite: true, max: 3000 },
 		],
 	},
 	{

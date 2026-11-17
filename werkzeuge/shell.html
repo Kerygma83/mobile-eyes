@@ -1143,13 +1143,20 @@
 		});
 	}
 
+	// Musik: ngen spielt ab dem Start CD-Track 4 („A New Life is Born“) in Schleife (start_music); im Browser
+	// ist ihre Musik aus (gen-pre.js), die Seite spielt ihn hier. Danach wieder der Track des Spiels.
 	const genRahmen = (parameter) => new Promise((fertig) => {
 		alleLoslassen();
+		const musikVorher = { track: ton.track, pausiert: ton.pausiert };
+		Module.musikWeiter();
+		Module.musikSpielen(4);
 		const ende = async (e) => {
 			if (e.source !== genFrame.contentWindow || e.data?.gen !== 'fertig') return;
 			window.removeEventListener('message', ende);
 			genEl.hidden = true;
 			genFrame.src = 'about:blank';
+			Module.musikSpielen(musikVorher.track);
+			if (musikVorher.pausiert) Module.musikPause();
 			if (parameter !== 'intro') await Module.heldenNachladen();
 			fertig();
 		};

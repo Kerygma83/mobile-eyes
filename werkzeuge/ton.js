@@ -34,6 +34,14 @@ function tonEinrichten(Module) {
 	const urls = new Map();    // Track → Blob-URL (einmal geladen)
 
 	// ---------- Freischalten beim ersten Tippen ----------
+	// Jede Berührung setzt den AudioContext fort, solange er nicht läuft: auf Touch-Geräten zählt pointerdown
+	// nicht als Geste (erst touchend), iOS hält ihn nach dem Wechsel in eine andere App an („interrupted“).
+	// Weil auch die Musik über ihn läuft, bliebe sonst alles still.
+	function geste() {
+		if (!freigeschaltet) { freischalten(); return; }
+		if (ctx && ctx.state !== 'running') ctx.resume?.().catch?.(() => {});
+		if (musikLaeuft() && musik.paused && musikGeladen === musikTrack) musik.play().catch(() => {});
+	}
 	function freischalten() {
 		if (freigeschaltet) return;
 		freigeschaltet = true;
@@ -51,7 +59,7 @@ function tonEinrichten(Module) {
 		schnittstelle.beimFreischalten?.();
 	}
 	for (const typ of ['pointerdown', 'keydown', 'touchend']) {
-		window.addEventListener(typ, freischalten, { capture: true, passive: true });
+		window.addEventListener(typ, geste, { capture: true, passive: true });
 	}
 	// nach dem Zurückkehren in die App weiterlaufen lassen
 	document.addEventListener('visibilitychange', () => {
@@ -176,6 +184,7 @@ function tonEinrichten(Module) {
 		},
 		get ctx() { return ctx; },
 		get track() { return musikTrack; },     // gewünschter CD-Track
+		get pausiert() { return musikPausiert; },
 		get freigeschaltet() { return freigeschaltet; },   // nach der ersten Berührung
 		beimFreischalten: null,                 // Rückruf der Seite (Hinweis „Einmal tippen für Ton“ ausblenden)
 		get geladen() { return musikGeladen; }, // Track, dessen Datei bereitsteht
