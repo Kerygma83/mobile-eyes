@@ -145,6 +145,8 @@
 		#mobil.vollbild #aktionsknoepfe { display: none; }
 		body.mobil.aktionsknoepfe #mobil:not(.karte) ~ #leiste { flex: 1; min-height: 0; }
 		body.mobil.aktionsknoepfe #leiste { flex-direction: column; align-items: stretch; border-top: 0; padding: 0.5rem 0.35rem; }
+		/* nicht breiter als Bild und Aktionsknöpfe (breites Browserfenster); --dialog-breite: Bildbreite */
+		body.mobil.aktionsknoepfe #leiste { align-self: center; width: min(100%, var(--dialog-breite, 100%)); }
 		body.mobil.aktionsknoepfe #icons-halter { display: none; }
 		/* Kreuz, OK/Zurück und die drei Knöpfe in einem Raster; .aktionen löst sich darin auf */
 		body.mobil.aktionsknoepfe .rechts {

@@ -910,6 +910,11 @@ export const szenarien = [
 			{ erwarte: "(() => { const m = document.getElementById('minimap').getBoundingClientRect(), k = document.querySelector('#leiste .kreuz').getBoundingClientRect(), l = document.getElementById('leiste').getBoundingClientRect(); return m.width > 100 && Math.abs(m.width - m.height) < 1 && m.right <= k.left && m.left >= l.left && k.right <= l.right + 0.5 && m.bottom <= l.bottom; })()", seite: true, text: 'Minimap links, Kreuz rechts' },
 			{ erwarte: "(() => { const d = document.getElementById('minimap').getContext('2d').getImageData(0, 0, 192, 192).data; for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 200 && d[i + 2] < 60) return true; return false; })()", seite: true, text: 'gelber Pfeil der Gruppe' },
 			{ bild: 'minimap-stadt' },
+			// breites Browserfenster: Leiste so breit wie Bild und Aktionsknöpfe, nicht über die ganze Breite
+			{ groesse: [1600, 900] },
+			{ warteAuf: "(() => { const a = document.getElementById('aktionsknoepfe').getBoundingClientRect(); return a.width < 1000 && [document.querySelector('#leiste .rechts'), document.getElementById('minimap'), document.querySelector('#leiste .kreuz'), document.querySelector('#leiste .zahnrad')].every((e) => { const r = e.getBoundingClientRect(); return r.left >= a.left - 0.5 && r.right <= a.right + 0.5; }); })()", seite: true, max: 2000 },
+			{ bild: 'minimap-breit' },
+			{ groesse: [390, 844] },
 			{ js: "window.__mm = [minimap.stand.x, minimap.stand.y, minimap.stand.d].join()" },
 			{ knopf: 'Rechts drehen' },
 			{ warteAuf: "[minimap.stand.x, minimap.stand.y, minimap.stand.d].join() != window.__mm", seite: true, max: 3000 },
