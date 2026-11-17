@@ -311,6 +311,32 @@ export const szenarien = [
 		],
 	},
 	{
+		// Kampfzauber im Würfelprotokoll: Probe und Schaden in einem Eintrag (wlog_halten/wlog_freigeben in
+		// use_spell bzw. MON_cast_spell, Schaden aus FIG_do_spell_damage); Computerkampf mit Magie, alle sechs
+		// Helden (darunter Zauberkundige)
+		name: 'Würfelprotokoll: Zauberschaden im Kampf',
+		schritte: [
+			...spielBereit,
+			// sechs Helden: mit dem sechsten ist die Gruppe voll, die Liste schließt von selbst
+			{ tipp: ['Aktionen', 252, 69] }, { warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
+			...[1, 2, 3, 4, 5, 6].flatMap((n) => [{ wahl: 1 }, { warteAuf: `z.helden == ${n}`, max: 3000 }, { warte: 300 }]),
+			{ warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 },
+			...tempelVerlassen, ...ohneZufall,
+			{ knopf: 'Menü' }, { knopf: 'Einstellungen' }, { knopf: 'Schnell' }, { knopf: 'Schließen' },
+			{ warteAuf: "localStorage.getItem('autokampf') === 'schnell'", seite: true, max: 2000 },
+			{ js: `Module._web_test_fight(${KAMPF_THOR8})` },
+			{ warteAuf: 'z.kampf == 1 && z.menue == 1', max: 15000 },
+			{ warteAuf: 'z.ov == 1 && /WAS WILLST DU TUN/.test(z.ovText)', max: 3000 },
+			{ wahl: 'COMPUTERKAMPF' },
+			{ warteAuf: 'z.menue == 1 && z.ov == 1 && z.ovN == 2', max: 3000 },
+			{ wahl: 1 },   // mit Magie
+			{ warteAuf: 'z.kampf == 0', max: 30000 },
+			{ warteAuf: "wurfLog.alsText().some(([t, r]) => /: (Fulminictus|Ignifaxius) /.test(t) && /^bestanden.*, Treffer: \\d+ SP$/.test(r))", seite: true, max: 2000 },
+			// jeder gelungene Schadenszauber nennt den Schaden
+			{ erwarte: "wurfLog.alsText().filter(([t, r]) => /: (Fulminictus|Ignifaxius) /.test(t) && /^bestanden/.test(r)).every(([, r]) => /Treffer: \\d+ SP/.test(r))", seite: true, text: 'Schaden bei jedem gelungenen Schadenszauber' },
+		],
+	},
+	{
 		// Würfelprotokoll (wurflog.js, BrightEyes wurflog.cpp): Talent- und Eigenschaftsproben mit Einzelwürfen
 		name: 'Würfelprotokoll: Proben',
 		schritte: [

@@ -388,7 +388,7 @@ function kampfEinrichten(Module, optionen) {
 			const a = document.createElement('span'); a.textContent = titel;
 			const b = document.createElement('span'); b.textContent = ergebnis;
 			const zeile = div('kb-verlauf-zeile', a, b);
-			if (/^Treffer/.test(ergebnis)) zeile.classList.add('treffer');
+			if (/(^|, )Treffer/.test(ergebnis)) zeile.classList.add('treffer');
 			// Aktion eines eigenen Helden (Titel beginnt mit seinem Namen)
 			if (helden.some((n) => titel.toLowerCase().startsWith(n + ' '))) zeile.classList.add('eigen');
 			if (i === eintraege.length - 1) zeile.classList.add('neu');
