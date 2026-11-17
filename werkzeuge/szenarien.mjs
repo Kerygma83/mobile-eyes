@@ -944,6 +944,14 @@ export const szenarien = [
 			{ warteAuf: "!document.getElementById('minimap').offsetParent", seite: true, max: 2000 },
 			{ knopf: 'OK' },
 			{ warteAuf: 'z.ov == 0 && z.haupt == 1 && z.vollbild == 0', max: 5000 },
+			// Lager: ohne Minimap und Steuerkreuz (man läuft dort nicht), danach wieder da
+			{ knopf: 'Lager aufschlagen' },
+			{ warteAuf: 'z.ort == 18 && z.haupt == 1 && z.ov == 0', max: 5000 },
+			{ warteAuf: "!document.getElementById('minimap').offsetParent && !document.querySelector('#leiste .kreuz').offsetParent && !!document.querySelector('#aktionsknoepfe button')", seite: true, max: 2000 },
+			{ bild: 'minimap-lager' },
+			{ knopf: 'Verlassen' },
+			{ warteAuf: 'z.ort == 0 && z.haupt == 1 && z.ov == 0', max: 5000 },
+			{ warteAuf: "!!document.getElementById('minimap').offsetParent && !!document.querySelector('#leiste .kreuz').offsetParent", seite: true, max: 2000 },
 			// Dungeon: 16 Spalten, folgt beim Laufen
 			{ js: 'Module._web_test_dungeon(13)' },
 			{ warteAuf: 'z.dungeon == 13 && z.haupt == 1', max: 10000 },
@@ -1072,6 +1080,7 @@ export const szenarien = [
 		// schrägen Pfeilen, Antippen markiert nur, zweites Tippen bestätigt; Zielwahl abbrechen; Computerkampf
 		name: 'Kampf: Feld, Befehle und Zielwahl',
 		aktionsknoepfe: true,
+		schreibung: true,   // Kampflog: Namen trotzdem groß
 		schritte: [
 			...spielBereit,
 			{ knopf: 'Held aufnehmen' }, { warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
@@ -1153,6 +1162,7 @@ export const szenarien = [
 			{ bild: 'kampf-verlauf' },
 			// eigene Aktionen im Verlauf hervorgehoben
 			{ warteAuf: "document.querySelectorAll('#kampfbedien .kb-verlauf-zeile.eigen').length > 0", seite: true, max: 60000 },
+			{ erwarte: "[...document.querySelectorAll('#kampfbedien .kb-verlauf-zeile.eigen > span:first-child')].every((t) => /^[A-ZÄÖÜ]{3,}\\b/.test(t.textContent))", seite: true, text: 'Kampflog: Heldennamen groß' },
 			{ bild: 'kampf-verlauf-eigen' },
 			{ warteAuf: 'z.kampf == 0', max: 300000 },
 			{ warteAuf: "!document.getElementById('mobil').classList.contains('kampf')", seite: true, max: 5000 },

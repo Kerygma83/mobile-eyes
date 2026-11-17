@@ -380,7 +380,8 @@ function kampfEinrichten(Module, optionen) {
 
 	function verlaufListe() {
 		const liste = div('kb-verlauf');
-		const eintraege = (optionen.wurfLog?.alsText?.() ?? []).slice(kampfStart).slice(-12);
+		// Namen groß wie im Spiel: so heben sie sich im Satz ab
+		const eintraege = (optionen.wurfLog?.alsText?.(true) ?? []).slice(kampfStart).slice(-12);
 		if (!eintraege.length) liste.append(div('kb-leise', document.createTextNode(KAMPF_TEXTE.verlaufLeer)));
 		const helden = (z.helden ?? []).map((h) => hexText(h.name).toLowerCase()).filter(Boolean);
 		eintraege.forEach(([titel, ergebnis], i) => {

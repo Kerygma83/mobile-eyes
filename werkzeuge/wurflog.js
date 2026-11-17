@@ -87,11 +87,13 @@ function wurfLogEinrichten(Module, optionen = {}) {
 
 	const utf8 = new TextDecoder();
 	const spielText = optionen.spielText ?? ((b) => String.fromCharCode(...b));
-	/** Bytes → Text: UTF-8, Abschnitte zwischen 0x01 und 0x02 als Spieltext */
-	function text(bytes) {
+	const spielRoh = optionen.spielRoh ?? ((b) => String.fromCharCode(...b));
+	/** Bytes → Text: UTF-8, Abschnitte zwischen 0x01 und 0x02 als Spieltext (roh: ohne Schreibung,
+	 *  also groß wie im Spiel) */
+	function text(bytes, roh = false) {
 		let t = '', teil = [], spiel = false;
 		const fertig = () => {
-			if (teil.length) t += spiel ? spielText(teil) : utf8.decode(new Uint8Array(teil));
+			if (teil.length) t += spiel ? (roh ? spielRoh : spielText)(teil) : utf8.decode(new Uint8Array(teil));
 			teil = [];
 		};
 		for (const b of bytes) {
@@ -188,7 +190,8 @@ function wurfLogEinrichten(Module, optionen = {}) {
 		alleZeigen();
 	});
 	// Text für Tests und Fehlersuche
-	const alsText = () => eintraege.map((e) => [text(e.roh.titel), text(e.roh.ergebnis), text(e.roh.details)]);
+	// roh: Namen (Spieltexte) groß wie im Spiel, z. B. für das Kampflog
+	const alsText = (roh = false) => eintraege.map((e) => [text(e.roh.titel, roh), text(e.roh.ergebnis, roh), text(e.roh.details, roh)]);
 
 	return { eintraege, oeffnen, schliessen, alsText };
 }
