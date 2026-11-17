@@ -1893,6 +1893,11 @@ extern "C" void __wrap_exit(int status)
 EM_ASYNC_JS(void, web_intro, (void), {
 	if (Module.genStarten) await Module.genStarten('intro');
 });
+/* Startmenü der Seite (Titelbild, „Spiel starten“/„Generierung“, Modus) statt der beiden Textmenüs:
+ * Spielmodus (1 Anfänger, 2 Fortgeschritten) + 10 × Wahl (0 Spiel, 1 Generierung) */
+EM_ASYNC_JS(int, web_startmenue, (void), {
+	return Module.startmenue ? await Module.startmenue() : 1;
+});
 /* Browser: regelmäßig die Kontrolle abgeben (Asyncify), sonst blockiert die Seite. */
 static void web_yield(void)
 {
@@ -2109,10 +2114,10 @@ extern "C" EMSCRIPTEN_KEEPALIVE const char* web_test_state(void)
 	snprintf(buf, sizeof(buf),
 		"{\"timer\":%d,\"stadt\":%d,\"ort\":%d,\"dungeon\":%d,\"x\":%d,\"y\":%d,"
 		"\"richtung\":%d,\"helden\":%d,\"kampf\":%d,\"dialog\":%d,\"menue\":%d,"
-		"\"karte\":%d,\"haupt\":%d,\"spielzustand\":%d,\"eingabe\":%d}",
+		"\"karte\":%d,\"haupt\":%d,\"spielzustand\":%d,\"eingabe\":%d,\"modus\":%d}",
 		g_native_timer_active, gs_town_id, gs_town_loc_type, gs_dungeon_id, gs_x_target, gs_y_target,
 		gs_direction, gs_total_hero_counter, g_in_fight, g_dialogbox_lock, g_menu_input_busy,
-		gs_show_travel_map, web_screen_mode(), g_game_state, g_web_test_input_result);
+		gs_show_travel_map, web_screen_mode(), g_game_state, g_web_test_input_result, g_game_mode);
 	return buf;
 }
 
@@ -6414,6 +6419,10 @@ int main(int argc, char** argv)
 
 		/* select game mode */
 		g_game_mode = GAME_MODE_UNSPECIFIED;
+#if defined(__EMSCRIPTEN__)
+		const int web_start = web_startmenue();
+		g_game_mode = (web_start % 10 == GAME_MODE_ADVANCED ? GAME_MODE_ADVANCED : GAME_MODE_BEGINNER);
+#endif
 
 		while (g_game_mode == GAME_MODE_UNSPECIFIED) {
 			g_game_mode = GUI_radio(get_ttx(5), 2, get_ttx(6), get_ttx(7));
@@ -6435,7 +6444,11 @@ int main(int argc, char** argv)
 
 				/* ask for generation or game */
 				do {
+#if defined(__EMSCRIPTEN__)
+					answer = web_start / 10;
+#else
 					answer = GUI_radio(get_ttx(820), 2, get_ttx(821), get_ttx(822)) - 1;
+#endif
 
 				} while (answer == -1);
 
