@@ -129,6 +129,9 @@ void FIG_do_spell_damage(const signed int le)
 
 			/* do the damage */
 			sub_hero_le(get_spelltarget(), le);
+#if !defined(__BORLANDC__)
+			wlog_result_add(WLOG_SCHLECHT, "Treffer: %d SP", le);
+#endif
 
 			/* add a message (red star with le) */
 			FIG_add_msg(0x08, le);
@@ -147,6 +150,9 @@ void FIG_do_spell_damage(const signed int le)
 
 		/* do the damage */
 		FIG_damage_enemy(g_spelltarget_e, le, 0);
+#if !defined(__BORLANDC__)
+		wlog_result_add(WLOG_GUT, "Treffer: %d SP", le);
+#endif
 
 		/* add a message (green star with le) */
 		FIG_add_msg(0x0b, le);
@@ -821,6 +827,10 @@ signed int use_spell(struct struct_hero* hero, const signed int selection_menu, 
 			}
 #endif
 
+#if !defined(__BORLANDC__)
+			/* im Kampf: Probe und Schaden (FIG_do_spell_damage) in einem Eintrag */
+			if (g_in_fight) wlog_halten();
+#endif
 			g_spelltest_result = test_spell(hero, spell_id, handicap);
 
 			if (g_spelltest_result == -99) {
@@ -910,5 +920,8 @@ signed int use_spell(struct struct_hero* hero, const signed int selection_menu, 
 
 	g_textbox_width = tw_bak;
 
+#if !defined(__BORLANDC__)
+	wlog_freigeben();
+#endif
 	return retval;
 }

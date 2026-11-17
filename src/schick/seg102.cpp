@@ -44,6 +44,9 @@ void MON_do_spell_damage(const signed int damage)
 
 			/* do the damage */
 			sub_hero_le(get_spelltarget(), damage);
+#if !defined(__BORLANDC__)
+			wlog_result_add(WLOG_SCHLECHT, "Treffer: %d SP", damage);
+#endif
 
 			/* add a fight message */
 			FIG_add_msg(8, damage);
@@ -61,6 +64,9 @@ void MON_do_spell_damage(const signed int damage)
 
 			/* do the damage */
 			FIG_damage_enemy(g_spelltarget_e, damage, 1);
+#if !defined(__BORLANDC__)
+			wlog_result_add(WLOG_GUT, "Treffer: %d SP", damage);
+#endif
 
 			/* add a fight message */
 			FIG_add_msg(11, damage);
@@ -342,12 +348,19 @@ signed int MON_cast_spell(struct enemy_sheet* enemy, signed char handicap)
 			return -1;
 		}
 
+#if !defined(__BORLANDC__)
+		/* Probe und Schaden (MON_do_spell_damage) in einem Eintrag */
+		wlog_halten();
+#endif
 		g_spelltest_result = MON_test_talent(enemy, mspell_id, handicap);
 
 		if ((g_spelltest_result <= 0) || (gs_ingame_timers[INGAME_TIMER_RONDRA_NO_SPELLS] > 0)) {
 
 			/* spell failed */
 			MON_sub_ae(enemy, MON_get_spell_cost(mspell_id, 1));
+#if !defined(__BORLANDC__)
+			wlog_freigeben();
+#endif
 
 			return 0;
 
@@ -391,6 +404,9 @@ signed int MON_cast_spell(struct enemy_sheet* enemy, signed char handicap)
 			} else {
 				MON_sub_ae(enemy, cost);
 			}
+#if !defined(__BORLANDC__)
+			wlog_freigeben();
+#endif
 
 			return retval;
 		}

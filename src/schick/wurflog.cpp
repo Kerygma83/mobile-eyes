@@ -36,6 +36,8 @@ static struct {
 	char details[2400];
 } e;
 
+static int g_halten;	/* 1: nächsten Eintrag halten, 2: Eintrag gehalten (noch offen) */
+
 static void anhaengen(char *ziel, const size_t groesse, const char *fmt, va_list ap)
 {
 	const size_t l = strlen(ziel);
@@ -153,14 +155,35 @@ void wlog_end(const int offen)
 	if (e.tiefe == 0 || offen == WLOG_WEITER) return;
 	e.tiefe--;
 	if (offen) {
+		if (g_halten == 1) {
+			/* offen lassen: die Wirkung folgt (wlog_freigeben) */
+			e.tiefe = 1;
+			g_halten = 2;
+			return;
+		}
 		/* ein offen gebliebener innerer Eintrag zählt mit */
 		e.tiefe = 0;
 		senden();
 	}
 }
 
+void wlog_halten(void)
+{
+	if (e.tiefe == 0) g_halten = 1;
+}
+
+void wlog_freigeben(void)
+{
+	if (g_halten == 2 && e.tiefe > 0) {
+		e.tiefe = 0;
+		senden();
+	}
+	g_halten = 0;
+}
+
 void wlog_flush(void)
 {
+	g_halten = 0;
 	if (e.tiefe > 0) {
 		e.tiefe = 0;
 		senden();

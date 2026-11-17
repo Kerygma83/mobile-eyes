@@ -53,6 +53,10 @@ void wlog_result_add(const int erfolg, const char *fmt, ...) WLOG_PRINTF(2, 3);
 void wlog_end(const int offen);
 /* offenen Eintrag abschicken (Sicherheitsnetz an Stellen ohne Probe, etwa Spielschleife) */
 void wlog_flush(void);
+/* Zauber im Kampf: den nächsten Eintrag nach wlog_end() offen halten, damit die Wirkung (Schaden)
+ * noch ins Ergebnis kommt; wlog_freigeben() schickt ihn ab */
+void wlog_halten(void);
+void wlog_freigeben(void);
 /* einzelne Meldung ohne Details */
 void wlog_note(const int art, const int erfolg, const char *fmt, ...) WLOG_PRINTF(3, 4);
 int wlog_active(void);
