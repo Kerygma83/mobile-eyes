@@ -39,15 +39,15 @@ const ORT_TEMPEL = 2;
 const THORWAL = 1;
 const KAMPF_THOR8 = 213;
 
-/** Start wie im Original: Schwierigkeitsgrad, Hauptprogramm, kein Spielstand (Seite mit ?ohneIntro) */
+/** Startmenü (startmenue.js) mit Modus; danach { knopf: 'Spiel starten' } oder { knopf: 'Generierung' } */
 const startMenue = (grad = 1) => [
-	{ warteAuf: 'z.ov == 1 && /SCHWIERIGKEITSGRAD/.test(z.ovText)', max: 20000 },
-	{ wahl: grad },                                        // 1 Anfänger, 2 Fortgeschrittene
-	{ warteAuf: 'z.ov == 1 && /GESTARTET/.test(z.ovText)', max: 3000 },
+	{ warteAuf: 'z.start == 1', max: 20000 },
+	{ knopf: grad === 2 ? 'Fortgeschritten' : 'Anfänger' },
 ];
+/** Spiel starten, kein Spielstand (Seite mit ?ohneIntro) */
 const spielBereit = [
 	...startMenue(),
-	{ wahl: 'HAUPTPROGRAMM' },
+	{ knopf: 'Spiel starten' },
 	{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 3000 },   // Spielstand laden: 5 Plätze + Keinen
 	{ wahl: 6 },
 	{ warteAuf: `z.timer == 1 && z.ort == ${ORT_TEMPEL} && z.haupt == 1`, max: 20000 },
@@ -117,9 +117,32 @@ export const szenarien = [
 			// Musik wie in der GOG-Fassung: zuerst CD-Track 2 (Logos, Titel)
 			{ warteAuf: "ton.track === 2", seite: true, max: 3000 },
 			{ knopf: 'Intro überspringen' },
-			{ warteAuf: 'z.intro == 0 && z.gen == 0 && z.ov == 1 && /SCHWIERIGKEITSGRAD/.test(z.ovText)', max: 5000 },
+			{ warteAuf: 'z.intro == 0 && z.gen == 0 && z.start == 1', max: 5000 },
 			{ warteAuf: 'ton.track === 0', seite: true, max: 1000 },          // Intro-Musik aus
 			{ warteAuf: "document.getElementById('tonhinweis').hidden", seite: true, max: 2000 },
+		],
+	},
+	{
+		// Startmenü (startmenue.js) statt der Textmenüs: Titelbild aus dem Intro (ohne Intro im Worker gerechnet),
+		// Modus gemerkt, Einstellungen erreichbar, „Spiel starten“ führt zur Spielstandwahl
+		name: 'Startmenü: Titelbild, Modus, Einstellungen',
+		schritte: [
+			{ warteAuf: 'z.start == 1', max: 20000 },
+			{ erwarte: "localStorage.getItem('modus') === null && document.querySelector('#start .modus [data-wert=\"1\"]').getAttribute('aria-pressed') === 'true'", seite: true, text: 'Anfänger voreingestellt' },
+			{ warteAuf: "!document.querySelector('#start .titel img').hidden && document.querySelector('#start .titel img').naturalWidth === 320", seite: true, max: 30000 },
+			// Titel „Die Schicksalsklinge“: rote Schrift unten links
+			{ erwarte: "(() => { const c = document.createElement('canvas'); c.width = 320; c.height = 200; const x = c.getContext('2d'); x.drawImage(document.querySelector('#start .titel img'), 0, 0); const d = x.getImageData(0, 150, 120, 50).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 150 && d[i + 1] < 60) n++; return n > 500; })()", seite: true, text: 'Titelbild mit roter Schrift' },
+			{ warte: 1500 }, { bild: 'startmenue' },   // nach dem Einblenden
+			{ knopf: 'Fortgeschritten' },
+			{ tippBei: "(() => { const r = document.querySelector('#start .einstellungen').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()" },
+			{ warteAuf: "!document.getElementById('einstellungen').hidden", seite: true, max: 2000 },
+			{ knopf: 'Schließen' },
+			{ neuLaden: true },
+			{ warteAuf: 'z.start == 1', max: 20000 },
+			{ erwarte: "document.querySelector('#start .modus [data-wert=\"2\"]').getAttribute('aria-pressed') === 'true' && !document.querySelector('#start .titel img').hidden", seite: true, text: 'Modus und Titelbild nach dem Neuladen' },
+			{ knopf: 'Spiel starten' },
+			{ warteAuf: 'z.start == 0 && z.ov == 1 && z.ovN == 6', max: 5000 },   // Spielstand laden: 5 Plätze + Keinen
+			{ erwarte: 'z.modus == 2', text: 'Spiel im Modus Fortgeschritten' },
 		],
 	},
 	{
@@ -131,7 +154,7 @@ export const szenarien = [
 			{ warte: 3000 },
 			{ bild: 'intro' },
 			{ genKnopf: 'Intro überspringen' },
-			{ warteAuf: 'z.gen == 0 && z.ov == 1 && /SCHWIERIGKEITSGRAD/.test(z.ovText)', max: 5000 },
+			{ warteAuf: 'z.gen == 0 && z.start == 1', max: 5000 },
 		],
 	},
 	{
@@ -140,19 +163,20 @@ export const szenarien = [
 		name: 'Schreibung: normal und wie im Original, Schriftgröße',
 		schreibung: true,
 		schritte: [
-			{ warteAuf: 'z.ov == 1 && /Schwierigkeitsgrad/.test(z.ovText)', max: 20000 },
-			{ erwarte: '/^Wählen Sie den/.test(z.ovText)', text: 'Satzanfang groß, Anrede „Sie“, sonst klein' },
+			// erste Textbox nach dem Startmenü: Spielstand laden (5 Plätze + „Keinen“)
+			...startMenue(), { knopf: 'Spiel starten' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 6', max: 5000 },
+			{ merke: 'normal' },
+			{ erwarte: '/^[A-ZÄÖÜ][a-zäöüß]/.test(z.ovText) && z.ovText != z.ovText.toUpperCase()', text: 'Satzanfang groß, sonst normale Schreibung' },
+			{ warteAuf: "[...document.querySelectorAll('#dialog .optionen button')].some((b) => b.textContent == 'Keinen')", seite: true, max: 2000 },
 			// das Overlay deckt die Leiste ab: Einstellungen über die Seite öffnen
 			{ js: "document.getElementById('einstellungen-knopf').click()" },
 			{ knopf: 'GROSS (Original)' }, { knopf: 'Schrift sehr groß' },
-			{ warteAuf: 'z.ov == 1 && /^WÄHLEN SIE DEN/.test(z.ovText)', max: 2000 },
+			{ warteAuf: 'z.ov == 1 && z.ovText == m.normal.ovText.toUpperCase()', max: 2000 },
 			{ warteAuf: "getComputedStyle(document.getElementById('dialog')).getPropertyValue('--schrift') == '1.3'", seite: true, max: 2000 },
 			{ bild: 'einstellungen' },
 			{ js: "document.querySelector('[data-einstellung=schreibung] [data-wert=normal]').click()", seite: true }, { knopf: 'Schrift normal' }, { knopf: 'Schließen' },
-			{ warteAuf: 'z.ov == 1 && /^Wählen Sie den/.test(z.ovText)', max: 2000 },
-			{ wahl: 1 },
-			{ warteAuf: 'z.ov == 1 && /gestartet/.test(z.ovText)', max: 3000 },
-			{ warteAuf: "[...document.querySelectorAll('#dialog .optionen button')].some((b) => b.textContent == 'Hauptprogramm')", seite: true, max: 2000 },
+			{ warteAuf: 'z.ov == 1 && z.ovText == m.normal.ovText', max: 2000 },
 		],
 	},
 	{
@@ -492,7 +516,7 @@ export const szenarien = [
 		name: 'Heldenerschaffung: Meldung schließen',
 		schritte: [
 			...startMenue(2),
-			{ wahl: 'GENERIERUNG' },
+			{ knopf: 'Generierung' },
 			{ warteAuf: 'z.gen == 1 && z.gOv == 0 && z.gKnoepfe == 9', max: 15000 },
 			{ warte: 500 },
 			{ merke: 'menue' },
@@ -510,7 +534,7 @@ export const szenarien = [
 		name: 'Heldenerschaffung: Talente steigern',
 		schritte: [
 			...startMenue(2),
-			{ wahl: 'GENERIERUNG' },
+			{ knopf: 'Generierung' },
 			{ warteAuf: 'z.gen == 1 && z.gOv == 0 && z.gKnoepfe == 9', max: 15000 },   // Menü der Erschaffung als Knöpfe
 			{ bild: 'gen-menue' },
 			{ genKnopf: 'NAME' },
@@ -576,7 +600,7 @@ export const szenarien = [
 		name: 'Heldenerschaffung: Zauber steigern',
 		schritte: [
 			...startMenue(2),
-			{ wahl: 'GENERIERUNG' },
+			{ knopf: 'Generierung' },
 			{ warteAuf: 'z.gen == 1 && z.gOv == 0 && z.gKnoepfe == 9', max: 15000 },
 			{ genKnopf: 'NEUE WERTE' },
 			{ warteAuf: 'z.gOv == 1 && /WURF/.test(z.gText)', max: 3000 },
@@ -629,7 +653,7 @@ export const szenarien = [
 		name: 'Heldenerschaffung: neuer Held im Tempel',
 		schritte: [
 			...startMenue(1),
-			{ wahl: 'GENERIERUNG' },
+			{ knopf: 'Generierung' },
 			{ warteAuf: 'z.gen == 1 && z.gOv == 0 && z.gKnoepfe == 9', max: 15000 },   // Menü der Erschaffung als Knöpfe
 			{ warteAuf: "document.querySelector('#gen iframe').contentDocument.getElementById('pfeile').hidden", seite: true, max: 1000 },   // Anfänger: keine weiteren Seiten
 			{ bild: 'gen-menue' },
@@ -917,7 +941,7 @@ export const szenarien = [
 			{ dateiWahl: '/app/build/spieldaten-test.zip' },
 			{ warteAuf: "!document.getElementById('spieldaten')", seite: true, max: 60000 },
 			...startMenue(2),
-			{ wahl: 'GENERIERUNG' },
+			{ knopf: 'Generierung' },
 			{ warteAuf: 'z.gen == 1 && z.gOv == 0 && z.gKnoepfe == 9', max: 15000 },
 			{ bild: 'heldenerschaffung' },
 		],

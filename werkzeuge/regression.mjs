@@ -80,6 +80,7 @@ for (const sz of auswahl) {
 			const gen = document.getElementById('gen');
 			z.gen = gen.hidden ? 0 : 1;
 			z.intro = document.getElementById('intro')?.hidden === false ? 1 : 0;
+			z.start = document.getElementById('start')?.hidden === false ? 1 : 0;   // Startmenü (startmenue.js)
 			const gd = !gen.hidden && gen.querySelector('iframe').contentDocument?.getElementById('dialog');
 			z.gOv = gd && !gd.hidden ? 1 : 0;
 			z.gText = z.gOv ? gd.querySelector('.text').textContent : '';

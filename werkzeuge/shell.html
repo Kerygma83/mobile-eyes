@@ -279,6 +279,37 @@
 	#gen[hidden] { display: none; }
 	#gen iframe { width: 100%; height: 100%; border: 0; display: block; }
 
+	/* ---------- Startmenü (startmenue.js) ---------- */
+	#start {
+		position: fixed; inset: 0; z-index: 9; background: #000; overflow-y: auto;
+		display: flex; flex-direction: column; align-items: center; gap: 1.2rem;
+		padding: calc(env(safe-area-inset-top) + 1rem) calc(env(safe-area-inset-right) + 1rem) calc(env(safe-area-inset-bottom) + 1rem) calc(env(safe-area-inset-left) + 1rem);
+	}
+	#start[hidden] { display: none; }
+	/* Spiel und Leiste darunter: nicht sichtbar und nicht bedienbar (auch nicht für Tests) */
+	body.startmenue #mobil, body.startmenue #leiste, body.startmenue #buehne { visibility: hidden; }
+	#start .titel { width: min(100%, 36rem); margin-top: auto; aspect-ratio: 320 / 240; display: flex; align-items: center; justify-content: center; }
+	#start .titel img { width: 100%; height: 100%; image-rendering: pixelated; animation: einblenden 1.2s ease-out; }
+	#start .titel img[hidden], #start .titel .text[hidden] { display: none; }
+	#start .titel .text { font: bold 2.2rem Georgia, serif; color: #c0201a; text-align: center; line-height: 1.1; }
+	#start .titel .text small { display: block; font-size: 1rem; color: var(--leise); font-weight: normal; margin-bottom: 0.4rem; }
+	@keyframes einblenden { from { opacity: 0; } to { opacity: 1; } }
+	#start .wahlen { width: min(100%, 22rem); display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: auto; }
+	#start button { min-height: 3rem; font-size: 1.05rem; touch-action: manipulation; }
+	#start button[data-start="0"] { border-color: var(--gold); font-weight: 600; }
+	#start h3 { margin: 0.6rem 0 0; font-size: 0.85rem; font-weight: 600; color: var(--leise); }
+	#start .modus { display: flex; gap: 0.35rem; }
+	#start .modus button { flex: 1; min-height: 2.6rem; font-size: 0.95rem; }
+	#start .modus button[aria-pressed="true"] { background: var(--knopf-aktiv); border-color: var(--gold); }
+	#start .einstellungen { margin-top: 0.6rem; min-height: 2.6rem; font-size: 0.95rem; gap: 0.5rem; }
+	#start .einstellungen svg { width: 1.2rem; height: 1.2rem; stroke-width: 2; }
+	#start .version { color: var(--leise); font-size: 0.8rem; text-align: center; }
+	@media (orientation: landscape) and (max-height: 600px) {
+		#start { flex-direction: row; justify-content: center; }
+		#start .titel { width: min(55%, calc((100dvh - 2rem) * 4 / 3)); margin: auto 0; }
+		#start .wahlen { width: min(40%, 20rem); margin: auto 0; }
+	}
+
 	/* ---------- Original-Intro (INTRO_E.OVL in intro.js) ---------- */
 	#intro {
 		position: fixed; inset: 0; z-index: 20; background: #000;
@@ -447,6 +478,28 @@
 
 <!-- Heldenerschaffung und Intro (gen.html, eigenes Programm wie GEN.EXE) -->
 <div id="gen" hidden><iframe title="Heldenerschaffung"></iframe></div>
+<!-- Startmenü nach dem Intro (startmenue.js): statt der Textmenüs Schwierigkeitsgrad und Hauptprogramm/Generierung -->
+<div id="start" hidden aria-label="Startmenü">
+	<div class="titel">
+		<img hidden alt="Die Schicksalsklinge">
+		<div class="text"><small>Das Schwarze Auge</small>Die Schicksalsklinge</div>
+	</div>
+	<div class="wahlen">
+		<button type="button" data-start="0">Spiel starten</button>
+		<button type="button" data-start="1">Generierung</button>
+		<h3>Modus</h3>
+		<div class="modus" aria-label="Modus">
+			<button type="button" data-wert="1">Anfänger</button>
+			<button type="button" data-wert="2">Fortgeschritten</button>
+		</div>
+		<button type="button" class="einstellungen">
+			<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+			Einstellungen
+		</button>
+		<div class="version">Mobile Eyes v__APPVERSION__</div>
+	</div>
+</div>
+
 <!-- Original-Intro: INTRO_E.OVL aus den Spieldaten, ausgeführt von intro.js -->
 <div id="intro" hidden aria-label="Intro">
 	<canvas width="320" height="200"></canvas>
@@ -516,6 +569,7 @@
 <script src="questlog.js"></script>
 <script src="karte.js"></script>
 <script src="aktionen.js"></script>
+<script src="startmenue.js"></script>
 <script src="intro.js"></script>
 <script>
 	// SDL-Tastencodes, die das Spiel in sdl_event_loop() auswertet
@@ -707,6 +761,10 @@
 	// Reisekarte (karte.js): zoom- und verschiebbar, Namen, Ziele als Knöpfe
 	const karte = karteEinrichten(Module, { el: document.getElementById('karte'), spielText: overlay.spielText,
 		quelle: () => ganz, dialogOffen: () => dialoge.length > 0 });
+	// Startmenü (startmenue.js): das Spiel wartet in web_startmenue() auf die Wahl
+	const startmenue = startmenueEinrichten(Module, { el: document.getElementById('start'),
+		einstellungenOeffnen: () => document.getElementById('einstellungen-knopf').click() });
+	Module.startmenue = () => { alleLoslassen(); return startmenue.zeigen(); };
 	// Aktionsknöpfe (aktionen.js): die Icons des Hauptbildschirms beschriftet
 	const aktionen = aktionenEinrichten(Module, { el: document.getElementById('aktionsknoepfe') });
 	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
@@ -909,7 +967,7 @@
 		return new Promise((fertig) => {
 			const canvas = introEl.querySelector('canvas'), ctx = canvas.getContext('2d');
 			const bild = ctx.createImageData(320, 200);
-			let zuletzt = performance.now(), ziel = 0, aus = false;
+			let zuletzt = performance.now(), ziel = 0, aus = false, titelGemerkt = false;
 			const taste = (e) => { e.preventDefault(); e.stopPropagation(); ende(); };   // im Original beendet jede Taste
 			const ende = () => {
 				if (aus) return;
@@ -926,6 +984,7 @@
 				intro.laufen(ziel);
 				intro.bild(bild.data);
 				ctx.putImageData(bild, 0, 0);
+				if (!titelGemerkt && ziel >= startmenue.TITEL_ZEIT * Intro.CPU_HZ) { titelGemerkt = true; startmenue.titelAusIntro(bild.data); }
 				if (intro.beendet) ende(); else requestAnimationFrame(schritt);
 			};
 			introEl.querySelector('.ueberspringen').onclick = ende;
@@ -1057,6 +1116,7 @@
 	document.getElementById('spieldaten-loeschen').addEventListener('click', async () => {
 		if (!confirm('Spieldaten aus diesem Browser entfernen? Beim nächsten Start werden sie neu eingelesen. Spielstände bleiben erhalten.')) return;
 		await spieldaten.loeschen();
+		startmenue.vergessen();
 		location.reload();
 	});
 	document.getElementById('einstellungen-knopf').addEventListener('click', () => {
