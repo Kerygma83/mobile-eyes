@@ -130,6 +130,7 @@ set(SCHICK_SOURCES
     questlog.cpp
     datumzeile.cpp
     reisekarte.cpp
+    minimap.cpp
 )
 
 # Define header files
