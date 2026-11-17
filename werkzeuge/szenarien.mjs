@@ -34,6 +34,7 @@
 //
 // Zustand z: timer, stadt, ort, dungeon, x, y, richtung, helden, kampf, dialog, menue, karte, haupt, spielzustand,
 //   von der Seite: ov (Overlay sichtbar), ovText, ovN (Anzahl Einträge), vollbild (Ausschnitte ausgeblendet)
+//   hb (Heldenbogen mit Kacheln: web_heldenbogen() als Objekt, null wenn nicht zu sehen)
 
 const ORT_TEMPEL = 2;
 const THORWAL = 1;
@@ -65,6 +66,10 @@ function heldenAufnehmen(n, bild) {
 	schritte.push({ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 });
 	return schritte;
 }
+
+/** Heldenbogen (heldenbogen.js): Kachel n (0–6 Körper, 7–22 Rucksack) bzw. Aktionsknopf der Karte antippen */
+const hbKachel = (n) => ({ tippBei: `(() => { const r = document.querySelector('.hb-kachel[data-feld="' + (${typeof n === 'number' ? n : `(${n})`}) + '"]').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()` });
+const hbKnopf = (t) => ({ tippBei: `(() => { const b = [...document.querySelectorAll('#heldenbogen button')].find((b) => b.firstChild?.textContent === ${JSON.stringify(t)}); const r = b.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()` });
 
 const ohneZufall = [{ js: 'Module._web_test_no_city_events(1)' }];
 
@@ -953,6 +958,113 @@ export const szenarien = [
 			{ js: "einstellung.minimap.setze('aus')" },
 			{ warteAuf: "!document.getElementById('minimap').offsetParent && !!document.querySelector('#leiste .kreuz').offsetParent", seite: true, max: 2000 },
 			{ js: "einstellung.minimap.setze('an')" },
+		],
+	},
+	{
+		// Heldenbogen (heldenbogen.js, BrightEyes heldenbogen.cpp): im Hochformat statt des Kreuzes Gruppe,
+		// Gegenstandskarte und Kacheln; Antippen wählt nur aus, Aktionen über die Eingaben des Originals
+		name: 'Heldenbogen: Kacheln und Aktionen',
+		aktionsknoepfe: true,
+		schreibung: true,
+		schritte: [
+			...spielBereit,
+			...[1, 2].flatMap((n) => [
+				{ knopf: 'Held aufnehmen' }, { warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
+				{ wahl: 1 }, { warteAuf: `z.helden == ${n} && z.ov == 1`, max: 3000 },
+				{ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 },
+			]),
+			{ doppeltipp: ['Gruppe', 20, 170] },
+			{ warteAuf: 'z.hb && z.hb.offen == 1 && z.hb.seite == 1 && z.hb.helden.length == 2 && z.hb.held == 0', max: 3000 },
+			// statt Kreuz, OK und Zurück: Ablage in der Leiste, ohne Scrollen, unter dem Bild
+			{ erwarte: "(() => { const h = document.getElementById('heldenbogen'), r = h.getBoundingClientRect(), v = document.querySelector('#mobil .voll').getBoundingClientRect(); return !document.querySelector('#leiste .kreuz').offsetParent && !document.querySelector('#leiste [data-key=enter]').offsetParent && document.querySelectorAll('.hb-kachel').length == 23 && h.scrollHeight <= h.clientHeight + 1 && r.top >= v.bottom - 0.5 && document.querySelector('.hb-helden').getBoundingClientRect().top - v.bottom < 20 && document.querySelector('.hb-reiter').getBoundingClientRect().top < document.querySelector('.hb-karte').getBoundingClientRect().top && document.querySelector('#leiste .menue').getBoundingClientRect().top - document.querySelector('.hb-kacheln.acht').getBoundingClientRect().bottom < 20; })()", seite: true, text: 'Ablage statt Kreuz: Gruppe direkt unter dem Bild, Kacheln direkt über der Leiste' },
+			// Testheld (Arbosh): Rucksack 7 Wasserschlauch, 8 Proviant, 9 und 10 Werkzeug; rechte Hand Waffe, Beine
+			{ erwarte: 'z.hb.felder[7] && z.hb.felder[7].nahrung && z.hb.felder[9] && z.hb.felder[10] && z.hb.felder[3] && z.hb.felder[3].waffe && !z.hb.felder[14]', text: 'Inventar des Testhelden' },
+			{ erwarte: "getComputedStyle(document.querySelector('.hb-helden button.an')).backgroundColor != getComputedStyle(document.querySelector('.hb-helden button:not(.an)')).backgroundColor", seite: true, text: 'aktiver Held farbig' },
+			{ bild: 'heldenbogen' },
+			// iPhone in Safari (Leisten oben und unten): Bild etwas kleiner, Ablage ohne Scrollen
+			{ groesse: [390, 664] },
+			{ warteAuf: "(() => { const h = document.getElementById('heldenbogen'); return h.clientHeight > 0 && h.scrollHeight <= h.clientHeight + 1 && document.querySelector('#leiste .menue').getBoundingClientRect().bottom <= innerHeight + 0.5 && document.querySelector('#mobil .voll').getBoundingClientRect().width >= 290 && document.querySelector('.hb-kachel').getBoundingClientRect().width >= 38; })()", seite: true, max: 3000 },
+			{ bild: 'heldenbogen-klein' },
+			{ groesse: [390, 844] },
+			// Antippen wählt nur aus (Kachel und Bild)
+			hbKachel(9),
+			{ warteAuf: 'z.hb.sel == 9 && !z.hb.halt && !z.hb.laeuft', max: 2000 },
+			{ tipp: ['Bildschirm', 0x20 + 9, 0x37 + 9] },
+			{ warteAuf: 'z.hb.sel == 8 && !z.hb.halt', max: 2000 },
+			{ erwarte: "document.querySelector('.hb-kachel[data-feld=\"8\"]').classList.contains('sel') && /Proviant/i.test(document.querySelector('.hb-karte').textContent)", seite: true, text: 'Karte zum Proviant' },
+			// Ansehen: Text des Spiels (Auge)
+			hbKachel(9),
+			{ warteAuf: 'z.hb.sel == 9', max: 2000 },
+			hbKnopf('Ansehen'),
+			{ warteAuf: 'z.ov == 1', max: 3000 },
+			{ weiter: true },
+			{ warteAuf: 'z.ov == 0 && z.hb && !z.hb.halt && !z.hb.laeuft', max: 3000 },
+			// Verschieben: Werkzeug von 10 nach 14
+			{ js: 'window.__id = heldenbogen.daten.felder[10].id' },
+			hbKachel(10),
+			{ warteAuf: 'z.hb.sel == 10', max: 2000 },
+			hbKnopf('Verschieben'),
+			{ warteAuf: "document.querySelectorAll('.hb-kachel.ziel').length == 22", seite: true, max: 2000 },
+			hbKachel(14),
+			{ warteAuf: '!z.hb.laeuft && !z.hb.felder[10] && z.hb.felder[14]', max: 3000 },
+			{ erwarte: 'heldenbogen.daten.felder[14].id == window.__id', seite: true, text: 'Werkzeug liegt in Feld 14' },
+			// Ablegen und Ausrüsten: Waffe der rechten Hand in den Rucksack (erstes freies Feld: 10) und zurück
+			{ js: 'window.__waffe = heldenbogen.daten.felder[3].id' },
+			hbKachel(3),
+			{ warteAuf: 'z.hb.sel == 3', max: 2000 },
+			{ warteAuf: "/\\dW6/.test(document.querySelector('.hb-karte-kopf').textContent) && /AT .* PA /.test(document.querySelector('.hb-karte-kopf').textContent) && !/Rucksack \\d/.test(document.querySelector('.hb-karte').textContent)", seite: true, max: 2000 },
+			{ bild: 'waffe' },
+			hbKnopf('Ablegen'),
+			{ warteAuf: '!z.hb.laeuft && !z.hb.felder[3] && z.hb.felder[10]', max: 3000 },
+			{ erwarte: 'heldenbogen.daten.felder[10].id == window.__waffe', seite: true, text: 'Waffe im Rucksack' },
+			hbKachel(10),
+			{ warteAuf: 'z.hb.sel == 10', max: 2000 },
+			hbKnopf('Ausrüsten'),
+			{ warteAuf: '!z.hb.laeuft && z.hb.felder[3] && !z.hb.felder[10]', max: 3000 },
+			{ erwarte: 'heldenbogen.daten.felder[3].id == window.__waffe', seite: true, text: 'Waffe wieder in der rechten Hand' },
+			// Weitergeben: Werkzeug aus 14 an den zweiten Helden, danach wieder der erste
+			hbKachel(14),
+			{ warteAuf: 'z.hb.sel == 14', max: 2000 },
+			hbKnopf('Verschieben'),
+			{ warteAuf: "document.querySelectorAll('.hb-helden button.ziel').length == 1", seite: true, max: 2000 },
+			{ bild: 'verschieben' },
+			{ js: "document.querySelector('.hb-helden button.ziel').click()" },
+			{ warteAuf: '!z.hb.laeuft && z.hb.held == 0 && !z.hb.felder[14]', max: 5000 },
+			{ knopf: 'Hjaldis' },
+			{ warteAuf: '!z.hb.laeuft && z.hb.held == 1', max: 3000 },
+			{ erwarte: 'heldenbogen.daten.felder.some((f) => f && f.id == window.__id)', seite: true, text: 'Werkzeug beim zweiten Helden' },
+			// Reiter: Talente zeigt das Bild der Talente, das Inventar bleibt; Auswahl merkt sich die Seite
+			{ knopf: 'Talente' },
+			{ warteAuf: '!z.hb.laeuft && z.hb.seite == 3', max: 3000 },
+			{ js: 'window.__f = heldenbogen.daten.felder.findIndex((f, i) => f && i >= 7)' },
+			{ erwarte: "window.__f >= 7 && document.querySelectorAll('.hb-kachel:not(.leer)').length >= 2 && !!document.querySelector('.hb-reiter [data-seite=\"3\"].an')", seite: true, text: 'Inventar auf der Seite Talente' },
+			// Bilder vom Spiel (nicht aus dem Bild ausgeschnitten): farbige Pixel in der Kachel
+			{ erwarte: "(() => { const d = document.querySelector('.hb-kachel[data-feld=\"' + window.__f + '\"] canvas').getContext('2d').getImageData(0, 0, 16, 16).data; for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 120) return true; return false; })()", seite: true, text: 'Gegenstandsbild in der Kachel' },
+			{ bild: 'talente' },
+			hbKachel('window.__f'),
+			{ warteAuf: "document.querySelector('.hb-kachel[data-feld=\"' + window.__f + '\"]').classList.contains('sel')", seite: true, max: 2000 },
+			{ erwarte: 'z.hb.seite == 3', text: 'Auswahl ohne Seitenwechsel' },
+			hbKnopf('Ansehen'),
+			{ warteAuf: 'z.ov == 1', max: 3000 },
+			{ weiter: true },
+			{ warteAuf: 'z.ov == 0 && z.hb && !z.hb.laeuft && z.hb.seite == 3', max: 3000 },
+			// Zauber nur für Zauberkundige
+			{ erwarte: "document.querySelector('.hb-reiter [data-seite=\"4\"]').disabled == !heldenbogen.daten.helden.find((h) => h.i == heldenbogen.daten.held).zauber", seite: true, text: 'Reiter Zauber' },
+			{ knopf: 'AT/PA' },
+			{ warteAuf: '!z.hb.laeuft && z.hb.seite == 2', max: 3000 },
+			{ knopf: 'Grundwerte' },
+			{ warteAuf: '!z.hb.laeuft && z.hb.seite == 1', max: 3000 },
+			// selten: Talent anwenden über „⋯“ (Auswahl des Spiels im Overlay)
+			{ erwarte: "!document.querySelector('.hb-mehr-liste').offsetParent", seite: true, text: 'Talent/Zauber zugeklappt' },
+			{ knopf: 'Talent anwenden, Zauber sprechen' },
+			{ knopf: 'Talent anwenden' },
+			{ warteAuf: 'z.ov == 1 && z.ovN > 1', max: 3000 },
+			{ abbrechen: true },
+			{ warteAuf: 'z.ov == 0 && z.hb && !z.hb.laeuft', max: 3000 },
+			// Schließen
+			{ knopf: 'Heldenbogen schließen' },
+			{ warteAuf: 'z.haupt == 1 && !z.hb', max: 3000 },
+			{ erwarte: "!!document.querySelector('#leiste .kreuz').offsetParent", seite: true, text: 'Kreuz wieder da' },
 		],
 	},
 	{

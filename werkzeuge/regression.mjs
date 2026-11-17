@@ -76,6 +76,8 @@ for (const sz of auswahl) {
 			z.ovText = d.hidden ? '' : d.querySelector('.text').textContent;
 			z.ovN = d.hidden ? 0 : d.querySelectorAll('.optionen button').length;
 			z.vollbild = document.getElementById('mobil').classList.contains('vollbild') ? 1 : 0;
+			// Heldenbogen mit Kacheln (heldenbogen.js): Felder, Gruppe, Auswahl; null, wenn nicht zu sehen
+			z.hb = window.heldenbogen?.sichtbar ? window.heldenbogen.daten : null;
 			// Heldenerschaffung (iframe): sichtbar, Overlay, Text, Anzahl Einträge
 			const gen = document.getElementById('gen');
 			z.gen = gen.hidden ? 0 : 1;
