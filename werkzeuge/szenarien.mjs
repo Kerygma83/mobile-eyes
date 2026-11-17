@@ -1068,6 +1068,97 @@ export const szenarien = [
 		],
 	},
 	{
+		// Kampf im Hochformat (kampf.js): Feld zoombar, Kampfmenü als Knöpfe statt Overlay, Bewegen mit
+		// schrägen Pfeilen, Antippen markiert nur, zweites Tippen bestätigt; Zielwahl abbrechen; Computerkampf
+		name: 'Kampf: Feld, Befehle und Zielwahl',
+		aktionsknoepfe: true,
+		schritte: [
+			...spielBereit,
+			{ knopf: 'Held aufnehmen' }, { warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
+			...[1, 2, 3].flatMap((n) => [{ wahl: 1 }, { warteAuf: `z.helden == ${n} && z.ov == 1`, max: 3000 }, { warte: 300 }]),
+			{ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 },
+			{ knopf: 'Verlassen' },
+			{ warteAuf: `z.ort == 0 && z.stadt == ${THORWAL} && z.haupt == 1`, max: 5000 },
+			{ warte: 500 },
+			...ohneZufall,
+			{ js: `Module._web_test_fight(${KAMPF_THOR8})` },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: 'z.kampf == 1 && z.kb && z.kb.modus == "menue" && z.kb.held >= 0', max: 15000 },
+			// Feld statt Bild, Bedienfeld statt Kreuz, kein Overlay; alles ohne Scrollen
+			{ erwarte: "document.getElementById('dialog').hidden && ['10', '5', '1', '2', '3'].every((n) => document.querySelector('#kampfbedien [data-befehl=\"' + n + '\"]')) && ![7, 8, 6, 11, 9, 12].some((n) => document.querySelector('#kampfbedien [data-befehl=\"' + n + '\"]')) && !!document.querySelector('#kampfbedien .kb-verlauf')", seite: true, text: 'Kampfmenü als Knöpfe mit Kampfverlauf, kein Overlay, der Rest hinter ⋯' },
+			{ erwarte: "!document.querySelector('#leiste .kreuz').offsetParent && !document.querySelector('#mobil .voll').offsetParent && document.getElementById('kampf').getBoundingClientRect().height > 200", seite: true, text: 'Feld statt Bild, ohne Steuerkreuz' },
+			{ erwarte: "(() => { const b = document.getElementById('kampfbedien'); return b.scrollHeight <= b.clientHeight + 1 && b.getBoundingClientRect().top >= document.getElementById('kampf').getBoundingClientRect().bottom - 0.5 && document.querySelector('#leiste .menue').getBoundingClientRect().bottom <= innerHeight + 0.5; })()", seite: true, text: 'Bedienfeld unter dem Feld, ohne Scrollen' },
+			{ erwarte: 'Math.abs(z.kb.s - 1.5) < 0.01', text: 'Startansicht 1,5×' },
+			{ bild: 'kampf-menue' },
+			// iPhone in Safari: Feld niedriger, Bedienfeld ohne Scrollen
+			{ groesse: [390, 664] },
+			{ warteAuf: "(() => { const b = document.getElementById('kampfbedien'); return b.clientHeight > 0 && b.scrollHeight <= b.clientHeight + 1 && document.querySelector('#leiste .menue').getBoundingClientRect().bottom <= innerHeight + 0.5 && document.getElementById('kampf').getBoundingClientRect().height > 180; })()", seite: true, max: 3000 },
+			{ bild: 'kampf-klein' },
+			{ groesse: [390, 844] },
+			// Zoom: Stufen und ganzes Feld
+			{ knopf: 'Kampffeld vergrößern' },
+			{ warteAuf: 'Math.abs(z.kb.s - 2) < 0.01', max: 2000 },
+			{ knopf: 'Ganzes Kampffeld' },
+			{ warteAuf: 'Math.abs(z.kb.s - 1) < 0.01', max: 2000 },
+			{ knopf: 'Kampffeld vergrößern' },
+			// Bewegen: schräge Pfeile verschieben die Markierung entlang der Feldachsen
+			{ merke: 'vorher' },
+			{ knopf: 'Bewegen' },
+			{ warteAuf: 'z.kb.p == 3 && z.kb.modus == "ziel" && z.kb.m[0] == z.kb.a[0] && z.kb.m[1] == z.kb.a[1]', max: 3000 },
+			{ knopf: 'Nach rechts unten' },
+			{ warteAuf: 'z.kb.m[0] == z.kb.a[0] + 1 && z.kb.m[1] == z.kb.a[1]', max: 2000 },
+			{ knopf: 'Nach rechts oben' },
+			{ warteAuf: 'z.kb.m[0] == z.kb.a[0] + 1 && z.kb.m[1] == z.kb.a[1] + 1', max: 2000 },
+			{ bild: 'kampf-bewegen' },
+			// Antippen eines Felds markiert nur (die Markierung folgt dem Zeiger)
+			{ tippBei: 'kampf.punkt(kampf.zustand().a[0] - 1, kampf.zustand().a[1])' },
+			{ warteAuf: 'z.kb.p == 3 && z.kb.m[0] == z.kb.a[0] - 1 && z.kb.m[1] == z.kb.a[1]', max: 2000 },
+			{ warte: 500 },
+			{ erwarte: 'z.kb.p == 3 && z.kb.bp == m.vorher.kb.bp', text: 'erstes Tippen bewegt nicht' },
+			// Abbrechen: zurück zu den Befehlen, BP unverändert
+			{ knopf: 'Abbrechen' },
+			{ warteAuf: 'z.kb.modus == "menue" && z.kb.p == 0', max: 3000 },
+			// Angriff: Zielwahl mit „Angreifen“, abbrechen
+			{ knopf: 'Angriff' },
+			{ warteAuf: 'z.kb.p == 2 && z.kb.modus == "ziel"', max: 3000 },
+			{ erwarte: "(() => { const b = document.querySelector('#kampfbedien .kb-ok'), t = b.firstChild; return t.textContent == 'Angreifen' && t.scrollWidth <= t.clientWidth; })()", seite: true, text: 'Bestätigen heißt „Angreifen“, nicht abgeschnitten' },
+			{ bild: 'kampf-angriff' },
+			// Abbrechen: das Original meldet danach „Ungültiges Ziel!“ (seg033, Abbruch liefert −99), die Meldung schließen
+			{ knopf: 'Abbrechen' },
+			{ warteAuf: 'z.kb.p == 0 && (z.ov == 1 || z.kb.modus == "menue")', max: 3000 },
+			{ js: "(() => { const d = document.getElementById('dialog'); if (!d.hidden) { d.dispatchEvent(new PointerEvent('pointerdown')); d.click(); } })()" },
+			{ warteAuf: 'z.kb.modus == "menue" && z.ov == 0', max: 3000 },
+			// Weitere Befehle hinter ⋯
+			{ knopf: 'Weitere Befehle' },
+			{ warteAuf: "!!document.querySelector('#kampfbedien [data-befehl=\"12\"]')", seite: true, max: 2000 },
+			{ knopf: 'Werte prüfen' },
+			{ warteAuf: 'z.ov == 1', max: 3000 },
+			{ weiter: true },
+			{ warteAuf: 'z.kb && z.kb.modus == "menue" && z.ov == 0', max: 3000 },
+			// Gegenstand der linken Hand: Auswahlliste im Bedienfeld statt im Overlay, abbrechen
+			{ knopf: 'Weitere Befehle' },
+			{ knopf: 'Gegenstand der linken Hand wechseln' },
+			{ warteAuf: 'z.kb.modus == "liste" && z.ov == 0', max: 3000 },
+			{ erwarte: "document.querySelectorAll('#kampfbedien .kb-eintrag').length > 0", seite: true, text: 'Gegenstände als Liste' },
+			{ bild: 'kampf-liste' },
+			{ knopf: 'Abbrechen' },
+			{ warteAuf: 'z.kb.modus == "menue"', max: 3000 },
+			// Computerkampf: Rückfrage als Overlay, dann Kampfverlauf mit Tempo
+			{ knopf: 'Weitere Befehle' },
+			{ knopf: 'Computerkampf' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 2', max: 3000 },
+			{ wahl: 2 },
+			{ warteAuf: "kampf.zustand()?.modus == 'verlauf' && document.querySelectorAll('#kampfbedien .kb-wahl3 button').length == 3", seite: true, max: 10000 },
+			{ warteAuf: "document.querySelectorAll('#kampfbedien .kb-verlauf-zeile').length > 0", seite: true, max: 20000 },
+			{ bild: 'kampf-verlauf' },
+			// eigene Aktionen im Verlauf hervorgehoben
+			{ warteAuf: "document.querySelectorAll('#kampfbedien .kb-verlauf-zeile.eigen').length > 0", seite: true, max: 60000 },
+			{ bild: 'kampf-verlauf-eigen' },
+			{ warteAuf: 'z.kampf == 0', max: 300000 },
+			{ warteAuf: "!document.getElementById('mobil').classList.contains('kampf')", seite: true, max: 5000 },
+		],
+	},
+	{
 		// Menü (menue.js) statt Einstellungen in der Leiste: Speichern und Laden im Tempel (wie die Icons) und in
 		// der Stadt (wie die Spieloptionen, mit AP-Rückfrage), Tagebuch, Hyggeliks Karte, Einstellungen mit Ton
 		// und Kampftempo, zurück zum Startmenü

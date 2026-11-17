@@ -208,6 +208,13 @@
 		}
 		body.mobil.aktionsknoepfe #mobil.heldenbogen ~ #leiste :is(.kreuz, button[data-key="enter"], button[data-key="rechtsklick"]) { display: none; }
 		body.mobil.aktionsknoepfe #mobil.heldenbogen ~ #leiste #heldenbogen { display: flex; grid-column: 1 / -1; grid-row: 1 / 3; align-self: stretch; }
+		/* Kampf (kampf.js): Feld 4 : 3,3 über der ganzen Breite, so hoch, wie das Bedienfeld es zulässt
+		   (--kampf-unten, um den gemessenen Überlauf erhöht); statt Kreuz, OK und Zurück das Bedienfeld */
+		body.mobil.aktionsknoepfe { --kampf-unten: calc(22.5rem + var(--kampf-mehr, 0px)); }
+		body.mobil.aktionsknoepfe #mobil.kampf ~ #leiste { width: min(100%, 40rem); }
+		body.mobil.aktionsknoepfe #mobil.kampf ~ #leiste .rechts { container-type: normal; }
+		body.mobil.aktionsknoepfe #mobil.kampf ~ #leiste :is(.kreuz, button[data-key="enter"], button[data-key="rechtsklick"]) { display: none; }
+		body.mobil.aktionsknoepfe #mobil.kampf ~ #leiste #kampfbedien { display: flex; grid-column: 1 / -1; grid-row: 1 / 3; align-self: stretch; }
 		body.mobil.aktionsknoepfe .aktionen :is(.wuerfel, .quest, .menue) svg { flex: none; width: 1.15rem; height: 1.15rem; }
 		body.mobil.aktionsknoepfe .aktionen button .text { display: inline; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; }
 	}
@@ -242,6 +249,78 @@
 	button.aktiv { background: var(--knopf-aktiv); border-color: var(--gold); }
 	.kreuz button { font-size: 1.5rem; }
 	.kreuz .leer { visibility: hidden; }
+	/* Kampf (kampf.js), nur im Hochformat mit Aktionsknöpfen: Feld statt des ganzen Bildschirms */
+	#kampf { display: none; position: relative; flex: none; width: min(100%, 40rem); aspect-ratio: 4 / 3.3;
+		max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--kampf-unten, 22.5rem)); }
+	body.mobil #mobil.kampf > .voll { display: none; }
+	#mobil.kampf #kampf { display: block; }
+	#kampf .flaeche { position: absolute; inset: 0; overflow: hidden; background: #000; touch-action: none; }
+	#kampf .inhalt { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+	#kampf .inhalt canvas { display: block; }
+	#kampf .zoom { position: absolute; right: 0.4rem; top: 0.4rem; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+	#kampf .zoom button { width: 2.1rem; height: 2.1rem; font-size: 1.1rem; background: rgb(36 28 21 / 0.6); border-color: rgb(90 74 58 / 0.7); touch-action: manipulation; }
+	#kampf .stufe { font-size: 0.7rem; color: var(--leise); text-shadow: 0 0 3px #000; }
+	#kampfbedien { display: none; flex-direction: column; gap: 0.3rem; min-height: 0; overflow-y: auto; font-size: 0.85rem; }
+	#kampfbedien.gesendet { opacity: 0.6; }
+	#kampfbedien button { font: inherit; color: var(--text); background: var(--knopf); border: 1px solid var(--rand); border-radius: 0.5rem;
+		touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 2.4rem; padding: 0.1rem 0.15rem;
+		display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; min-width: 0; line-height: 1.1; }
+	#kampfbedien button > span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	#kampfbedien button small { font-size: 0.66rem; color: var(--leise); }
+	#kampfbedien button:disabled { opacity: 0.4; }
+	#kampfbedien button.gross { min-height: 2.9rem; font-size: 1rem; font-weight: 600; }
+	#kampfbedien button.gross small { font-weight: 400; }
+	#kampfbedien button.haupt { background: var(--knopf-aktiv); border-color: var(--gold); }
+	#kampfbedien button.warn::after { content: ""; position: absolute; top: 0.25rem; right: 0.3rem; width: 0.42rem; height: 0.42rem; border-radius: 50%; background: #d8463a; }
+	#kampfbedien button.an { background: var(--knopf-aktiv); border-color: var(--gold); color: var(--gold); }
+	.kb-gruppe { display: flex; gap: 0.3rem; }
+	#kampfbedien .kb-held { flex: 1; min-height: 0; padding: 0.2rem 0.3rem; align-items: stretch; gap: 0.12rem; font-size: 0.75rem; }
+	#kampfbedien .kb-held.an { background: var(--gold); border-color: var(--gold); color: #1c1610; font-weight: 600; }
+	#kampfbedien .kb-held.weg { opacity: 0.45; }
+	.kb-balken { height: 0.2rem; background: #000; border-radius: 0.1rem; overflow: hidden; }
+	.kb-balken b { display: block; height: 100%; background: #5fae5a; }
+	.kb-balken.ae b { background: #5b8fd8; }
+	.kb-zug { display: flex; align-items: center; gap: 0.4rem; min-height: 1.3rem; }
+	.kb-zug b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.kb-bp { display: flex; align-items: center; gap: 0.15rem; margin-left: auto; flex: none; }
+	.kb-bp i { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--gold); }
+	.kb-bp i.weg { background: transparent; border: 1px solid var(--rand); }
+	.kb-bp i.kostet { background: transparent; border: 1px solid var(--gold); }
+	.kb-bp small { margin-left: 0.3rem; color: var(--leise); font-size: 0.75rem; }
+	.kb-unten { margin-top: auto; display: flex; flex-direction: column; gap: 0.3rem; }
+	.kb-titel { color: var(--leise); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0 0.15rem; }
+	.kb-reihe { display: grid; gap: 0.3rem; }
+	.kb-reihe.eins { grid-template-columns: minmax(0, 1fr); }
+	.kb-reihe.zwei { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.kb-reihe.drei { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+	.kb-reihe.vier { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+	#kampfbedien .kb-mehr { color: var(--leise); font-size: 1.1rem; }
+	.kb-banner { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.5rem; background: #2d2518; border: 1px solid var(--gold); border-radius: 0.6rem; }
+	.kb-banner-text { flex: 1; min-width: 0; }
+	.kb-banner-text b { display: block; font-weight: 600; }
+	.kb-banner-text small { display: block; color: var(--leise); font-size: 0.75rem; }
+	#kampfbedien .kb-banner button { flex: none; padding: 0 0.8rem; }
+	.kb-diagonal { margin: auto auto 0; width: min(100%, 15rem); aspect-ratio: 3.4 / 3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 0.35rem; }
+	#kampfbedien .kb-pfeil { font-size: 1.5rem; }
+	#kampfbedien .kb-ok { background: var(--knopf-aktiv); border-color: var(--gold); font-weight: 600; font-size: 0.85rem; }
+	.kb-hinweis, .kb-leise { color: var(--leise); font-size: 0.72rem; text-align: center; }
+	.kb-liste { display: flex; flex-direction: column; gap: 0.3rem; margin-top: auto; min-height: 0; overflow-y: auto; }
+	#kampfbedien .kb-eintrag { flex-direction: row; justify-content: flex-start; gap: 0.5rem; padding: 0.25rem 0.5rem; text-align: left; flex: none; }
+	.kb-eintrag canvas { flex: none; width: 1.8rem; height: 1.8rem; background: #000; border-radius: 0.25rem; image-rendering: pixelated; }
+	.kb-eintrag canvas.leer { visibility: hidden; }
+	.kb-eintrag span { display: flex; flex-direction: column; min-width: 0; }
+	.kb-eintrag b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	/* Kampfverlauf füllt den freien Platz, neueste Einträge unten (ältere laufen oben heraus) */
+	.kb-verlauf { flex: 1 1 0; min-height: 2rem; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 0.2rem; padding: 0.4rem 0.5rem; background: var(--bg); border: 1px solid var(--rand); border-radius: 0.6rem; font-size: 0.8rem; }
+	.kb-verlauf > * { flex: none; }
+	.kb-verlauf-zeile.eigen { color: var(--gold); }
+	.kb-verlauf-zeile.neu { font-weight: 600; }
+	.kb-mehr-liste { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: end; gap: 0.3rem; }
+	.kb-verlauf-zeile { display: flex; justify-content: space-between; gap: 0.5rem; }
+	.kb-verlauf-zeile span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.kb-verlauf-zeile span:last-child { color: var(--leise); white-space: nowrap; }
+	.kb-verlauf-zeile.treffer span:last-child { color: #e58a6e; }
+	.kb-wahl3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.3rem; }
 	/* Heldenbogen (heldenbogen.js), nur im Hochformat mit Aktionsknöpfen sichtbar: oben Gruppe und Reiter,
 	   unten (Daumenbereich) Karte, Ausrüstung und Rucksack */
 	#heldenbogen { display: none; flex-direction: column; justify-content: space-between; gap: 0.35rem; min-height: 0; overflow-y: auto; font-size: 0.85rem; }
@@ -513,6 +592,19 @@
 		</div>
 		<div class="ziele"></div>
 	</div>
+	<!-- Kampffeld (kampf.js): zoom- und verschiebbar -->
+	<div id="kampf" aria-label="Kampffeld">
+		<div class="flaeche">
+			<div class="inhalt"><canvas width="320" height="200"></canvas></div>
+			<div class="zoom">
+				<button type="button" data-zoom="+" aria-label="Kampffeld vergrößern">+</button>
+				<button type="button" data-zoom="-" aria-label="Kampffeld verkleinern">−</button>
+				<button type="button" data-zoom="ganz" aria-label="Ganzes Kampffeld">⤢</button>
+				<button type="button" data-zoom="held" aria-label="Zum Kämpfer am Zug">◎</button>
+				<span class="stufe"></span>
+			</div>
+		</div>
+	</div>
 </div>
 
 <!-- Spielstände sichern: Export/Import der .GAM-Dateien (liegen sonst nur im Browser) -->
@@ -736,6 +828,7 @@
 			<span class="leer"></span>
 		</div>
 		<div id="heldenbogen" aria-label="Inventar"></div>
+		<div id="kampfbedien" aria-label="Kampf"></div>
 		<div class="aktionen" aria-label="Aktionen">
 			<button data-key="enter" title="Bestätigen (Enter)">OK</button>
 			<button data-key="rechtsklick" title="Abbrechen / Dialog schließen / Menü (Rechtsklick)">Zurück</button>
@@ -762,6 +855,7 @@
 <script src="questlog.js"></script>
 <script src="karte.js"></script>
 <script src="heldenbogen.js"></script>
+<script src="kampf.js"></script>
 <script src="aktionen.js"></script>
 <script src="minimap.js"></script>
 <script src="menue.js"></script>
@@ -871,6 +965,9 @@
 		mobilEl.classList.toggle('karte', mitKarte);
 		if (mitKarte) { karte.zeichnen(); datumZeichnen(true); }
 		mobilEl.classList.toggle('heldenbogen', !haupt && heldenbogen.aktualisieren());
+		const mitKampf = !haupt && document.body.classList.contains('mobil') && kampf.pruefen();
+		mobilEl.classList.toggle('kampf', mitKampf);
+		if (mitKampf) { kampf.zeichnen(); requestAnimationFrame(kbPlatz); }
 		requestAnimationFrame(hbPlatz);
 		for (const a of ausschnitte) {
 			if (a.c.offsetParent === null) continue; // ausgeblendet
@@ -936,7 +1033,9 @@
 
 	// Textboxen als Overlay (dialog.js); nach dem Schließen zeigt das nächste Bild des
 	// Spiels wieder alles (die Box ist dort schon entfernt)
-	const overlay = textboxOverlay(Module, { portraetQuelle: () => lebend, beimOeffnen: alleLoslassen });
+	// Kampfmenü und Auswahllisten zeigt im Kampf das Bedienfeld (kampf.js) statt des Overlays
+	const overlay = textboxOverlay(Module, { portraetQuelle: () => lebend, beimOeffnen: alleLoslassen,
+		uebernehmen: (d) => kampf.uebernehmen(d) });
 	const { dialoge, alsText, portraetZeichnen } = overlay;
 	const ton = tonEinrichten(Module);   // Soundeffekte und Musik (ton.js)
 	// Hinweis „Einmal tippen für Ton“: beim Start, bis zur ersten Berührung, höchstens 10 s
@@ -988,6 +1087,25 @@
 		}
 	}
 	window.addEventListener('resize', () => { hbMehr = 0; document.body.style.removeProperty('--hb-mehr'); });
+	// Kampf (kampf.js): Feld zoombar, Befehle, Zielwahl mit schrägen Pfeilen, Kampfverlauf
+	const kampf = kampfEinrichten(Module, { el: document.getElementById('kampf'), bedienEl: document.getElementById('kampfbedien'),
+		quelle: () => ganz, spielText: overlay.spielText, dialoge, wurfLog,
+		tempo: { lies: () => einstellung.kampftempo.lies(), setze: (v) => einstellung.kampftempo.setze(v) },
+		bild: (id) => heldenbogen.bildBekannt(id),
+		layoutPasst: () => document.body.classList.contains('mobil') && document.body.classList.contains('aktionsknoepfe') && hochformatKnoepfe.matches });
+	window.kampf = kampf;
+	// wie beim Heldenbogen: reicht der Platz nicht, wird das Feld um den gemessenen Überlauf niedriger
+	const kbEl = document.getElementById('kampfbedien');
+	let kbMehr = 0;
+	function kbPlatz() {
+		if (!mobilEl.classList.contains('kampf') || !kbEl.clientHeight) return;
+		const zuviel = kbEl.scrollHeight - kbEl.clientHeight;
+		if (zuviel > 1 && kbMehr < 300) {
+			kbMehr += zuviel;
+			document.body.style.setProperty('--kampf-mehr', kbMehr + 'px');
+		}
+	}
+	window.addEventListener('resize', () => { kbMehr = 0; document.body.style.removeProperty('--kampf-mehr'); });
 	// Minimap (minimap.js): Automap von Stadt oder Dungeon neben dem Steuerkreuz
 	const minimap = minimapEinrichten(Module, { canvas: document.getElementById('minimap'),
 		an: () => einstellung.minimap.lies() === 'an' });

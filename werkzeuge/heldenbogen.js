@@ -383,5 +383,7 @@ function heldenbogenEinrichten(Module, { el, spielText, dialogOffen, layoutPasst
 		get sichtbar() { return sichtbar; },
 		get daten() { return daten; },
 		get modus() { return modus; },
+		/** Bild eines Gegenstands, sofern schon einmal geholt (Kampf: Auswahllisten) */
+		bildBekannt: (id) => bilder.get(id),
 	};
 }

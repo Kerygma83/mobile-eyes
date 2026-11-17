@@ -11,6 +11,8 @@
 //             beimOeffnen: (d) => {},         // z. B. gehaltene Knöpfe loslassen
 //             beimSchliessen: (leer) => {},   // leer = keine Box mehr offen
 //             schreibungZusatz: { SIE: 'Sie' },  // eigene Wörter vor dem Wörterbuch
+//             uebernehmen: (d) => false,      // true: die Seite zeigt die Box selbst (z. B. Kampfmenü
+//                                             // im Bedienfeld, kampf.js), das Overlay bleibt zu
 //         });
 //         overlay.dialoge, overlay.alsText(bytes), overlay.spielText(bytes) (mit Schreibung),
 //         overlay.portraetZeichnen(), overlay.neuZeichnen(),
@@ -202,8 +204,8 @@ function textboxOverlay(Module, optionen = {}) {
 		}
 		function zeigeDialog() {
 			const d = dialoge.at(-1);
-			dialogEl.hidden = !d;
-			if (!d) return;
+			dialogEl.hidden = !d || !!d.extern;
+			if (!d || d.extern) return;
 			dialogEl.classList.toggle('gesendet', !!d.gesendet);
 			// Schriftgröße aus den Einstellungen (shell.html), Stufen 0.9–1.3
 			let schrift = 1;
@@ -296,6 +298,7 @@ function textboxOverlay(Module, optionen = {}) {
 
 	Module.dialogAuf = (d) => {
 		dialoge.push(d);
+		d.extern = !!optionen.uebernehmen?.(d);
 		optionen.beimOeffnen?.(d);
 		zeigeDialog();
 	};
