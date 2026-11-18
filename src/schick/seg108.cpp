@@ -551,8 +551,16 @@ void consume(struct struct_hero *owner, struct struct_hero *consumer, const sign
 
 					disease_id = hero_is_diseased(consumer);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 227): without a disease disease[0] (unused) is changed */
+					if (!BUGFIX_ALLES || (disease_id != 0)) {
+						consumer->disease[disease_id].status = DISEASE_STATUS_RECOVER;
+						consumer->disease[disease_id].time_counter = 0;
+					}
+#else
 					consumer->disease[disease_id].status = DISEASE_STATUS_RECOVER;
 					consumer->disease[disease_id].time_counter = 0;
+#endif
 
 					/* give owner a glassbottle */
 					give_new_item_to_hero(owner, ITEM_GLASFLASCHE, 2, 1);
