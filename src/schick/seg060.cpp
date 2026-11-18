@@ -404,7 +404,12 @@ void TLK_tavern(const signed int answer)
 
 		drink_while_drinking(10);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 59): the price is named in silver, the money is counted in heller (exploit) */
+		tmp = (BUGFIX_WICHTIG ? 200 : 20) * gs_tlk_tav_fullness;
+#else
 		tmp = 20 * gs_tlk_tav_fullness;
+#endif
 
 		p_money = get_party_money();
 
@@ -416,7 +421,12 @@ void TLK_tavern(const signed int answer)
 
 		drink_while_drinking(10);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 59): the price is named in silver, the money is counted in heller (exploit) */
+		tmp = (BUGFIX_WICHTIG ? 200 : 20) * gs_tlk_tav_fullness;
+#else
 		tmp = 20 * gs_tlk_tav_fullness;
+#endif
 
 		p_money = get_party_money();
 
@@ -430,7 +440,12 @@ void TLK_tavern(const signed int answer)
 
 		drink_while_drinking(10);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 59): the price is named in silver, the money is counted in heller (exploit) */
+		tmp = (BUGFIX_WICHTIG ? 200 : 20) * gs_tlk_tav_fullness;
+#else
 		tmp = 20 * gs_tlk_tav_fullness;
+#endif
 
 		p_money = get_party_money();
 
@@ -442,7 +457,12 @@ void TLK_tavern(const signed int answer)
 
 		drink_while_drinking(10);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 59): the price is named in silver, the money is counted in heller (exploit) */
+		tmp = (BUGFIX_WICHTIG ? 200 : 20) * gs_tlk_tav_fullness;
+#else
 		tmp = 20 * gs_tlk_tav_fullness;
+#endif
 
 		p_money = get_party_money();
 
@@ -472,7 +492,12 @@ void TLK_tavern(const signed int answer)
 
 		drink_while_drinking(10);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 59): the price is named in silver, the money is counted in heller (exploit) */
+		tmp = (BUGFIX_WICHTIG ? 200 : 20) * gs_tlk_tav_fullness;
+#else
 		tmp = 20 * gs_tlk_tav_fullness;
+#endif
 
 		p_money = get_party_money();
 
@@ -484,7 +509,12 @@ void TLK_tavern(const signed int answer)
 
 		drink_while_drinking(10);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 59): the price is named in silver, the money is counted in heller (exploit) */
+		tmp = (BUGFIX_WICHTIG ? 200 : 20) * gs_tlk_tav_fullness;
+#else
 		tmp = 20 * gs_tlk_tav_fullness;
+#endif
 
 		p_money = get_party_money();
 
@@ -680,6 +710,12 @@ void TLK_tavern(const signed int answer)
 
 		tmp = count_heroes_in_group() * (6 - g_tavern_descr_table[gs_town_typeindex].quality / 4);
 		tmp += (tmp * g_tavern_descr_table[gs_town_typeindex].price_mod) / 100;
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Schicksalsklinge-Bugfix Nr. 59: silver pieces as in do_tavern(), so times 10 heller */
+		if (BUGFIX_WICHTIG) {
+			tmp *= 10;
+		}
+#endif
 		p_money = get_party_money();
 		p_money -= tmp;
 		set_party_money(p_money);
