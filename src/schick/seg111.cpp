@@ -114,7 +114,15 @@ void tevent_057(void)
 			{
 
 				/* TODO: Original-Bug: that condition does not make sense */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 158: the heavy fall only without rope and without rope ladder
+				 * (a rope ladder made the fall worse) */
+				if (BUGFIX_WICHTIG ?
+					((get_first_hero_with_item(ITEM_SEIL) == -1) && (get_first_hero_with_item(ITEM_STRICKLEITER) == -1)) :
+					((get_first_hero_with_item(ITEM_SEIL) == -1) || (get_first_hero_with_item(ITEM_STRICKLEITER) != -1)))
+#else
 				if (get_first_hero_with_item(ITEM_SEIL) == -1 || get_first_hero_with_item(ITEM_STRICKLEITER) != -1)
+#endif
 				{
 
 					sprintf(g_dtp2, get_tx2(8), hero->alias, GUI_get_ptr(hero->sex, 0));
