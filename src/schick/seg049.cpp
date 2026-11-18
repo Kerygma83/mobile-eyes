@@ -729,12 +729,22 @@ void GRP_hero_sleep(struct struct_hero *hero, const signed int quality)
 					ae_regen = random_schick(6) + quality;
 
 					/* Original-Bug: next operator should be <= */
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Schicksalsklinge-Bugfix Nr. 246: a result of 0 stays 0 */
+					if (BUGFIX_ALLES ? (le_regen <= 0) : (le_regen < 0)) {
+#else
 					if (le_regen < 0) {
+#endif
 						le_regen = 1;
 					}
 
 					/* Original-Bug: next operator should be <= */
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Schicksalsklinge-Bugfix Nr. 246 */
+					if (BUGFIX_ALLES ? (ae_regen <= 0) : (ae_regen < 0)) {
+#else
 					if (ae_regen < 0) {
+#endif
 						ae_regen = 1;
 					}
 
