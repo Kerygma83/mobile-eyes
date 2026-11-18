@@ -26,6 +26,9 @@
 #include "seg096.h"
 #include "seg097.h"
 #include "seg106.h"
+#if !defined(__BORLANDC__)
+#include "seg113.h"
+#endif
 
 struct dng_gfxtab g_dng_gfxtab_wood[88] = {
 	 { { {      0,      0 }, {      8,      0 }, {      0,     -1 }, {      0,      0 } },     -1 },
@@ -915,6 +918,29 @@ void DNG_timestep(const signed int forward)
 
 		gs_dungeon_id = DUNGEON_ID_NONE;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 84): the death trap (Totenschiff, spider cave) ends the game
+		 * also for groups outside. Only the heroes of this group are lost (as after a lost fight on a journey:
+		 * hero_disappear(), then GRP_switch_to_next(2)); without heroes left the game is over. */
+		if (BUGFIX_WICHTIG) {
+			signed int dt_i;
+			struct struct_hero *dt_hero = get_hero(0);
+
+			gs_deathtrap = 0;
+
+			for (dt_i = 0; dt_i <= 6; dt_i++, dt_hero++) {
+				if ((dt_hero->typus != HERO_TYPE_NONE) && (dt_hero->group_id == gs_active_group_id)) {
+					hero_disappear(dt_hero, dt_i, -2);
+				}
+			}
+
+			if (g_game_state == GAME_STATE_MAIN) {
+				/* another group takes over; do not move its position */
+				GRP_switch_to_next(2);
+				return;
+			}
+		} else
+#endif
 		/* exit game */
 		g_game_state = GAME_STATE_DEAD;
 	}
