@@ -1007,6 +1007,10 @@ void DNG_update_pos(void)
 	g_dng_refresh_x_target = gs_x_target;
 	g_dng_refresh_y_target = gs_y_target;
 	g_dng_refresh_direction = gs_direction;
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 345: DNG_step() checks for a fight on this square */
+	g_dng_fight_pending = 1;
+#endif
 }
 
 void DNG_inc_level(void)

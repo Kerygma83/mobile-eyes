@@ -1877,6 +1877,9 @@ extern struct dng_gfxtab *g_dng_gfxtab;		// ds:0xe48d; seg075, seg076
 extern signed char g_dng_floor_tex;		// ds:0xe48c; seg075
 extern unsigned char *g_dng_map_ptr;		// ds:0xe488; seg076, seg098, seg099
 extern signed int g_dng_refresh_x_target;	// ds:0xe486; seg075, seg076
+#ifdef M302de_ORIGINAL_BUGFIX
+extern signed int g_dng_fight_pending;	/* Schicksalsklinge-Bugfix Nr. 345; seg075, seg076 */
+#endif
 extern signed int g_dng_refresh_y_target;	// ds:0xe484; seg075, seg076
 extern signed int g_dng_refresh_direction;	// ds:0xe482; seg075, seg076, seg082, seg088
 extern unsigned char g_automap_buf[64];		// ds:0xe442; seg002, seg028, seg074

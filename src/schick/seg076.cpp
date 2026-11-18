@@ -74,6 +74,10 @@ signed int g_dng_level_changed = 0; // ds:0x9312
 signed int g_dng_refresh_direction;	// ds:0xe482
 signed int g_dng_refresh_y_target;	// ds:0xe484
 signed int g_dng_refresh_x_target;	// ds:0xe486
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Schicksalsklinge-Bugfix Nr. 345: DNG_update_pos() ran without DNG_fight() */
+signed int g_dng_fight_pending = 0;
+#endif
 unsigned char *g_dng_map_ptr;		// ds:0xe488, to DNG_MAP
 signed char g_dng_floor_tex;		// ds:0xe48c, changing every timestep
 struct dng_gfxtab *g_dng_gfxtab;		// ds:0xe48d, to GFXTAB(_WOOD|_STONE|_MARBLE)
@@ -483,6 +487,14 @@ signed int DNG_step(void)
 		set_automap_tiles(gs_x_target, gs_y_target);
 		DNG_fight();
 	}
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 345): stairs, trapdoors, teleporters and other handlers move the
+	 * group and call DNG_update_pos() themselves; then the check above does not fire and a fight on the
+	 * target square only started after turning or opening the menu. Start it on arrival. */
+	else if (BUGFIX_WICHTIG && g_dng_fight_pending) {
+		DNG_fight();
+	}
+#endif
 
 	/* TODO: potential bug: g_dng_level_changed is set to 1, but never back to 0 */
 	if ((gs_x_target != gs_x_target_bak) || (gs_y_target != gs_y_target_bak) || (signed char)g_dng_level_changed)
@@ -877,6 +889,11 @@ void DNG_fight(void)
 	struct dungeon_fight *fight_ptr = (struct dungeon_fight*)g_dungeon_fights_buf;
 
 	target_pos = DNG_POS(gs_dungeon_level, gs_x_target, gs_y_target);
+
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 345 */
+	g_dng_fight_pending = 0;
+#endif
 
 	do {
 		if (fight_ptr->pos == target_pos)
