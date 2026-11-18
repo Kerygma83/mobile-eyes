@@ -371,7 +371,14 @@ void FIG_menu(struct struct_hero *hero, const signed int hero_pos, signed int x,
 
 									if (target_object_id != -99) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+										/* Original-Bug (Schicksalsklinge-Bugfix Nr. 11): unlike the attack branch, walkable objects
+										 * (id >= 50) are not rejected; FIG_do_hero_action() then treats them as an enemy
+										 * (index outside g_enemy_sheets) */
+										if ((target_object_id < 0) || (BUGFIX_WICHTIG && (target_object_id >= 50))) {
+#else
 										if (target_object_id < 0) {
+#endif
 											GUI_output(get_tx(28));
 
 										} else if ((target_object_id == 0) && (spell_description->target_type != 4))
