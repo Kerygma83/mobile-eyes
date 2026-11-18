@@ -605,6 +605,14 @@ void THO_academy(void)
 						if (drop_item(hero, i, 1)) {
 
 							GUI_input(get_tx2(62), 0);
+#ifdef M302de_ORIGINAL_BUGFIX
+							/* Original-Bug (Schicksalsklinge-Bugfix Nr. 69): text 63 contains %s (the hero), but is shown
+							 * without sprintf() */
+							if (BUGFIX_ALLES) {
+								sprintf(g_dtp2, get_tx2(63), get_hero(cursed_hero_pos)->alias);
+								GUI_input(g_dtp2, 0);
+							} else
+#endif
 							GUI_input(get_tx2(63), 0);
 
 							gs_academy_daily_curse = 1;
@@ -622,6 +630,13 @@ void THO_academy(void)
 					p_money -= 2000;
 					set_party_money(p_money);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Schicksalsklinge-Bugfix Nr. 69 */
+					if (BUGFIX_ALLES) {
+						sprintf(g_dtp2, get_tx2(63), get_hero(cursed_hero_pos)->alias);
+						GUI_input(g_dtp2, 0);
+					} else
+#endif
 					GUI_input(get_tx2(63), 0);
 
 					gs_academy_daily_curse = 1;
