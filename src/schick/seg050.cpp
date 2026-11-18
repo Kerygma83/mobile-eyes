@@ -726,7 +726,13 @@ void level_up(const signed int hero_pos)
 		/* a magic user */
 
 		/* add spell increasements */
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 402): saved spell increases overflow above 127 (signed char, exploit) */
+		hero->saved_spell_increases = (BUGFIX_WICHTIG && ((signed int)hero->saved_spell_increases + g_levelup_sp_rise[hero->typus - 7] > 127)) ?
+			127 : hero->saved_spell_increases + g_levelup_sp_rise[hero->typus - 7];
+#else
 		hero->saved_spell_increases += g_levelup_sp_rise[hero->typus - 7];
+#endif
 
 		i += 2;
 
@@ -1035,7 +1041,13 @@ void level_up(const signed int hero_pos)
 						i = spta_convs;
 					}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Schicksalsklinge-Bugfix Nr. 402: at most 127 (signed char) */
+					hero->saved_spell_increases = (BUGFIX_WICHTIG && ((signed int)hero->saved_spell_increases + i > 127)) ?
+						127 : hero->saved_spell_increases + i;
+#else
 					hero->saved_spell_increases += i;
+#endif
 					hero->saved_talent_increases -= i;
 				}
 			}
