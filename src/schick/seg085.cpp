@@ -122,6 +122,10 @@ signed int DNG10_handler(void)
 		if (gs_dng10_hole_state || test_talent(hero, TA_SINNESSCHAERFE, 5) > 0)
 		{
 			/* set hole found */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 115): this overwrites the state 2 (stone removed) */
+			if (!BUGFIX_ALLES || !gs_dng10_hole_state)
+#endif
 			gs_dng10_hole_state = 1;
 
 			if (gs_dng10_hole_state == 2 || GUI_bool(get_tx(6)))
