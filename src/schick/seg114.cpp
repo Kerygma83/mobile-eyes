@@ -321,6 +321,13 @@ void tevent_113(void)
 		gs_town_loc_type = LOCTYPE_WILDCAMP;
 		do_location();
 		gs_town_loc_type = LOCTYPE_NONE;
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 170): the sleep bonus is not reset (unlike in
+		 * TRV_found_camp_place() and tevent_078) and stays for later camps. Only for this camp. */
+		if (BUGFIX_WICHTIG) {
+			g_wildcamp_sleep_quality = 0;
+		}
+#endif
 
 		g_textbox_width = 9;
 		g_request_refresh = 2;
