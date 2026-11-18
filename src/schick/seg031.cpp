@@ -101,6 +101,12 @@ void do_random_talk(const signed int talk_id, const signed int informer_id)
 	do {
 		answer = optioncount = 0;
 		state_ptr = &states_tab[g_dialog_state];
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 45): missing answers keep an uninitialised (or old) value and are
+		 * shuffled in. Set them to 0 (= txt_offset), then the check while shuffling protects them.
+		 * Uninitialised variable natively, always on. */
+		opt0_txt = opt1_txt = opt2_txt = 0;
+#endif
 
 		if (g_tlk_id == 13 && g_dialog_state >= 20) {
 			txt_id_rand = opt0_rand = opt1_rand = opt2_rand = 0;
