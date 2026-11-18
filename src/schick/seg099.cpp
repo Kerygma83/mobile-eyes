@@ -385,6 +385,21 @@ void spell_boeser_blick(void)
 
 void spell_grosse_gier(void)
 {
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 382): not implemented. The enemy leaves the battlefield
+	 * (Loesungsbuch), like Horriphobus via escape; costs 8 AE from the spell table. Animals are not greedy. */
+	if (BUGFIX_WICHTIG && g_in_fight && (get_spelluser()->target_object_id >= 10) && (get_spelluser()->target_object_id < 30)) {
+		g_spelltarget_e = &g_enemy_sheets[get_spelluser()->target_object_id - 10];
+		if (g_spelltarget_e->is_animal) {
+			g_spell_special_aecost = -2;
+			return;
+		}
+		g_spelltarget_e->flags.scared = 1;
+		g_spelltarget_e->flags.renegade = 0;
+		*g_dtp2 = '\0';
+		return;
+	}
+#endif
 #if !defined(__BORLANDC__)
 	D1_INFO("Zauberspruch \"Grosse Gier\" ist nicht implementiert\n");
 #endif
