@@ -166,7 +166,14 @@ signed int get_passage_travel_hours(const signed int distance, signed int base_s
 	int32_t tmp;
 
 	/* convert base_speed to unit [100m per hour] */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 137): base_speed is a signed byte in the ship table,
+	 * the Schnellsegler (150) arrives as -106. The speed becomes negative or 0, and sea_travel() then
+	 * divides by gs_travel_speed = 0 (in the browser a crash). Fix: read it unsigned. */
+	base_speed = ROUNDED_DIVISION((BUGFIX_WICHTIG ? (uint8_t)base_speed : base_speed) * 10, 24);
+#else
 	base_speed = ROUNDED_DIVISION(base_speed * 10, 24);
+#endif
 	/* lowest possible value: (40 * 10 + 11) / 24 = 17 (for Fischerboot) */
 	/* highest possible value: (150 * 10 + 11) / 24 = 62 (for Schnellsegler) */
 
@@ -174,6 +181,17 @@ signed int get_passage_travel_hours(const signed int distance, signed int base_s
 	/* adjust speed to between 80.5% (when WEATHER1 = WEATHER2 = 1) and 247% (when WEATHER1 = 6 and WEATHER2 = 7). */
 	/* unit: [100m per hour] */
 	gs_sea_travel_passage_speed2 = ROUNDED_DIVISION(base_speed * (gs_weather2 + 6) * (gs_weather1 * 15 + 100), 1000L);
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 137): the speed is copied to the signed byte
+	 * gs_sea_travel_passage_speed1 (seg063) and used as a divisor: keep it in 1..127. */
+	if (BUGFIX_WICHTIG) {
+		if (gs_sea_travel_passage_speed2 < 1) {
+			gs_sea_travel_passage_speed2 = 1;
+		} else if (gs_sea_travel_passage_speed2 > 127) {
+			gs_sea_travel_passage_speed2 = 127;
+		}
+	}
+#endif
 		/* possible values for gs_sea_travel_passage_speed2:
 		 * ## high seas routes ##
 		 * Schnellsegler (base_speed 150): {* 50, 56, 57, 63, 64^^2, 69, 71, 72, 73, 76, 78, 79, 81^^2, 82, 86, 87, 89^^2, 90, 93, 94, 97, 98, 99^^2, 105, 106, 108^^2, 109, 117, 118, 119^^2, 129, 130^^2, 141^^2, 153 *}
