@@ -517,9 +517,26 @@ void spell_visibili(void)
 	if (rounds * 5 <= get_spelluser()->ae) {
 
 		g_spell_special_aecost = rounds * 5;
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 186): only the caster becomes invisible, so the fight is
+		 * skipped only for a single hero. As in the Loesungsbuch the whole group becomes invisible, the caster
+		 * pays the costs (rounds x 5 AE) once. do_fight() skips the fight if all living heroes are invisible. */
+		if (BUGFIX_WICHTIG) {
+			struct struct_hero *hero = get_hero(0);
+			for (pos = 0; pos <= 6; pos++, hero++) {
+				if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) && !hero->flags.dead) {
+					mod_slot = get_free_mod_slot();
+					set_mod_slot(mod_slot, (int32_t)rounds * MINUTES(5), (uint8_t*)&hero->invisible, 1, (signed char)pos);
+				}
+			}
+		} else {
+#endif
 		pos = get_hero_index(get_spelluser());
 		mod_slot = get_free_mod_slot();
 		set_mod_slot(mod_slot, (int32_t)rounds * MINUTES(5), (uint8_t*)&get_spelluser()->invisible, 1, pos);
+#ifdef M302de_ORIGINAL_BUGFIX
+		}
+#endif
 
 		sprintf(g_dtp2,	get_tx(106), get_spelluser()->alias, GUI_get_ptr(get_spelluser()->sex, 0));
 	} else {

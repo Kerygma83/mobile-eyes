@@ -957,6 +957,28 @@ signed int do_fight(const signed int fight_id)
 		/* TODO: potential Original-Bug: what about groups with >= 2 heroes where all have an active Visibili? */
 		return 3;
 	}
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 186): the fight is skipped if all living heroes of the group
+	 * are invisible (Visibili now makes the whole group invisible, seg101) */
+	if (BUGFIX_WICHTIG) {
+		struct struct_hero *vis_hero = get_hero(0);
+		signed int vis_i;
+		signed int vis_seen = 0;
+		signed int vis_all = 1;
+
+		for (vis_i = 0; vis_i <= 6; vis_i++, vis_hero++) {
+			if ((vis_hero->typus != HERO_TYPE_NONE) && (vis_hero->group_id == gs_active_group_id) && !vis_hero->flags.dead) {
+				vis_seen = 1;
+				if (vis_hero->invisible == 0) {
+					vis_all = 0;
+				}
+			}
+		}
+		if (vis_seen && vis_all) {
+			return 3;
+		}
+	}
+#endif
 
 	if (gs_dng15_took_cursed_money) {
 		return 0;
