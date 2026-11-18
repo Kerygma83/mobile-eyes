@@ -48,7 +48,13 @@ static signed int copy_ani_seq(int8_t *dst, const signed int ani_num, const sign
 	if (ani_num < 0)
 		return 0;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 294): valid are 0..ani_max_num-1; ani_num == ani_max_num reads
+	 * behind the last sequence. Invalid memory access natively, always on. */
+	if (ani_num >= ani_max_num)
+#else
 	if (ani_num > ani_max_num)
+#endif
 		return 0;
 
 	/* set p_datitem to the first sequence */
@@ -102,7 +108,13 @@ static signed char get_seq_header(const signed int ani_num)
 		return 0;
 	}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 294): valid are 0..ani_max_num-1; ani_num == ani_max_num reads
+	 * behind the last sequence. Invalid memory access natively, always on. */
+	if (ani_num >= ani_max_num) {
+#else
 	if (ani_num > ani_max_num) {
+#endif
 		return 0;
 	}
 
