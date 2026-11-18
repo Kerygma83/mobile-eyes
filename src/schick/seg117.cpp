@@ -229,7 +229,13 @@ void hunt_karen(void)
 					}
 				}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 375: at least half of the group (rounded up); a single hero has
+				 * to hit (exploit: with 0 / 2 a single hero always succeeded) */
+				if (((BUGFIX_ALLES ? (count_heroes_in_group() + 1) : count_heroes_in_group()) / 2) <= passed) {
+#else
 				if ((count_heroes_in_group() / 2) <= passed) {
+#endif
 					/* over the half of the group passed MISSLE WEAPON+0 */
 
 					GUI_output(get_tx2(8));
@@ -308,7 +314,13 @@ void hunt_wildboar(void)
 					}
 				}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 375: at least half of the group (rounded up); a single hero has
+				 * to hit (exploit: with 0 / 2 a single hero always succeeded) */
+				if (((BUGFIX_ALLES ? (count_heroes_in_group() + 1) : count_heroes_in_group()) / 2) <= passed) {
+#else
 				if ((count_heroes_in_group() / 2) <= passed) {
+#endif
 					/* over the half of the group passed MISSLE WEAPON+0 */
 
 					GUI_output(get_tx2(17));
