@@ -823,6 +823,14 @@ void spell_spurlos(void)
 
 void spell_transversalis(void)
 {
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 383): on a journey (camp on the way) gs_town_id is still the
+	 * town of departure, the spell costs AE without effect. Message as outside, no AE. */
+	if (BUGFIX_WICHTIG && g_traveling) {
+		g_spell_special_aecost = 0;
+		strcpy(g_dtp2, get_tx(18));
+	} else
+#endif
 	if (!gs_dungeon_id && !gs_town_id) {
 		/* cannot be used outside of a dungeon or a town */
 
