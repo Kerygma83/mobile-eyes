@@ -305,6 +305,13 @@ void do_wildcamp(void)
 				l3 = gs_day_timer < HOURS(8) ? 8 - l3 : 24 - l3 + 8;
 
 				l4 = l3 / 3;
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 130): with less than 3 hours of sleep the watch
+				 * never changes. At least 1 hour per watch. */
+				if (BUGFIX_ALLES && (l4 == 0)) {
+					l4 = 1;
+				}
+#endif
 				l5 = l4;
 				l_si = 0;
 				have_guards = 0;

@@ -191,6 +191,12 @@ void do_area_camp(void)
 				if (hours > 0) {
 
 					l5 = hours / 3;
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Schicksalsklinge-Bugfix Nr. 130: at least 1 hour per watch */
+					if (BUGFIX_ALLES && (l5 == 0)) {
+						l5 = 1;
+					}
+#endif
 					l6 = l5;
 					l_di = 0;
 
