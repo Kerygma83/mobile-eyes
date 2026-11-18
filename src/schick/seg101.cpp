@@ -154,7 +154,13 @@ void spell_feuerbann(void)
 		mod_slot = get_free_mod_slot();
 
 		/* Duration = Level * 12 min */
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 213): fireban is set but never evaluated. Duration level
+		 * in hours (Loesungsbuch); the effect (half fire damage) is evaluated in seg102. */
+		set_mod_slot(mod_slot, get_spelluser()->level * (BUGFIX_WICHTIG ? HOURS(1) : MINUTES(5)), (uint8_t*)&get_spelluser()->fireban, 1, target);
+#else
 		set_mod_slot(mod_slot, get_spelluser()->level * MINUTES(5), (uint8_t*)&get_spelluser()->fireban, 1, target);
+#endif
 
 		/* prepare message */
 		sprintf(g_dtp2,	get_tx(102), get_spelluser()->alias);
