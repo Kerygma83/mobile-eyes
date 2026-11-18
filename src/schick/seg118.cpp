@@ -293,7 +293,13 @@ void tevent_078(void)
 
 					sub_group_le(2);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 183): answer is 2 (first try) or 1, never 0; text 82
+					 * (quick success) never appears. On the first try (answer == 2) text 82. */
+					GUI_dialog_na(0, (BUGFIX_ALLES ? (answer == 2) : !answer) ? get_tx2(82) : get_tx2(85));
+#else
 					GUI_dialog_na(0, !answer ? get_tx2(82) : get_tx2(85));
+#endif
 
 					found_path = 1;
 				} else {
