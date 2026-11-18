@@ -940,7 +940,13 @@ void AFIG_hero_turn(struct struct_hero *hero, const signed int hero_pos, signed 
 				(hero->ae > 10) &&	/* AE > 10 */
 				(try_autospell != 0) &&
 				(g_current_fight_no != FIGHTS_F144) &&	/* not in the final fight */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 385): the NPC (Curian) casts spells only in the
+				 * auto fight with magic, although he is always controlled by the computer */
+				(g_autofight_magic || (BUGFIX_WICHTIG && (hero->npc_id > 0))))
+#else
 				g_autofight_magic) /* magic activated in auto fight */
+#endif
 			{
 				if (AFIG_select_autospell(hero, hero_pos, hero->flags.renegade, x, y))
 				{
