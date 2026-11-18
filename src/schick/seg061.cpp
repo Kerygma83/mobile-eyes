@@ -190,6 +190,16 @@ void do_temple(void)
 					game_state = load_game_state();
 				} while (game_state == -1);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 426): if the loaded game is not in a temple, the temple
+				 * location line is shown and leave_location() runs on the loaded game (turns the view direction,
+				 * resets the position). Return at once. */
+				if (BUGFIX_WICHTIG && (gs_town_loc_type != LOCTYPE_TEMPLE)) {
+					g_intemple = g_intemple2 = 1;
+					return;
+				}
+#endif
+
 				/* location string */
 				sprintf(g_dtp2,	get_ttx(235), get_ttx(g_temple_god + 21), get_ttx(gs_town_id + 235));
 				GUI_print_loc_line(g_dtp2);
