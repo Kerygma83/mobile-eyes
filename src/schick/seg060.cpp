@@ -641,7 +641,13 @@ void TLK_tavern(const signed int answer)
 
 	} else if (old_state == 108) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 60): the drinking test runs over the slots 0 .. n-1 instead of
+		 * the group members; go through all 7 slots, state 109 checks the group */
+		if (gs_tlk_tav_testdrunk < (BUGFIX_ALLES ? 7 : count_heroes_in_group())) {
+#else
 		if (gs_tlk_tav_testdrunk < count_heroes_in_group()) {
+#endif
 			g_dialog_next_state = (109);
 		} else {
 			g_dialog_next_state = (111);
@@ -652,7 +658,13 @@ void TLK_tavern(const signed int answer)
 
 		g_dialog_next_state = (108);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Schicksalsklinge-Bugfix Nr. 60: only heroes of the active group */
+		if ((get_hero(gs_tlk_tav_testdrunk)->typus) && !get_hero(gs_tlk_tav_testdrunk)->flags.dead && gs_tlk_tav_drinkcount &&
+			(!BUGFIX_ALLES || (get_hero(gs_tlk_tav_testdrunk)->group_id == gs_active_group_id)))
+#else
 		if ((get_hero(gs_tlk_tav_testdrunk)->typus) && !get_hero(gs_tlk_tav_testdrunk)->flags.dead && gs_tlk_tav_drinkcount)
+#endif
 		{
 			g_dialog_next_state = (test_talent(get_hero(gs_tlk_tav_testdrunk), TA_ZECHEN, gs_tlk_tav_drinkcount - 8) > 0 ? 108 : 110);
 		}
