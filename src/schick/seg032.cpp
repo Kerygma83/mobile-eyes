@@ -514,6 +514,18 @@ void FIG_do_round(void)
 				 * I'd expect first to check nr_hero_act_phases_left_in_round == 0 -> switch turn to enemies
 				 * and then check nr_hero_act_phases_left_in_round <= nr_enemy_action_phases_left_in_round
 				 * as below in the corresponding lines for the enemies. */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 7): the branch 'nr_hero_act_phases_left_in_round == 0'
+				 * below is dead code (0 <= nr_enemy... is always true). If the heroes have no phases left but
+				 * the enemies have, the heroes still get one phase and FIG_choose_next_hero() finds no hero:
+				 * endless loop (probably after a failed flight of the last hero able to act).
+				 * Fix: first check for 0 phases and give the turn to the enemies. */
+				if (BUGFIX_WICHTIG && (nr_hero_act_phases_left_in_round == 0)) {
+
+					is_enemies_turn = 1;
+
+				} else
+#endif
 				if (nr_hero_act_phases_left_in_round <= nr_enemy_action_phases_left_in_round) {
 
 					nr_action_phases_left_in_turn = 1;
