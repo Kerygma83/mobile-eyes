@@ -757,6 +757,18 @@ void loose_random_item(struct struct_hero *hero, const signed int chance, char *
 		return;
 
 	/* Original-Bug: infinite loop if the hero has no item */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 221): fix: without a droppable item nothing is lost. */
+	if (BUGFIX_WICHTIG) {
+		for (inv_slot = 0; inv_slot < NR_HERO_INVENTORY_SLOTS; inv_slot++) {
+			item_id = hero->inventory[inv_slot].item_id;
+			if (item_id != 0 && !g_itemsdat[item_id].flags.undropable)
+				break;
+		}
+		if (inv_slot == NR_HERO_INVENTORY_SLOTS)
+			return;
+	}
+#endif
 	do {
 		inv_slot = random_schick(NR_HERO_INVENTORY_SLOTS) - 1;
 
