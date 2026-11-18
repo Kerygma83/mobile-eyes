@@ -327,14 +327,34 @@ void tevent_025(void)
 	}
 }
 
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Schicksalsklinge-Bugfix Nr. 156: text 72 is "DES BODIR" (73 "DES HJALDORVAL"), the ford text already says
+ * "AM UFER DES %s" -> "AM UFER DES DES BODIR". Skip the leading "DES ". */
+static char* skip_des(char *p)
+{
+	if (BUGFIX_ALLES && (p[0] == 'D') && (p[1] == 'E') && (p[2] == 'S') && (p[3] == ' ')) {
+		p += 4;
+	}
+	return p;
+}
+#endif
+
 void tevent_026(void)
 {
+#ifdef M302de_ORIGINAL_BUGFIX
+	TRV_cross_a_ford(skip_des(get_tx2(72)), 60, 0);
+#else
 	TRV_cross_a_ford(get_tx2(72), 60, 0);
+#endif
 }
 
 void tevent_027(void)
 {
+#ifdef M302de_ORIGINAL_BUGFIX
+	TRV_cross_a_ford(skip_des(get_tx2(73)), 30, 0);
+#else
 	TRV_cross_a_ford(get_tx2(73), 30, 0);
+#endif
 }
 
 void tevent_028(void)
