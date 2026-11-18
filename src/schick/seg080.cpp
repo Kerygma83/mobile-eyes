@@ -211,7 +211,13 @@ signed int DNG04_handler(void)
 
 				GUI_output(g_dtp2);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 107): pos must be the position of the hero, not 0;
+				 * otherwise the CHR file of hero 0 is written (and save_npc() is not called for the NPC) */
+				hero_disappear(hero, BUGFIX_ALLES ? get_hero_index(hero) : 0, -1);
+#else
 				hero_disappear(hero, 0, -1);
+#endif
 			}
 		}
 	}
