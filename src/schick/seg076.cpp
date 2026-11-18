@@ -140,7 +140,9 @@ void DNG_door(const signed int action)
 						GUI_output(get_tx(18));
 
 #ifdef M302de_ORIGINAL_BUGFIX
-					} else if (!(gs_dungeon_id == DUNGEON_ID_PIRATENHOEHLE && pos == DNG_POS(0,12,8) && gs_dng11_lever_flag != 4) &&
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 432): the treasury door of the Manrek pirate cave is on
+					 * (0,12,7) (F131.DDT), not on (0,12,8): the lock until lever position 4 and the iron key only work there. */
+					} else if (!(gs_dungeon_id == DUNGEON_ID_PIRATENHOEHLE && pos == (BUGFIX_WICHTIG ? DNG_POS(0,12,7) : DNG_POS(0,12,8)) && gs_dng11_lever_flag != 4) &&
 							/* Original-Bug (Schicksalsklinge-Bugfix Nr. 354): the Daspota door (0,11,1) is only locked while
 							 * the trapdoor is secured with the stone (bit 0 of gs_dng06_pitdoor_flag) */
 							!(gs_dungeon_id == DUNGEON_ID_DASPOTASCHATZ && pos == DNG_POS(0,11,1) && (BUGFIX_WICHTIG ? (gs_dng06_pitdoor_flag & 0x01) : gs_dng06_pitdoor_flag)) &&
@@ -153,7 +155,12 @@ void DNG_door(const signed int action)
 					{
 						/* for this door works an IRON KEY [first type] */
 						/* BEWARE: there are two types of IRON KEYs in the game */
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 432: iron key for the door on (0,12,7) */
+						if (gs_dungeon_id == DUNGEON_ID_PIRATENHOEHLE && pos == (BUGFIX_WICHTIG ? DNG_POS(0,12,7) : DNG_POS(0,12,8)) && get_first_hero_with_item(ITEM_EISENSCHLUESSEL__1) != -1)
+#else
 						if (gs_dungeon_id == DUNGEON_ID_PIRATENHOEHLE && pos == DNG_POS(0,12,8) && get_first_hero_with_item(ITEM_EISENSCHLUESSEL__1) != -1)
+#endif
 						{
 							*(g_dng_map_ptr + MAP_POS(x, y)) |= 0x02;
 							/* effect: ......1. i.e. door is unlocked */
