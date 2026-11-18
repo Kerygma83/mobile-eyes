@@ -393,54 +393,56 @@ Aus `Werkzeuge/fix_schalter.tsv` des Projekts (Begründung gekürzt), dazu unser
 
 ### Absicht unklar (46)
 
+Gesichtet am 18.11.2026, noch nichts umgesetzt. Status „offen – …“: Empfehlung beheben (10), Entscheidung nötig (10), erst im Spiel prüfen (6), Empfehlung lassen (17); 3 schon erledigt bzw. nativ nicht betroffen.
+
 | Nr | Fehler | Schwere | Begründung dort | Status |
 |---:|---|---|---|---|
-| 1 | Speer wird als Fernkampfwaffe behandelt | mittel | unsicher (Wurfspeer moeglich); braucht Aenderungen der Waffentabelle im Datensegment | offen |
-| 21 | Gegner schießen auch auf direkt benachbarte Helden | mittel | Absicht unklar (unsicher): ob Gegner im Handgemenge nicht schiessen duerfen, ist eine Regelfrage | offen |
-| 37 | Gegner-Plumbumbarum wirkt eine Stunde statt 5 Kampfrunden | mittel | Absicht unklar (unsicher): ob der Gegnerzauber laenger wirken soll als der Heldenzauber, ist nicht belegbar | offen |
-| 55 | Volle Korbsumme wird bezahlt, auch wenn nicht alles verteilt werden konnte | mittel | unsicher: Meldung 566 ("DAS NAECHSTE MAL SOLLTET IHR VORHER ETWAS PLATZ ...") deutet auf Absicht; mit Nr. 54 passt der Korb jetzt zum freien Platz | offen |
-| 120 | Zeitabfragen „day_timer % X == 0“ greifen mehrmals hintereinander | mittel | unsicher, nicht gemessen; die zuletzt ausgewertete Zeitmarke zu merken braucht eine neue Variable (Datensegment) | offen |
-| 134 | Efferds Schutz verhindert den Krakenmolch, nicht die Piraten | mittel | Auslegung (unsicher): ob Efferds Schutz auch vor Piraten schuetzen soll, ist nicht belegbar | offen |
-| 143 | Gewaltmarsch-Tempo hängt von der schon gegangenen Strecke ab | mittel | unsicher: welcher feste Wert gemeint war, ist nicht belegbar (197 waere langsamer als normal) | offen |
-| 172 | Brücke: Sturz in die Tiefe ist unerreichbar | mittel | unklar, welche Bedingung gemeint war: -99 hiesse ein patzender Hoehenangst-Wurf (also gerade keine Angst) laesst den Helden abstuerzen; test_talent() == -1 … | offen |
-| 232 | Gift wirkt nur in game_loop(), bei Zeitsprüngen höchstens einmal | mittel | Gift alle 5 Minuten auch waehrend Rast und Reise auszuwerten hiesse bei langer Rast dutzende Meldungsfenster und meist den Tod (Shurinknollengift endet … | offen |
-| 314 | Kampf: Waffe oder Gegenstand lässt sich nur tauschen, nicht ablegen | mittel | Absicht unklar: beide Menuepunkte tauschen nur mit belegten Rucksackplaetzen; ein Ablegen auf einen leeren Platz waere eine neue Bedienung | offen |
-| 326 | Waffengift: jedes Gift macht 10 × Stärke Zusatzschaden | mittel | eigene Wirkungen je Gift waeren neue Regeln; welche Wirkung gedacht war, ist nicht belegbar (Spielbalance) | offen |
-| 348 | Lager in Dungeons: immer einer von vier allgemeinen Lagerkämpfen | mittel | unsicher; Kaempfe je Dungeon waeren neue Daten | offen |
-| 366 | Orkhöhle: Ausgang setzt die Gruppe direkt aufs Reiseziel | mittel | welcher feste Ausgangsort gemeint war, ist nicht belegbar | offen |
-| 370 | Gorahs Haus nach Flucht der Helden unzugänglich | mittel | unklar, was nach einer Flucht der Helden gelten soll (Gorah lebt ja noch) | offen |
-| 379 | Axxeleratus: zweite Aktion wiederholt den Angriff ohne Zielwahl | mittel | Absicht unklar (Spielbalance): Axxeleratus gibt eine zweite Aktion; ob sie neue BP und eine neue Wahl bekommen sollte, ist nicht belegbar - ein neues Menue … | offen |
-| 380 | Böser Blick setzt dauerhaft zwei Attacken | mittel | unklar, ob die zwei Attacken gewollt sind; zuruecksetzen ginge nur an allen Stellen, die renegade loeschen, und der Ausgangswert ist im Gegnerblatt nicht … | offen |
-| 393 | Steinschleuder ist unbenutzbar | mittel | es gibt keinen Munitionsgegenstand (Id 999 passt nicht in ein Byte); Bright-Eyes macht die Schleuder als Feature-Mod ohne Munition benutzbar - eine … | offen |
-| 406 | Rüstungsbehinderung wirkt auf keine Talentprobe | mittel | unsicher; Behinderung bei Talentproben waere neue Spielregel (welche Talente, wie viel), nicht belegt | offen |
-| 33 | Waffenbruch bei gleichen Würfen trifft nie die Waffe eines Gegners | gering | Designfrage (unsicher): Gegner haben keinen Bruchfaktor, vermutlich bewusst | offen |
-| 44 | Antworten werden gemischt, das Ergebnis aber nie benutzt | gering | Absicht unklar: die gemischten Antworten zu benutzen waere eine sichtbare Spielaenderung, das Mischen zu streichen aendert nichts Sichtbares | offen |
-| 73 | Spielhaus: „nach einigen Stunden“, aber die Zeit steht | gering | wie viele Stunden "einige" sein sollen, ist nicht belegbar | offen |
-| 74 | Phextempel: gs_ptemple_closed wird nie gesetzt | gering | unsicher: ob die Geweihte nach der Beleidigung fuer immer verschwinden und der Tempel geschlossen bleiben soll, ist nicht belegbar | offen |
-| 112 | Merker „Rätseltruhe geplündert“ wird nie gesetzt | gering | ob der Inhalt der Raetseltruhe immer ganz genommen wird, ist offen; der Merker wuerde uebrig gebliebene Gegenstaende sperren | offen |
-| 141 | Ork-Monolith (Ereignis 71) steht auch auf dem Weg Oberorken–Felsteyn | gering | Eintrag der Ereignistabelle im Datensegment, Datenfehler (unsicher) | offen |
-| 169 | „NACH GUT ACHT STUNDEN“, vergehen aber 12 | gering | unsicher: Umweg plus Rueckweg koennten gemeint sein | offen |
-| 173 | Einsiedlersee: nur der erste Wasserschlauch wird gefüllt | gering | unsicher, ob Absicht | offen |
-| 198 | Balsam: Mindestkosten 7 AE nicht einheitlich | gering | Balancefrage: ob 7 AE auch fuer weniger fehlende LE (oder bei voller LE) gelten sollen, ist nicht belegt | offen |
-| 209 | Salander auf zweiteilige Gegner: „strange effect“ | gering | unsicher, im Spiel nicht nachgeprueft; Behandlung des Schwanzteils waere ein groesserer Eingriff in die Kampfliste | offen |
-| 271 | Zeitzähler von Krankheiten und Giften können überlaufen | gering | unsicher, Folgen nicht geprueft; die Ursache Schlachtfeldfieber ist mit Fix 270 behoben | offen |
-| 276 | NVF-Typ 1: Versatz mit nicht gelesenen Breiten und Höhen | gering | unsicher, ob NVF-Typ 1 mit Index > 0 im Spiel vorkommt; residentes Modul | offen |
-| 285 | Modus 3: Anschnitt oben rückt die Quelle um die Bildbreite statt um 320 vor | gering | unsicher, ob der Fall im Spiel vorkommt; Assembler-Modul mit fester Laenge | offen |
-| 300 | Gespiegelte Bilder werden am Rand von der falschen Seite beschnitten | gering | unsicher, im Spiel nicht geprueft: welcher Ausschnitt eines gespiegelten Bildes richtig ist, liesse sich nur am Bild klaeren | offen |
-| 302 | Beugung der Namen: Bits mit + gesetzt, 2. und 3. Fall verwechselt | gering | unsicher: Bright-Eyes' Umbau aendert bei Gegenstaenden ohne Plural auch Artikel im 1./4. Fall; die Abfrage == 1 in GUI_name_inflect trifft ohnehin nur den … | offen |
-| 315 | Schusslinie: bewusstlose und schlafende Figuren blockieren, Leichen nicht | gering | Absicht unklar (Spielbalance): ob bewusstlose oder schlafende Figuren die Schusslinie freigeben sollen, ist nicht belegbar | offen |
-| 317 | Computerkampf: Held mit 1 BP oder weniger als 3 Rest-BP bleibt untätig | gering | KI-Entscheidung des Computerkampfs, kein eindeutiger Fehler: nach einer Bewegung mit weniger als 3 Rest-BP ist kein Angriff mehr moeglich; ob der Held … | offen |
-| 318 | Computerkampf zaubert ohne Blick auf das Ziel | gering | KI-Schwaeche, kein eindeutiger Fehler (unsicher); eine zielabhaengige Zauberwahl waere neues Verhalten | offen |
-| 320 | Gegner fliehen auch über den rechten Rand, Helden nicht | gering | Absicht nicht belegbar: die Fluchtraender unterscheiden sich bewusst je Hintergrund (Schiff), und Helden im Computerkampf fliehen ueber dieselbe Suche … | offen |
-| 321 | Verschreckter Gegner ohne Fluchtweg tut nichts mehr | gering | kann Absicht sein (unsicher): ein umstellter Fliehender wehrt sich nicht | offen |
-| 324 | Keine Waffenresistenzen für Skelette und Mumien | gering | Designaenderung (Resistenzen nach Handbuch), keine Fehlerbehebung | offen |
-| 331 | Markt- und Hafenangebot stehen nicht im Spielstand | gering | Neuberechnen beim Laden aenderte das Angebot gegenueber dem Original auch ohne Ausnutzen; welcher Stand gelten soll, ist offen | offen |
-| 335 | Wein und Schnaps ohne Zechenprobe | gering | unsicher: ob Wein/Schnaps eine Zechenprobe haben sollen, ist nicht belegt (Balance) | offen |
-| 356 | Zwingfeste: Anseilen erst ab fünf Seilen, kein Seil verbraucht | gering | Absicht unklar (unsicher): feste Grenze von fuenf Seilen | offen |
-| 373 | Floß ohne Werkzeug baubar | gering | unsicher, kann Absicht sein | offen |
-| 392 | Zwei Kriegsbeile mit verschiedenen Werten | gering | unsicher; Waffentabelle im Datensegment | offen |
-| 399 | Schild mit Zauberstab oder Hexenbesen kombinierbar | gering | unsicher, ob Stab/Besen mit Schild gewollt verboten sein sollen (Stab ist als Speer gefuehrt) | offen |
-| 415 | Schiffsreise mit Händlermusik | gering | es gibt keine eigene Reisemusik; welches Stueck gemeint war, ist nicht belegbar | offen |
+| 1 | Speer wird als Fernkampfwaffe behandelt | mittel | unsicher (Wurfspeer moeglich); braucht Aenderungen der Waffentabelle im Datensegment | offen – Entscheidung nötig: Speer als Nahkampfwaffe (bisher Fernkampf, normaler Speer wird bei jedem Angriff weggeworfen) |
+| 21 | Gegner schießen auch auf direkt benachbarte Helden | mittel | Absicht unklar (unsicher): ob Gegner im Handgemenge nicht schiessen duerfen, ist eine Regelfrage | offen – Entscheidung nötig: Regelfrage Fernkampf im Handgemenge |
+| 37 | Gegner-Plumbumbarum wirkt eine Stunde statt 5 Kampfrunden | mittel | Absicht unklar (unsicher): ob der Gegnerzauber laenger wirken soll als der Heldenzauber, ist nicht belegbar | offen – Empfehlung: beheben, Stufe alles (5 Kampfrunden wie der Heldenzauber) |
+| 55 | Volle Korbsumme wird bezahlt, auch wenn nicht alles verteilt werden konnte | mittel | unsicher: Meldung 566 ("DAS NAECHSTE MAL SOLLTET IHR VORHER ETWAS PLATZ ...") deutet auf Absicht; mit Nr. 54 passt der Korb jetzt zum freien Platz | offen – Empfehlung: lassen (Meldung 566 deutet auf Absicht) |
+| 120 | Zeitabfragen „day_timer % X == 0“ greifen mehrmals hintereinander | mittel | unsicher, nicht gemessen; die zuletzt ausgewertete Zeitmarke zu merken braucht eine neue Variable (Datensegment) | offen – erst im Spiel prüfen: nicht gemessen |
+| 134 | Efferds Schutz verhindert den Krakenmolch, nicht die Piraten | mittel | Auslegung (unsicher): ob Efferds Schutz auch vor Piraten schuetzen soll, ist nicht belegbar | schon in BrightEyes behoben (Original-Bug 34, immer an) |
+| 143 | Gewaltmarsch-Tempo hängt von der schon gegangenen Strecke ab | mittel | unsicher: welcher feste Wert gemeint war, ist nicht belegbar (197 waere langsamer als normal) | offen – Empfehlung: beheben, Stufe wichtig (fest 197 = 1,97 km/h; normal 166, also doch schneller; Exploit) |
+| 172 | Brücke: Sturz in die Tiefe ist unerreichbar | mittel | unklar, welche Bedingung gemeint war: -99 hiesse ein patzender Hoehenangst-Wurf (also gerade keine Angst) laesst den Helden abstuerzen; test_talent() == -1 … | offen – Empfehlung: lassen (welche Bedingung gemeint war, ist unklar) |
+| 232 | Gift wirkt nur in game_loop(), bei Zeitsprüngen höchstens einmal | mittel | Gift alle 5 Minuten auch waehrend Rast und Reise auszuwerten hiesse bei langer Rast dutzende Meldungsfenster und meist den Tod (Shurinknollengift endet … | offen – Empfehlung: lassen (bei langer Rast dutzende Meldungen und meist der Tod) |
+| 314 | Kampf: Waffe oder Gegenstand lässt sich nur tauschen, nicht ablegen | mittel | Absicht unklar: beide Menuepunkte tauschen nur mit belegten Rucksackplaetzen; ein Ablegen auf einen leeren Platz waere eine neue Bedienung | offen – Entscheidung nötig: neue Bedienung im Kampf |
+| 326 | Waffengift: jedes Gift macht 10 × Stärke Zusatzschaden | mittel | eigene Wirkungen je Gift waeren neue Regeln; welche Wirkung gedacht war, ist nicht belegbar (Spielbalance) | offen – Entscheidung nötig: neue Giftwirkungen (Balance) |
+| 348 | Lager in Dungeons: immer einer von vier allgemeinen Lagerkämpfen | mittel | unsicher; Kaempfe je Dungeon waeren neue Daten | offen – Empfehlung: lassen (neue Daten) |
+| 366 | Orkhöhle: Ausgang setzt die Gruppe direkt aufs Reiseziel | mittel | welcher feste Ausgangsort gemeint war, ist nicht belegbar | offen – Entscheidung nötig: Exploit, fester Ausgangsort nicht belegt |
+| 370 | Gorahs Haus nach Flucht der Helden unzugänglich | mittel | unklar, was nach einer Flucht der Helden gelten soll (Gorah lebt ja noch) | offen – erst im Spiel prüfen: bleibt das Haus nach Flucht wirklich zu? (Merker bleibt 0, Ereignis müsste wiederkommen); falls ja Stufe wichtig (Quest) |
+| 379 | Axxeleratus: zweite Aktion wiederholt den Angriff ohne Zielwahl | mittel | Absicht unklar (Spielbalance): Axxeleratus gibt eine zweite Aktion; ob sie neue BP und eine neue Wahl bekommen sollte, ist nicht belegbar - ein neues Menue … | offen – Empfehlung: lassen (Balance) |
+| 380 | Böser Blick setzt dauerhaft zwei Attacken | mittel | unklar, ob die zwei Attacken gewollt sind; zuruecksetzen ginge nur an allen Stellen, die renegade loeschen, und der Ausgangswert ist im Gegnerblatt nicht … | offen – Empfehlung: beheben, Stufe alles (Zahl der Attacken nativ merken und zurücksetzen) |
+| 393 | Steinschleuder ist unbenutzbar | mittel | es gibt keinen Munitionsgegenstand (Id 999 passt nicht in ein Byte); Bright-Eyes macht die Schleuder als Feature-Mod ohne Munition benutzbar - eine … | schon in BrightEyes behoben (Feature-Mod: Schleuder ohne Munition benutzbar) |
+| 406 | Rüstungsbehinderung wirkt auf keine Talentprobe | mittel | unsicher; Behinderung bei Talentproben waere neue Spielregel (welche Talente, wie viel), nicht belegt | offen – Entscheidung nötig: neue Regel (welche Talente, wie viel) |
+| 33 | Waffenbruch bei gleichen Würfen trifft nie die Waffe eines Gegners | gering | Designfrage (unsicher): Gegner haben keinen Bruchfaktor, vermutlich bewusst | offen – Empfehlung: lassen (Design: Gegner haben keinen Bruchfaktor) |
+| 44 | Antworten werden gemischt, das Ergebnis aber nie benutzt | gering | Absicht unklar: die gemischten Antworten zu benutzen waere eine sichtbare Spielaenderung, das Mischen zu streichen aendert nichts Sichtbares | offen – Empfehlung: lassen (ohne sichtbare Wirkung) |
+| 73 | Spielhaus: „nach einigen Stunden“, aber die Zeit steht | gering | wie viele Stunden "einige" sein sollen, ist nicht belegbar | offen – Empfehlung: beheben, Stufe alles (timewarp, Stundenzahl festlegen, z. B. 3) |
+| 74 | Phextempel: gs_ptemple_closed wird nie gesetzt | gering | unsicher: ob die Geweihte nach der Beleidigung fuer immer verschwinden und der Tempel geschlossen bleiben soll, ist nicht belegbar | offen – Empfehlung: beheben, Stufe alles (Merker nach Text 56 setzen) |
+| 112 | Merker „Rätseltruhe geplündert“ wird nie gesetzt | gering | ob der Inhalt der Raetseltruhe immer ganz genommen wird, ist offen; der Merker wuerde uebrig gebliebene Gegenstaende sperren | offen – Empfehlung: beheben, Stufe alles (Merker nur bei leerer Truhe setzen) |
+| 141 | Ork-Monolith (Ereignis 71) steht auch auf dem Weg Oberorken–Felsteyn | gering | Eintrag der Ereignistabelle im Datensegment, Datenfehler (unsicher) | offen – Empfehlung: beheben, Stufe alles (Eintrag auf Oberorken–Felsteyn streichen) |
+| 169 | „NACH GUT ACHT STUNDEN“, vergehen aber 12 | gering | unsicher: Umweg plus Rueckweg koennten gemeint sein | offen – Empfehlung: lassen (Umweg plus Rückweg denkbar) |
+| 173 | Einsiedlersee: nur der erste Wasserschlauch wird gefüllt | gering | unsicher, ob Absicht | offen – Empfehlung: beheben, Stufe alles (alle Schläuche füllen wie am Fass) |
+| 198 | Balsam: Mindestkosten 7 AE nicht einheitlich | gering | Balancefrage: ob 7 AE auch fuer weniger fehlende LE (oder bei voller LE) gelten sollen, ist nicht belegt | offen – Empfehlung: lassen (Balance, geringer Nutzen) |
+| 209 | Salander auf zweiteilige Gegner: „strange effect“ | gering | unsicher, im Spiel nicht nachgeprueft; Behandlung des Schwanzteils waere ein groesserer Eingriff in die Kampfliste | offen – erst im Spiel prüfen: nicht nachgeprüft |
+| 271 | Zeitzähler von Krankheiten und Giften können überlaufen | gering | unsicher, Folgen nicht geprueft; die Ursache Schlachtfeldfieber ist mit Fix 270 behoben | offen – Empfehlung: beheben, Stufe alles (Zähler bei 127 begrenzen) |
+| 276 | NVF-Typ 1: Versatz mit nicht gelesenen Breiten und Höhen | gering | unsicher, ob NVF-Typ 1 mit Index > 0 im Spiel vorkommt; residentes Modul | tritt nativ nicht auf (der native Zweig liest Breite und Höhe je Bild) |
+| 285 | Modus 3: Anschnitt oben rückt die Quelle um die Bildbreite statt um 320 vor | gering | unsicher, ob der Fall im Spiel vorkommt; Assembler-Modul mit fester Laenge | offen – erst im Spiel prüfen: ob der native Bildkopierer den Fehler übernommen hat |
+| 300 | Gespiegelte Bilder werden am Rand von der falschen Seite beschnitten | gering | unsicher, im Spiel nicht geprueft: welcher Ausschnitt eines gespiegelten Bildes richtig ist, liesse sich nur am Bild klaeren | offen – erst im Spiel prüfen: nur am Bild zu klären |
+| 302 | Beugung der Namen: Bits mit + gesetzt, 2. und 3. Fall verwechselt | gering | unsicher: Bright-Eyes' Umbau aendert bei Gegenstaenden ohne Plural auch Artikel im 1./4. Fall; die Abfrage == 1 in GUI_name_inflect trifft ohnehin nur den … | offen – erst im Spiel prüfen: ändert Spieltexte |
+| 315 | Schusslinie: bewusstlose und schlafende Figuren blockieren, Leichen nicht | gering | Absicht unklar (Spielbalance): ob bewusstlose oder schlafende Figuren die Schusslinie freigeben sollen, ist nicht belegbar | offen – Empfehlung: lassen (Balance) |
+| 317 | Computerkampf: Held mit 1 BP oder weniger als 3 Rest-BP bleibt untätig | gering | KI-Entscheidung des Computerkampfs, kein eindeutiger Fehler: nach einer Bewegung mit weniger als 3 Rest-BP ist kein Angriff mehr moeglich; ob der Held … | offen – Empfehlung: lassen (KI) |
+| 318 | Computerkampf zaubert ohne Blick auf das Ziel | gering | KI-Schwaeche, kein eindeutiger Fehler (unsicher); eine zielabhaengige Zauberwahl waere neues Verhalten | offen – Empfehlung: lassen (KI) |
+| 320 | Gegner fliehen auch über den rechten Rand, Helden nicht | gering | Absicht nicht belegbar: die Fluchtraender unterscheiden sich bewusst je Hintergrund (Schiff), und Helden im Computerkampf fliehen ueber dieselbe Suche … | offen – Empfehlung: lassen (Absicht nicht belegbar) |
+| 321 | Verschreckter Gegner ohne Fluchtweg tut nichts mehr | gering | kann Absicht sein (unsicher): ein umstellter Fliehender wehrt sich nicht | offen – Empfehlung: beheben, Stufe alles (ohne Fluchtweg normal angreifen) |
+| 324 | Keine Waffenresistenzen für Skelette und Mumien | gering | Designaenderung (Resistenzen nach Handbuch), keine Fehlerbehebung | offen – Entscheidung nötig: Designänderung nach Handbuch |
+| 331 | Markt- und Hafenangebot stehen nicht im Spielstand | gering | Neuberechnen beim Laden aenderte das Angebot gegenueber dem Original auch ohne Ausnutzen; welcher Stand gelten soll, ist offen | offen – Entscheidung nötig: Exploit, sauber nur mit Spielstandänderung |
+| 335 | Wein und Schnaps ohne Zechenprobe | gering | unsicher: ob Wein/Schnaps eine Zechenprobe haben sollen, ist nicht belegt (Balance) | offen – Entscheidung nötig: Balance |
+| 356 | Zwingfeste: Anseilen erst ab fünf Seilen, kein Seil verbraucht | gering | Absicht unklar (unsicher): feste Grenze von fuenf Seilen | offen – Empfehlung: lassen (neue Regel) |
+| 373 | Floß ohne Werkzeug baubar | gering | unsicher, kann Absicht sein | offen – Empfehlung: lassen (kann Absicht sein) |
+| 392 | Zwei Kriegsbeile mit verschiedenen Werten | gering | unsicher; Waffentabelle im Datensegment | offen – Empfehlung: lassen (Sonderstück oder Datenfehler, unklar) |
+| 399 | Schild mit Zauberstab oder Hexenbesen kombinierbar | gering | unsicher, ob Stab/Besen mit Schild gewollt verboten sein sollen (Stab ist als Speer gefuehrt) | offen – Entscheidung nötig: Regelfrage Stab/Besen zweihändig |
+| 415 | Schiffsreise mit Händlermusik | gering | es gibt keine eigene Reisemusik; welches Stueck gemeint war, ist nicht belegbar | offen – Empfehlung: lassen (keine eigene Reisemusik) |
 
 ### Spieldaten/Texte (13)
 
