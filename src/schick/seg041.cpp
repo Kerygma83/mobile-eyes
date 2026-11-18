@@ -437,8 +437,16 @@ signed int FIG_get_hero_weapon_attack_damage(struct struct_hero* hero, struct st
 
 			if (hero->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].poison_id == POISON_ID_ANGSTGIFT) {
 
-				enemy_p->flags.scared = 1;
-				enemy_p->flags.renegade = 0;
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 30): enemy_p is only set if attack_hero == 0;
+				 * a (renegade) hero hitting another hero with Angstgift writes via an unset pointer.
+				 * Fix: Angstgift only works against enemies. */
+				if (!BUGFIX_WICHTIG || !attack_hero)
+#endif
+				{
+					enemy_p->flags.scared = 1;
+					enemy_p->flags.renegade = 0;
+				}
 
 			} else {
 				/* the following line is the source for the totally excessive and unbalanced poison damage */
