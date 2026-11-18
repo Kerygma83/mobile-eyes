@@ -362,7 +362,17 @@ signed int get_tavern_gossip(void)
 		if (randval == 1)
 			gs_tevent072_flag = 1;	/* Restplaces */
 		else if (randval == 2)
+#ifdef M302de_ORIGINAL_BUGFIX
+		{
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 368): the rumour about the robber camp sets the
+			 * done flag of travel event 75, which then never happens (Osterpatch NRS) */
+			if (!BUGFIX_WICHTIG) {
+				gs_tevent075_flag = 1;
+			}
+		}
+#else
 			gs_tevent075_flag = 1;
+#endif
 		else if (randval == 3)
 			gs_tevent091_flag = 1;
 		else if (randval == 4)
@@ -373,7 +383,16 @@ signed int get_tavern_gossip(void)
 	/* Orkanger */
 	case (TOWN_ID_ORKANGER - 1): {
 		if (randval == 1)
+#ifdef M302de_ORIGINAL_BUGFIX
+		{
+			/* Schicksalsklinge-Bugfix Nr. 368: travel event 75 stays possible */
+			if (!BUGFIX_WICHTIG) {
+				gs_tevent075_flag = 1;	/* Restplaces */
+			}
+		}
+#else
 			gs_tevent075_flag = 1;	/* Restplaces */
+#endif
 		else if (randval == 2)
 			gs_tevent079_flag = 1;
 
@@ -402,7 +421,13 @@ signed int get_tavern_gossip(void)
 	/* Ala */
 	case (TOWN_ID_ALA - 1): {
 		if (randval == 1)
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 368: the hint to the food place sets the rest place flag, not the
+			 * done flag of the track (fight F066) */
+			*(BUGFIX_WICHTIG ? &gs_tevent066_flag : &gs_tevent066_track_flag) = 1;	/* Restplaces */
+#else
 			gs_tevent066_track_flag = 1;	/* Restplaces */
+#endif
 		else if (randval == 2) {
 			gs_tevent069_flag = gs_tevent070_flag = gs_tevent070_herb_flag = 1;
 		}
@@ -416,7 +441,12 @@ signed int get_tavern_gossip(void)
 			gs_tevent058_flag = gs_teventu03_flag = 1;
 		}
 		else if (randval == 2)
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 368: rest place flag instead of the done flag of the track */
+			*(BUGFIX_WICHTIG ? &gs_tevent066_flag : &gs_tevent066_track_flag) = 1;
+#else
 			gs_tevent066_track_flag = 1;
+#endif
 		else if (randval == 3) {
 			/* Restplaces */
 			gs_teventu10_flag = gs_teventu11_flag = 1;
