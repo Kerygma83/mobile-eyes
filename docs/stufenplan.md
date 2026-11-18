@@ -7,7 +7,7 @@ Ziel: Die Schicksalsklinge als installierbare Web-App (PWA). Die Spiellogik blei
 
 Meilenstein A und B erreicht (16.11.): Das Spiel ist im Browser vom Intro über die Heldenerschaffung bis in Dungeons durchspielbar, auch längere Testpartien laufen ohne Hänger. Die App ist auf echten Android- und iOS-Geräten installiert und getestet, mit Ton und Spielständen. Die Fassung ohne Spieldaten (Version 0.6, 17.11.) steht auf GitHub Pages, die Spieldaten liest jeder selbst ein.
 
-Seit Meilenstein B (17.11., Versionen 0.3–0.6): Startmenü mit Titelbild, Ortsaktionen als beschriftete Knöpfe, Minimap neben dem Steuerkreuz, Menü in der Leiste (Speichern/Laden, Tagebuch, Karte, Einstellungen), Heldenbogen mit Gegenstandskacheln (Stufe 10), Kampfbildschirm mit Zoom, Befehlsknöpfen, schrägen Pfeilen und Kampflog (Stufe 12), Musik in der Heldenerschaffung. Damit fehlt für Meilenstein C vor allem der Rest von Stufe 9.
+Seit Meilenstein B (17.11., Versionen 0.3–0.6): Startmenü mit Titelbild, Ortsaktionen als beschriftete Knöpfe, Minimap neben dem Steuerkreuz, Menü in der Leiste (Speichern/Laden, Tagebuch, Karte, Einstellungen), Heldenbogen mit Gegenstandskacheln (Stufe 10), Kampfbildschirm mit Zoom, Befehlsknöpfen, schrägen Pfeilen und Kampflog (Stufe 12), Musik in der Heldenerschaffung. **Meilenstein C erreicht (18.11.):** komplett im Hochformat spielbar. Wischgesten auf der 3D-Ansicht entfallen (die Ansicht liegt oben im Bild, mit dem Daumen schlecht erreichbar, kein Vorteil gegenüber dem Steuerkreuz); Aktionsknöpfe und Reiseereignisse am Gerät geprüft. Seitdem Stufe 7: alle 19 kritischen Hänger und Abstürze der Bugfix-Liste behoben (Einstellung „Fehlerkorrekturen“).
 
 Dazu gekommen und nicht im ursprünglichen Plan: Questlog, Würfelprotokoll, Datumszeile, schneller Autokampf, Einstellungen (Schreibung, Schriftgröße, Layout).
 
@@ -37,19 +37,19 @@ Aufwand in Arbeitsstunden (gemeinsame Sitzungen mit Claude, grob geschätzt; Feh
 | 5 | PWA ✓ | Installierbar, offline, Vollbild, Hoch-/Querformat | 3–4 h |
 | 6 | Ton ✓ | Soundeffekte und CD-Musik (OGG aus der GOG-Fassung) | 6–10 h |
 | | **Meilenstein B: Installierbare App** ✓ | Auf echtem Android- und iOS-Gerät getestet | |
-| 7 | Bugfixes übernehmen (geparkt) | Fehlerkorrekturen aus MeowMuhMuhCow/NRS als Schalter | 8–16 h |
+| 7 | Bugfixes übernehmen (begonnen) | Fehlerkorrekturen aus MeowMuhMuhCow/NRS als Schalter | 8–16 h |
 | 8 | Mobiles UI I: Dialoge ✓ | Alle `GUI_*`-Dialoge als HTML (große Schrift, Touch) | 8–12 h |
-| 9 | Mobiles UI II: Bewegung und Orte (teilweise) | Wischgesten, Ortsaktionen als Knöpfe statt Icon-Leiste | 8–12 h |
+| 9 | Mobiles UI II: Bewegung und Orte ✓ | Ortsaktionen als Knöpfe statt Icon-Leiste (Wischgesten entfallen) | 8–12 h |
 | 10 | Mobiles UI III: Helden und Inventar ✓ | Charakterbogen und Inventar als native Ansicht | 12–20 h |
-| 11 | Mobiles UI IV: Reisen und Karte (weitgehend) | Ziele antippen, Reiseereignisse als Dialoge | 6–10 h |
+| 11 | Mobiles UI IV: Reisen und Karte ✓ | Ziele antippen, Reiseereignisse als Dialoge | 6–10 h |
 | 12 | Mobiles UI V: Kampf ✓ | Felder antippen, Aktionsleiste, Zoom | 12–20 h |
-| | **Meilenstein C: Mobile Fassung** | Komplett im Hochformat spielbar | |
+| | **Meilenstein C: Mobile Fassung** ✓ | Komplett im Hochformat spielbar | |
 | 13 | Upstream und Pflege | Korrekturen an BrightEyes zurückgeben, Updates einpflegen | laufend |
 | 4 | Spieldaten vom Nutzer ✓ | Daten-Import (GOG-Installer, ZIP oder Dateien), Prüfsumme, Ablage im Browser | 4–6 h |
 
 Summe bis Meilenstein A: ca. 18–28 h · bis B: ca. 31–48 h · bis C: ca. 85–138 h.
 
-**Nächste Schritte (18.11.):** Rest von Stufe 9 (Wischgesten, Beschriftungen bei Händler, Heiler, Taverne und im Dungeon prüfen) → Meilenstein C. Kleine Reste: Spielstand der DOS-Fassung laden (Stufe 3), Reiseereignisse als Dialoge prüfen (Stufe 11). Danach Stufe 7 (Bugfixes) nach Entscheidung.
+**Nächste Schritte (18.11.):** Stufe 7 fortsetzen (Behebungen aus Bright-Eyes abgleichen, dann die mittleren „wichtig“-Einträge, Exploits nach Entscheidung) und Stufe 13 (Upstream). Später: Spielstand der DOS-Fassung testweise laden (Stufe 3).
 
 Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander parallel. 4 braucht 3 und kommt erst vor einer Veröffentlichung. 5 zunächst mit eingebauten Spieldaten (intern), die Variante ohne Daten folgt mit 4. 6 unabhängig ab 1. 7 jederzeit ab 1. 8 vor 9–12 (gemeinsame Brücke C ↔ HTML). 9–12 untereinander frei.
 
@@ -143,7 +143,7 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Abnahmekriterien:** Speichern, Seite neu laden, Laden → gleicher Stand. Export auf dem PC, Import auf dem Handy funktioniert.
 
-**Stand (14.11.):** Speichern und Laden waren in BrightEyes nur für DOS umgesetzt, nativ taten beide nichts. Jetzt gibt es eigene native Zweige in seg026. Der Spielzustand wird über eine aus `datseg.cpp` erzeugte Tabelle (`datseg_status.h`, 585 Variablen) in den DOS-Block gebracht, der Compiler prüft jede Größe. Spielstände überstehen das Neuladen (IDBFS) und lassen sich über „Spielstände“ exportieren und importieren. Szenario: speichern, neu laden, laden, exportieren, importieren. Offen: Spielstand aus der DOS-Fassung testweise laden (Format sollte passen, ungeprüft).
+**Stand (14.11.):** Speichern und Laden waren in BrightEyes nur für DOS umgesetzt, nativ taten beide nichts. Jetzt gibt es eigene native Zweige in seg026. Der Spielzustand wird über eine aus `datseg.cpp` erzeugte Tabelle (`datseg_status.h`, 585 Variablen) in den DOS-Block gebracht, der Compiler prüft jede Größe. Spielstände überstehen das Neuladen (IDBFS) und lassen sich über „Spielstände“ exportieren und importieren. Szenario: speichern, neu laden, laden, exportieren, importieren. Später prüfen: Spielstand aus der DOS-Fassung testweise laden (Format sollte passen, ungeprüft).
 
 ## Stufe 4 – Spieldaten vom Nutzer
 
@@ -206,7 +206,7 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 Liste zum Abhaken: [bugfixes.md](bugfixes.md) (284 Einträge, Stand 1.5d).
 
-**Stand (17.11.):** Geparkt. MeowMuhMuhCow hat inzwischen auch eine native SDL2-Fassung (`Nativ/`, C, Testversion, Fixes laut eigener Angabe im Spiel ungetestet). Ein Wechsel der Basis würde alle Web-Anpassungen in BrightEyes (rund 50 Commits) neu erfordern; sinnvoller ist, Korrekturen einzeln aus `s_fix.h` zu übernehmen, zuerst die kritischen (Hänger, Speicherfehler), je mit eigenem Szenario.
+**Stand (18.11.):** Begonnen: Liste in [bugfixes.md](bugfixes.md), alle 19 kritischen Hänger und Abstürze behoben bzw. schon in Bright-Eyes behoben, Laufzeitschalter „Fehlerkorrekturen“. Wechsel der Basis geparkt (17.11.): MeowMuhMuhCow hat inzwischen auch eine native SDL2-Fassung (`Nativ/`, C, Testversion, Fixes laut eigener Angabe im Spiel ungetestet). Ein Wechsel der Basis würde alle Web-Anpassungen in BrightEyes (rund 50 Commits) neu erfordern; sinnvoller ist, Korrekturen einzeln aus `s_fix.h` zu übernehmen, zuerst die kritischen (Hänger, Speicherfehler), je mit eigenem Szenario.
 
 ## Stufe 8 – Mobiles UI I: Dialoge
 
@@ -225,9 +225,9 @@ Liste zum Abhaken: [bugfixes.md](bugfixes.md) (284 Einträge, Stand 1.5d).
 
 ## Stufe 9 – Mobiles UI II: Bewegung und Orte
 
-**Stand (17.11.):** Ortsaktionen als beschriftete Knöpfe direkt unter dem Bild (`werkzeuge/aktionen.js`, seg029 `web_icons()`), darunter Steuerkreuz mit Minimap (Stadt, Dungeon; im Lager beides ausgeblendet) und eine Reihe für Protokoll, Aufträge und Menü; OK und Zurück nur noch in den Vollbild-Ansichten. Auf dem iPhone getestet. Abschaltbar in den Einstellungen, im flachen Querformat die Icons. Offen: Beschriftungen bei Händler, Heiler, Taverne, Lager und im Dungeon prüfen; Wischgesten.
+**Stand (17.11.):** Ortsaktionen als beschriftete Knöpfe direkt unter dem Bild (`werkzeuge/aktionen.js`, seg029 `web_icons()`), darunter Steuerkreuz mit Minimap (Stadt, Dungeon; im Lager beides ausgeblendet) und eine Reihe für Protokoll, Aufträge und Menü; OK und Zurück nur noch in den Vollbild-Ansichten. Auf dem iPhone getestet. Abschaltbar in den Einstellungen, im flachen Querformat die Icons. Abgeschlossen (18.11.): Beschriftungen passen. Wischgesten entfallen: die 3D-Ansicht liegt oben im Bild und ist mit dem Daumen schlecht erreichbar, gegenüber dem Steuerkreuz ohne Vorteil.
 
-**Umfang:** Wischen (vor/zurück/drehen) auf der 3D-Ansicht; die Icon-Leiste rechts wird zu beschrifteten Knöpfen aus den Aktionstabellen des Spiels (je nach Ort: Tempel, Händler, Taverne …); Hochformat-Layout: Ansicht oben, Gruppe und Aktionen darunter.
+**Umfang:** ~~Wischen (vor/zurück/drehen) auf der 3D-Ansicht~~ (entfällt); die Icon-Leiste rechts wird zu beschrifteten Knöpfen aus den Aktionstabellen des Spiels (je nach Ort: Tempel, Händler, Taverne …); Hochformat-Layout: Ansicht oben, Gruppe und Aktionen darunter.
 
 ## Stufe 10 – Mobiles UI III: Helden und Inventar
 
@@ -239,7 +239,7 @@ Liste zum Abhaken: [bugfixes.md](bugfixes.md) (284 Einträge, Stand 1.5d).
 
 ## Stufe 11 – Mobiles UI IV: Reisen und Karte
 
-**Stand (16.11.):** Reisekarte zoom- und verschiebbar mit Orts- und Gebietsnamen, Wegweiser-Ziele als Knöpfe (`werkzeuge/karte.js`, `reisekarte.cpp`). Offen: Reiseereignisse durchsehen.
+**Stand (16.11.):** Reisekarte zoom- und verschiebbar mit Orts- und Gebietsnamen, Wegweiser-Ziele als Knöpfe (`werkzeuge/karte.js`, `reisekarte.cpp`). Reiseereignisse am Gerät geprüft (18.11.), abgeschlossen.
 
 **Umfang:** Reisekarte zoom- und verschiebbar, Ziele antippen statt Rechtsklick-Menü (im Original zeigt der Wegweiser erst die Karte, das Zielmenü öffnet erst ein Rechtsklick; bis dahin: Knopf „Zurück“); Reiseereignisse über die Dialoge aus Stufe 8.
 
