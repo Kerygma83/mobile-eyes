@@ -305,6 +305,10 @@ void item_apply_weapon_poison(void)
 	if ((g_itemuser->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].item_id != ITEM_NONE) &&
 		(g_itemuser->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].item_id != ITEM_KURZBOGEN) &&
 		(g_itemuser->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].item_id != ITEM_LANGBOGEN) &&
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 224): the sling is a missile weapon as well */
+		(!BUGFIX_ALLES || (g_itemuser->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].item_id != ITEM_SCHLEUDER)) &&
+#endif
 		(g_itemuser->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].item_id != ITEM_ARMBRUST))
 		/* TODO: potential Original-Bug: What about sling? */
 	{
