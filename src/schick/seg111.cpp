@@ -484,6 +484,24 @@ void tevent_064(void)
 
 				hero = get_hero(select_hero_ok_forced(get_ttx(317)));
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 159): approach_flag always becomes 1, the choice is
+				 * never repeated; a non-mage sneaks on without effect, a failed Silentium does not set
+				 * silentium_flag (text 102 never appears). Both lead back to the choice. */
+				if (BUGFIX_WICHTIG) {
+					if (hero->typus < HERO_TYPE_HEXE) {
+						GUI_output(get_ttx(330));
+					} else if (test_spell(hero, SP_SILENTIUM_SILENTILLE, 0) > 0) {
+						approach_flag = 1;
+						sub_ae_splash(hero, 2);
+						gs_tevent064_silent_flag = 1;
+						GUI_output(get_tx2(53));
+					} else {
+						sub_ae_splash(hero, 1);
+						silentium_flag = 1;
+					}
+				} else {
+#endif
 				if (hero->typus < HERO_TYPE_HEXE) {
 					GUI_output(get_ttx(330));
 				} else {
@@ -506,6 +524,9 @@ void tevent_064(void)
 						GUI_output(get_ttx(606));
 					}
 				}
+#ifdef M302de_ORIGINAL_BUGFIX
+				}
+#endif
 
 			} else if (answer == 2) {
 
