@@ -810,7 +810,14 @@ void TRV_barrier(const signed int text_start)
 
 					for (i = tools_num = 0; i <= 6; i++, hero++)
 					{
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Original-Bug (Schicksalsklinge-Bugfix Nr. 153): counts all 7 slots without checking type,
+						 * group and death. Only living heroes of the active group. */
+						if ((!BUGFIX_WICHTIG || (hero->typus && (hero->group_id == gs_active_group_id) && !hero->flags.dead)) &&
+							(test_talent(hero, TA_WILDNISLEBEN, 0) > 0)) {
+#else
 						if (test_talent(hero, TA_WILDNISLEBEN, 0) > 0) {
+#endif
 							tools_num++;
 						}
 					}

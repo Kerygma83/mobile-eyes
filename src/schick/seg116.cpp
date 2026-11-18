@@ -679,7 +679,13 @@ void TLK_old_woman(const signed int state)
 		hero = get_hero(0);
 		for (l_di = counter = 0; l_di <= 6; l_di++, hero++) {
 			/* Original-Bug: check if this is really a hero in the current group and alive before test_talent((struct struct_hero*)) */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 153: only living heroes of the active group */
+			if ((!BUGFIX_WICHTIG || ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) && !hero->flags.dead)) &&
+				(test_talent(hero, TA_VERSTECKEN, -5) > 0)) {
+#else
 			if (test_talent(hero, TA_VERSTECKEN, -5) > 0) {
+#endif
 				counter++;
 			}
 		}
@@ -699,7 +705,13 @@ void TLK_old_woman(const signed int state)
 		hero = get_hero(0);
 		for (l_di = counter = 0; l_di <= 6; l_di++, hero++) {
 			/* Original-Bug: check if this is really a hero in the current group and alive before test_talent((struct struct_hero*)) */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 153: only living heroes of the active group */
+			if ((!BUGFIX_WICHTIG || ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) && !hero->flags.dead)) &&
+				(test_talent(hero, TA_VERSTECKEN, -5) > 0)) {
+#else
 			if (test_talent(hero, TA_VERSTECKEN, -5) > 0) {
+#endif
 				counter++;
 			}
 		}
