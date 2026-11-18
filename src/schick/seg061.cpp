@@ -33,6 +33,9 @@
 #include "seg027.h"
 #include "seg029.h"
 #include "seg047.h"
+#if !defined(__BORLANDC__)
+#include "seg049.h"
+#endif
 #include "seg061.h"
 #include "seg062.h"
 #include "seg095.h"
@@ -375,6 +378,14 @@ void char_letgo(const signed int temple_id)
 					write_chr_temp(hero_pos);
 
 					memset(hero, 0, sizeof(struct struct_hero));
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 401): the dismissed hero leaves a gap in
+					 * the hero slots, which many places do not expect (freezes when travelling or in random
+					 * encounters). Fix: sort the slots again without gaps. */
+					if (BUGFIX_WICHTIG) {
+						GRP_sort_heroes();
+					}
+#endif
 
 					draw_main_screen();
 					init_ani(2);
