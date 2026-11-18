@@ -475,7 +475,13 @@ void TLK_tavern(const signed int answer)
 		gs_tav_kicked_flags[gs_town_typeindex] = 1;
 
 		if (gs_tlk_tav_fullness == 3) {
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 425): the flag is per town (as in TLK_inn); with the tavern index
+			 * (up to 87) the brawl wrote behind the array (52 bytes). Invalid memory access natively, always on. */
+			gs_town_outlawed_flags[gs_town_id] = 1;
+#else
 			gs_town_outlawed_flags[gs_town_typeindex] = 1;
+#endif
 		}
 
 	} else if (old_state == 33) {
@@ -485,7 +491,13 @@ void TLK_tavern(const signed int answer)
 		gs_tav_kicked_flags[gs_town_typeindex] = 1;
 
 		if (gs_tlk_tav_fullness == 3) {
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 425): the flag is per town (as in TLK_inn); with the tavern index
+			 * (up to 87) the brawl wrote behind the array (52 bytes). Invalid memory access natively, always on. */
+			gs_town_outlawed_flags[gs_town_id] = 1;
+#else
 			gs_town_outlawed_flags[gs_town_typeindex] = 1;
+#endif
 		}
 
 	} else if (old_state == 34) {
