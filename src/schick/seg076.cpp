@@ -971,12 +971,29 @@ void DNG_waterbarrel(uint8_t *unit_ptr)
 								units_needed = 2;
 							}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+							/* Original-Bug (Schicksalsklinge-Bugfix Nr. 91): the skin is refilled before checking the barrel,
+							 * so an empty barrel still fills every skin. Check the barrel first: nothing from an empty
+							 * barrel, with the last unit an empty skin is only half full. */
+							if (BUGFIX_WICHTIG ? ((units_needed != 0) && (*unit_ptr > 0)) : (units_needed != 0))
+							{
+								hero_refilled = 1;
+
+								if (BUGFIX_WICHTIG && (*unit_ptr < units_needed)) {
+									hero->inventory[inv_slot].flags.empty = 0;
+									hero->inventory[inv_slot].flags.half_empty = 1;
+								} else {
+									/* refill waterskin */
+									hero->inventory[inv_slot].flags.half_empty = hero->inventory[inv_slot].flags.empty = 0;
+								}
+#else
 							if (units_needed != 0)
 							{
 								hero_refilled = 1;
 
 								/* refill waterskin */
 								hero->inventory[inv_slot].flags.half_empty = hero->inventory[inv_slot].flags.empty = 0;
+#endif
 
 								if (*unit_ptr <= units_needed) {
 
