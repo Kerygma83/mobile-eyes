@@ -92,6 +92,18 @@ void FIG_loot_enemies(void)
 	if (BUGFIX_WICHTIG) {
 		loot_names[30] = (char*)(g_buffer9_ptr + 40 * 30);
 	}
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 16): the bone with runes ends the loot list, the items
+	 * behind it are never offered. Take it out of the list instead. */
+	if (BUGFIX_ALLES) {
+		for (loot_num = 0; loot_num < 30; loot_num++) {
+			while (g_current_fight->loot[loot_num] == ITEM_KNOCHEN_MIT_RUNE) {
+				for (item_cnt = loot_num; item_cnt < 29; item_cnt++) {
+					g_current_fight->loot[item_cnt] = g_current_fight->loot[item_cnt + 1];
+				}
+				g_current_fight->loot[29] = 0;
+			}
+		}
+	}
 #endif
 
 	do {
