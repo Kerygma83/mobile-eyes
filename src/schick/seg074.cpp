@@ -594,7 +594,13 @@ signed int select_teleport_dest(void)
 			draw_automap_to_screen();
 
 		} else if ((g_action == ACTION_ID_DOWN) &&
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 187): from row 15 is_discovered(x, 16) reads behind
+			 * the map, the cross may move one row below it. The map has rows 0..15. */
+			(g_automap_sely < (BUGFIX_ALLES ? 15 : 16)) &&
+#else
 			(g_automap_sely < 16) &&
+#endif
 			is_discovered(g_automap_selx, g_automap_sely + 1))
 		{
 			g_automap_sely++;
