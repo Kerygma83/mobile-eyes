@@ -109,7 +109,13 @@ void city_event_1(void)
 				GUI_output(get_tx(27));
 				GUI_output(get_tx(28));
 			} else {
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 64): randval is 0, 1, 3 or 4, so the texts 24, 25, 27 and 28 are
+				 * shown; 27 and 28 are parts of the story above, 29 and 30 are never shown. Texts 24, 25, 29, 30. */
+				sprintf(g_dtp2,	get_tx((BUGFIX_ALLES && (randval >= 2)) ? randval + 26 : randval + 24), hero->alias);
+#else
 				sprintf(g_dtp2,	get_tx(randval + 24), hero->alias);
+#endif
 				GUI_output(g_dtp2);
 			}
 		}
