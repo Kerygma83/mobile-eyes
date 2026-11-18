@@ -19,6 +19,10 @@ void drink_while_drinking(const signed int);
 /* 0x4d */
 void eat_while_drinking(const signed int);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+signed int fix340_informer_town(const signed int);	/* Schicksalsklinge-Bugfix Nr. 340 */
+#endif
+
 #if defined(__EMSCRIPTEN__)
 /* Tabelle der 15 Informanten (Name in TEXT.LTX, Stadt) für den Questlog der Seite */
 const struct struct_informer_tab* web_informer_tab(void);

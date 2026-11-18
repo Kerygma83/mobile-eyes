@@ -44,6 +44,19 @@ static const struct struct_informer_tab g_informer_tab[15] = {
 	{ 714, TOWN_ID_MANRIN     , 0 }  // INFORMER_ID_TIOMAR
 }; // ds:0x5ed6
 
+#ifdef M302de_ORIGINAL_BUGFIX
+/**
+ * \brief   town of informer i
+ *
+ *          Original-Bug (Schicksalsklinge-Bugfix Nr. 340): Tiomar Swafnildsson lives in Brendhil, the table names
+ *          Manrin. So the hint "ER WOHNT IM ORT." was given in Manrin and not in Brendhil.
+ */
+signed int fix340_informer_town(const signed int i)
+{
+	return (BUGFIX_ALLES && (i == INFORMER_ID_TIOMAR)) ? TOWN_ID_BRENDHIL : g_informer_tab[i].town_id;
+}
+#endif
+
 #if defined(__EMSCRIPTEN__)
 /* Questlog der Seite (questlog.cpp): Name und Wohnort je Informant */
 const struct struct_informer_tab* web_informer_tab(void)
@@ -288,7 +301,12 @@ signed int informer_id_from_current_town(void)
 
 	for (i = 0; i < 15; i++, p_info++) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Schicksalsklinge-Bugfix Nr. 340: Tiomar lives in Brendhil */
+		if (fix340_informer_town(i) == gs_town_id) {
+#else
 		if (p_info->town_id == gs_town_id) {
+#endif
 			return i;
 		}
 	}
@@ -311,7 +329,12 @@ char* get_informer_hint(void)
 
 	for (i = 0; i < 15; i++, p_info++) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Schicksalsklinge-Bugfix Nr. 340: Tiomar lives in Brendhil */
+		if (fix340_informer_town(i) == gs_town_id) {
+#else
 		if (p_info->town_id == gs_town_id) {
+#endif
 			return get_ttx(i + 715);
 		}
 	}

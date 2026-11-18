@@ -80,7 +80,12 @@ extern "C" EMSCRIPTEN_KEEPALIVE const char* web_questlog(void)
 		ql("%s{\"s\":%d,\"n\":", i ? "," : "", gs_informer_flags[i]);
 		ql_text(ql_ttx(inf[i].name_id));
 		ql(",\"o\":");
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Schicksalsklinge-Bugfix Nr. 340: Tiomar lives in Brendhil */
+		ql_text(fix340_informer_town(i) > 0 ? ql_ttx(fix340_informer_town(i) + 0xeb) : NULL);
+#else
 		ql_text(inf[i].town_id > 0 ? ql_ttx(inf[i].town_id + 0xeb) : NULL);
+#endif
 		ql("}");
 	}
 	ql("]");
