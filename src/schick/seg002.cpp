@@ -4542,6 +4542,15 @@ void timewarp_until_midnight(void)
 	int32_t ticks_left;
 	signed int td_bak;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 128): hard setting the time skips events at a fixed time of the
+	 * day and uses up 25 hours of light. An ordinary timewarp until midnight. */
+	if (BUGFIX_ALLES) {
+		timewarp(HOURS(24) - gs_day_timer);
+		return;
+	}
+#endif
+
 	/* save the timers status */
 	td_bak = g_timers_disabled;
 
