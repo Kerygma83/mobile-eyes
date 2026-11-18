@@ -317,8 +317,17 @@ signed int use_magic(struct struct_hero *hero)
 						ae = hero->le - 8;
 					}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 188): with LE 6 or 7, ae <= 0: add_hero_ae() gives
+					 * nothing, sub_hero_le() still takes up to 2 LE. No LE loss without convertible LE. */
+					if (!BUGFIX_ALLES || (ae > 0)) {
+						sub_hero_le(hero, ae + 3);
+						add_hero_ae(hero, ae);
+					}
+#else
 					sub_hero_le(hero, ae + 3);
 					add_hero_ae(hero, ae);
+#endif
 				} else {
 					/* Failed, print only a message */
 					sprintf(g_dtp2, get_ttx(795), hero->alias);
