@@ -311,6 +311,29 @@ export const szenarien = [
 		],
 	},
 	{
+		// Behebungen aus der Bugfix-Liste (docs/bugfixes.md), in gezielt hergestellter Lage (web_test_fix),
+		// abschaltbar in den Einstellungen (g_bugfixes):
+		// 137 Schiffstempo 0 (Division durch 0), 221 Gegenstandsverlust ohne ablegbaren Gegenstand
+		// (Endlosschleife), 235 Zufallsheld ohne lebenden Helden (Endlosschleife)
+		name: 'Bugfixes: Hänger und Abstürze',
+		schritte: [
+			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen, ...ohneZufall,
+			...[137, 221, 235].flatMap((nr) => [
+				{ js: `Module._web_test_fix(${nr})` },
+				{ warteAuf: 'z.fix == 1', max: 3000, text: `Fix ${nr}` },
+			]),
+			// zentraler Schalter in den Einstellungen: aus → wieder das Verhalten des Originals (137 ohne
+			// Hänger prüfbar), an → behoben
+			{ knopf: 'Menü' }, { knopf: 'Einstellungen' }, { knopf: 'Aus (Original)' }, { knopf: 'Schließen' },
+			{ warteAuf: "localStorage.getItem('bugfixes') === 'aus'", seite: true, max: 2000 },
+			{ js: 'Module._web_test_fix(137)' },
+			{ warteAuf: 'z.fix == 0', max: 3000, text: 'Fix 137 abgeschaltet' },
+			{ js: "einstellung.bugfixes.setze('an')", seite: true },
+			{ js: 'Module._web_test_fix(137)' },
+			{ warteAuf: 'z.fix == 1', max: 3000, text: 'Fix 137 wieder an' },
+		],
+	},
+	{
 		// Kampfzauber im Würfelprotokoll: Probe und Schaden in einem Eintrag (wlog_halten/wlog_freigeben in
 		// use_spell bzw. MON_cast_spell, Schaden aus FIG_do_spell_damage); Computerkampf mit Magie, alle sechs
 		// Helden (darunter Zauberkundige)

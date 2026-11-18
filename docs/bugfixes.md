@@ -2,7 +2,7 @@
 
 Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuhMuhCow/schicksalsklinge/blob/main/BUGFIXES.md), Version 1.5d vom 12.11.2026, übernommen am 18.11.2026 (ohne Changelog und Prüfanleitungen). Die Nummern sind die des Projekts (Schalter `FIX_nnnn` in dessen `s_fix.h`); Beschreibung und „So prüfst du es“ stehen dort. Laut Projekt sind die Behebungen am Quelltext entworfen, aber im Spiel noch nicht ausgiebig getestet.
 
-Übernahme bei uns (Stufe 7 im [Stufenplan](stufenplan.md)): je Korrektur ein Commit im BrightEyes-Branch `web`, nur nativ (`#if !defined(__BORLANDC__)`), mit Szenario, wo es sich auslösen lässt; Status hier nachtragen.
+Übernahme bei uns (Stufe 7 im [Stufenplan](stufenplan.md)): je Korrektur ein Commit im BrightEyes-Branch `web` unter `#ifdef M302de_ORIGINAL_BUGFIX` und `if (BUGFIX_WICHTIG)` (Laufzeitschalter `g_bugfixes`, im Browser die Einstellung „Fehlerkorrekturen“, Voreinstellung an), mit Szenario, wo es sich auslösen lässt (`web_test_fix`); Status hier nachtragen.
 
 **Spalten:** „Änderung dort“ und „Dateien“ (Modul in BrightEyes: `seg032` → `src/schick/seg032.cpp`) aus `Werkzeuge/fix_schalter.tsv` des Projekts; im Code dort steht jede Behebung als `#if FIX_nnnn` · Stufe W = „wichtig“, A = nur „alles“ · Schwere laut `s_fix.h` (kritisch: Hänger, Absturz, Speicherfehler) · 💰 Exploit (nützt dem Spieler) · Herkunft: BE = Fehler war in Bright-Eyes bekannt, BE-Fix = auch die Behebung stammt aus Bright-Eyes (bei uns ist `M302de_ORIGINAL_BUGFIX` nativ gesetzt, also vermutlich schon aktiv) · ⚑ = zuerst angehen.
 
@@ -17,8 +17,8 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 |---:|---|:---:|---|---|---|---|---|
 | 7 | ⚑ Heldenzug ohne verbliebene Heldenphasen: Endlosschleife möglich | W | krit. | BE | erst auf 0 Heldenphasen pruefen und den Zug an die Gegner geben (wie im Gegnerzweig) | seg032 | offen |
 | 15 | ⚑ Bei genau 30 Beutestücken schreibt „MEHR“ über einen nicht gesetzten Zeiger | W | krit. |  | auch loot_names[30] belegen, dorthin schreibt "MEHR" auf Seite 2 bei genau 30 Stueck | seg035 | offen |
-| 22 | ⚑ Übergelaufener Priester (Stufe 2) hängt das Spiel auf | W | krit. |  | ohne einen Zauber, den dieser Gegner auf seiner Seite einsetzen kann, gar nicht erst suchen | seg037 | offen |
-| 25 | ⚑ Fliehender Doppelgegner: Wegsuche hängt | W | krit. | BE-Fix | beim Fluchtziel im ersten Rueckschritt keinen Platz fuer den Schwanz verlangen, die | seg038 | prüfen: BrightEyes-Behebung, bei uns vermutlich aktiv |
+| 22 | ⚑ Übergelaufener Priester (Stufe 2) hängt das Spiel auf | W | krit. |  | ohne einen Zauber, den dieser Gegner auf seiner Seite einsetzen kann, gar nicht erst suchen | seg037 | erledigt (Branch bugfixes) |
+| 25 | ⚑ Fliehender Doppelgegner: Wegsuche hängt | W | krit. | BE-Fix | beim Fluchtziel im ersten Rueckschritt keinen Platz fuer den Schwanz verlangen, die | seg038 | schon in BrightEyes behoben |
 | 30 | ⚑ Angstgift: Schreiben über nicht gesetzten Zeiger bei Held gegen Held | W | krit. |  | Angstgift wirkt nur auf Gegner, beim Helden ist enemy_p nicht gesetzt | seg041 | offen |
 | 11 | Zauberziel: begehbare Objekte (Id ≥ 50) werden nicht abgewiesen | W | mittel |  | begehbare Objekte (Id >= 50) wie im Angriffszweig abweisen | seg033 | offen |
 | 18 | Computerkampf: Helden greifen auch übergelaufene Gegner an | W | mittel |  | uebergelaufene Gegner (Boeser Blick) kaempfen auf der Seite der Helden; uebergelaufene Gegner nicht angreifen; ein uebergelaufener Gegner steht in der Schusslinie wie ein Held | seg036 | offen |
@@ -50,7 +50,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 
 | Nr | Fehler | Stufe | Schwere | Herkunft | Änderung dort | Dateien | Status |
 |---:|---|:---:|---|---|---|---|---|
-| 196 | ⚑ Skelettarius belegt bei jedem Wirken 1288 Byte neu im Kampfobjektpuffer | W | krit. | BE | Grafikpuffer des ersetzten Gegners (je Gegner 0x508 Byte) fuer den Zombie wiederverwenden | seg099 | offen |
+| 196 | ⚑ Skelettarius belegt bei jedem Wirken 1288 Byte neu im Kampfobjektpuffer | W | krit. | BE | Grafikpuffer des ersetzten Gegners (je Gegner 0x508 Byte) fuer den Zombie wiederverwenden | seg099 | schon in BrightEyes behoben |
 | 186 | Visibili wirkt nur auf den Zaubernden, der Kampf entfällt nur bei einem Einzelhelden | W | mittel | BE | der Kampf faellt aus, wenn alle lebenden Helden der Gruppe unsichtbar sind; wie im Loesungsbuch: die ganze Gruppe wird unsichtbar, die Kosten (Spielrunden x 5 AE) zahlt der Zaubernde einmal | seg032, seg101 | offen |
 | 189 | Stabzauber: Abfrage „keine Stabzauber mehr“ auf Stufe 7 statt 4 | W | mittel | BE | ab dem 5. Stabzauber (Zuschlag 99) gibt es keine mehr | seg098 | offen |
 | 190 | Stabzauber-Probe prüft die zweite Eigenschaft doppelt | W | mittel | BE | dritte Eigenschaft statt der zweiten ein zweites Mal | seg098 | offen |
@@ -83,11 +83,11 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 
 | Nr | Fehler | Stufe | Schwere | Herkunft | Änderung dort | Dateien | Status |
 |---:|---|:---:|---|---|---|---|---|
-| 137 | ⚑ Schiffstempo in 16 Bit, Schnellsegler mit −106: Tempo 0 bringt das Spiel zum Absturz | W | krit. | BE | Grundtempo ohne Vorzeichen (150 statt -106), Produkt in 32 Bit, Ergebnis 1..127 | seg064 | offen |
-| 164 | ⚑ Waten durch den Bach mit uninitialisiertem Helden | W | krit. | BE | Held ist hier nicht gesetzt - den ersten verfuegbaren nehmen | seg113 | offen |
+| 137 | ⚑ Schiffstempo in 16 Bit, Schnellsegler mit −106: Tempo 0 bringt das Spiel zum Absturz | W | krit. | BE | Grundtempo ohne Vorzeichen (150 statt -106), Produkt in 32 Bit, Ergebnis 1..127 | seg064 | erledigt (Branch bugfixes) |
+| 164 | ⚑ Waten durch den Bach mit uninitialisiertem Helden | W | krit. | BE | Held ist hier nicht gesetzt - den ersten verfuegbaren nehmen | seg113 | schon in BrightEyes behoben |
 | 174 | ⚑ Zustand 33 ist eine Endlosschleife | W | krit. |  | statt Endlosschleife das Gespraech beenden | seg116 | offen |
-| 180 | ⚑ Krakenmolch: Endlosschleife, wenn alle Helden über Bord oder tot sind | W | krit. | BE | Kampf endet, wenn kein Held mehr kaempft (sonst Endlosschleife) | seg117 | offen |
-| 184 | ⚑ Verirrt im Wald: alle sieben Heldenplätze sterben | W | krit. | BE | nur die Helden der verirrten Gruppe | seg118 | offen |
+| 180 | ⚑ Krakenmolch: Endlosschleife, wenn alle Helden über Bord oder tot sind | W | krit. | BE | Kampf endet, wenn kein Held mehr kaempft (sonst Endlosschleife) | seg117 | schon in BrightEyes behoben |
+| 184 | ⚑ Verirrt im Wald: alle sieben Heldenplätze sterben | W | krit. | BE | nur die Helden der verirrten Gruppe | seg118 | schon in BrightEyes behoben |
 | 127 | Nur die erste Seeroute (Thorwal–Prem) wird zurückgesetzt | W | mittel | BE | alle Seerouten zuruecksetzen | seg002 | offen |
 | 136 | Passagepreis in 16 Bit: lange Routen werden spottbillig 💰 | W | mittel |  | mit der Entfernung in 32 Bit multiplizieren | seg064 | offen |
 | 142 | Reiseereignisse: Lage wird nach Richtungswechsel falsch korrigiert 💰 | W | mittel | BE-Fix | Lage direkt nach dem Ereignis setzen, bei Richtungswechsel durch das Ereignis | seg094 | prüfen: BrightEyes-Behebung, bei uns vermutlich aktiv |
@@ -195,7 +195,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 
 | Nr | Fehler | Stufe | Schwere | Herkunft | Änderung dort | Dateien | Status |
 |---:|---|:---:|---|---|---|---|---|
-| 40 | ⚑ Einbruch: „noch jemand frei?“ zählt die gerade erwischte Gruppe mit | W | krit. |  | nur Helden anderer Gruppen zaehlen, die aktive wird ja gerade verhaftet | seg025 | offen |
+| 40 | ⚑ Einbruch: „noch jemand frei?“ zählt die gerade erwischte Gruppe mit | W | krit. |  | nur Helden anderer Gruppen zaehlen, die aktive wird ja gerade verhaftet | seg025 | erledigt (Branch bugfixes) |
 | 67 | Zwingfeste: bei jedem Betreten 20 Dukaten 💰 | W | krit. | BE-Fix | das Geld gibt es nur einmal (Bright-Eyes-Fix); der Zugang haengt weiter an !gs_dng14_ugdalf_done | seg068 | prüfen: BrightEyes-Behebung, bei uns vermutlich aktiv |
 | 39 | Akademie identifiziert und bricht Flüche nur ein einziges Mal im Spiel | W | mittel | BE | Akademie identifiziert und bricht Flueche am naechsten Tag wieder | seg002 | offen |
 | 43 | Statusleiste setzt 6 statt 4 Werte je Held, beim NSC wird die Krankheitstabelle überschrieben 💰 | W | mittel | BE | das Feld hat 4 Werte je Held (sonst wird beim NSC g_disease_strength ueberschrieben) | seg029 | offen |
@@ -246,10 +246,10 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 
 | Nr | Fehler | Stufe | Schwere | Herkunft | Änderung dort | Dateien | Status |
 |---:|---|:---:|---|---|---|---|---|
-| 235 | ⚑ Zufallsheld aus Plätzen 0..n−1 statt aus den Gruppenmitgliedern | W | krit. | BE | alle 7 Plaetze wuerfeln (auch den NSC); ohne lebenden Helden der Gruppe keine Endlosschleife | seg002 | offen |
-| 244 | ⚑ Gruppenwechsel ohne Ausgang, wenn keine Gruppe frei handeln kann | W | krit. |  | nach einer vollen Runde ohne handlungsfaehige Gruppe nicht endlos weitersuchen: | seg049 | offen |
+| 235 | ⚑ Zufallsheld aus Plätzen 0..n−1 statt aus den Gruppenmitgliedern | W | krit. | BE | alle 7 Plaetze wuerfeln (auch den NSC); ohne lebenden Helden der Gruppe keine Endlosschleife | seg002 | erledigt (Branch bugfixes) |
+| 244 | ⚑ Gruppenwechsel ohne Ausgang, wenn keine Gruppe frei handeln kann | W | krit. |  | nach einer vollen Runde ohne handlungsfaehige Gruppe nicht endlos weitersuchen: | seg049 | erledigt (Branch bugfixes) |
 | 248 | Stufenanstieg: ESC bei „WELCHE POSITIVE EIGENSCHAFT“ bringt rund 168 000 Dukaten 💰 | W | krit. |  | Abbruch (ESC, rechte Maustaste) wiederholt die Abfrage | seg050 | offen |
-| 260 | ⚑ Suche nach freier Gruppe ohne Grenze | W | krit. | BE | erste freie der 6 Gruppen, -1 wenn alle belegt sind; Abtrennen nur anbieten, wenn eine der 6 Gruppen frei ist | seg104 | offen |
+| 260 | ⚑ Suche nach freier Gruppe ohne Grenze | W | krit. | BE | erste freie der 6 Gruppen, -1 wenn alle belegt sind; Abtrennen nur anbieten, wenn eine der 6 Gruppen frei ist | seg104 | erledigt (Branch bugfixes) |
 | 401 | ⚑ Entlassene Helden hinterlassen Lücken in den Heldenplätzen | W | krit. |  | die Heldenplaetze wieder lueckenlos sortieren (viele Stellen setzen das voraus) | seg061 | offen |
 | 229 | h_index wird nur einmal vor der Schleife auf −1 gesetzt | W | mittel |  | Held fuer jeden Timer neu suchen | seg002 | offen |
 | 233 | Heil-, Stab- und Lichttimer runden kleine Zeitsprünge weg | W | mittel | BE | den Rest der angebrochenen 5 bzw. 15 Minuten mitrechnen | seg002 | offen |
@@ -292,7 +292,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 | Nr | Fehler | Stufe | Schwere | Herkunft | Änderung dort | Dateien | Status |
 |---:|---|:---:|---|---|---|---|---|
 | 214 | Magisches Bastardschwert ist als „benutzbar“ markiert (dort teilweise) | W | krit. | BE | Gegenstaende mit Nummer ausserhalb der Benutzen-Tabelle (magisches | seg107 | offen |
-| 221 | ⚑ Zufälliger Gegenstandsverlust: Endlosschleife ohne ablegbaren Gegenstand | W | krit. | BE | ohne ablegbaren Gegenstand nichts verlieren (sonst Endlosschleife) | seg105 | offen |
+| 221 | ⚑ Zufälliger Gegenstandsverlust: Endlosschleife ohne ablegbaren Gegenstand | W | krit. | BE | ohne ablegbaren Gegenstand nichts verlieren (sonst Endlosschleife) | seg105 | erledigt (Branch bugfixes) |
 | 222 | Tausch zweier Körperplätze ohne Prüfung und Boni 💰 | W | krit. |  | Meldung "... KANN AN DIESER POSITION NICHT GETRAGEN WERDEN" (wie in move_item()); liegen beide Plaetze am Koerper, auch den verdraengten Gegenstand pruefen | seg106 | offen |
 | 218 | Analüs verspricht Wirkungen magischer Gegenstände, die es nicht gibt (dort teilweise) | W | mittel | BE | der gruene Ring (Schutz vor magischem Feuer) bewahrt vor den verbrannten Haenden | seg085 | offen |
 | 220 | Zähler der belegten Inventarplätze driftet | W | mittel | BE | Stapel hoechstens 99, beim Zusammenlegen den Platzzaehler senken; neuer Stapel beim Empfaenger belegt einen Platz | seg106 | offen |
