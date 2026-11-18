@@ -314,7 +314,12 @@ void render_automap(const signed int x_off)
 
 	/* Original-Bug 31: If there is another group on the same map square as the active group, the automap will mark that square by a purple arrow (for the other group) instead of a yellow one (for the active group).
 	 * The reason is that the yellow arrow will be overdrawn by the purple ones, which are drawn later. */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 83): the visible columns are 0..15, "<= 16" draws column 16 right of the map */
+	if (((gs_x_target - x_off) >= 0) && ((gs_x_target - x_off) < (BUGFIX_ALLES ? 16 : 17))) {
+#else
 	if (((gs_x_target - x_off) >= 0) && ((gs_x_target - x_off) <= 16)) { /* shouldn't this always be true? */
+#endif
 
 		draw_automap_square(gs_x_target - x_off, gs_y_target, MAP_TILE_YELLOW_ARROW, gs_direction);
 	}
@@ -330,7 +335,12 @@ void render_automap(const signed int x_off)
 			(gs_groups_dungeon_id[group_i] == gs_dungeon_id) &&
 			!is_group_in_prison(group_i) &&
 			(gs_groups_x_target[group_i] - x_off >= 0) &&
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 83 */
+			(gs_groups_x_target[group_i] - x_off < (BUGFIX_ALLES ? 16 : 17)))
+#else
 			(gs_groups_x_target[group_i] - x_off <= 16))
+#endif
 		{
 			draw_automap_square(gs_groups_x_target[group_i] - x_off,
 					gs_groups_y_target[group_i],
@@ -344,14 +354,24 @@ void render_automap(const signed int x_off)
 
 	/* Original-Bug 31: see above.
 	 * Fix: Move the code block drawing the yellow arrow after the one drawing the purple arrows. */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 83): the visible columns are 0..15, "<= 16" draws column 16 right of the map */
+	if (((gs_x_target - x_off) >= 0) && ((gs_x_target - x_off) < (BUGFIX_ALLES ? 16 : 17))) {
+#else
 	if (((gs_x_target - x_off) >= 0) && ((gs_x_target - x_off) <= 16)) { /* shouldn't this always be true? */
+#endif
 
 		draw_automap_square(gs_x_target - x_off, gs_y_target, MAP_TILE_YELLOW_ARROW, gs_direction);
 	}
 #endif
 
 	/* In the target selector screen of the Transversalis spell, mark the target with a cross */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 83 */
+	if (((g_automap_selx - x_off) >= 0) && ((g_automap_selx - x_off) < (BUGFIX_ALLES ? 16 : 17))) {
+#else
 	if (((g_automap_selx - x_off) >= 0) && ((g_automap_selx - x_off) <= 16)) {
+#endif
 
 		draw_automap_square(g_automap_selx - x_off, g_automap_sely, MAP_TILE_CROSS, -1);
 	}
