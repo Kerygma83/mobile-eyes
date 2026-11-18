@@ -311,7 +311,14 @@ void loot_chest(struct struct_chest *chest, char *text_non_empty, char *text_emp
 	signed int pos;
 	signed int item_id;
 	signed int tw_bak;
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 216): 20 bytes are too short for some item names (e.g.
+	 * "REZEPT FUER STARKEN HEILTRANK"); the name runs into the next entry, the last one overflows the array.
+	 * 30 bytes as in loot_simple_chest(). Invalid memory access natively, always on. */
+	char names[20][30];
+#else
 	char names[20][20];
+#endif
 
 	chest->key = 0;
 
