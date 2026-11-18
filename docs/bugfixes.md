@@ -51,33 +51,33 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 | Nr | Fehler | Stufe | Schwere | Herkunft | Änderung dort | Dateien | Status |
 |---:|---|:---:|---|---|---|---|---|
 | 196 | ⚑ Skelettarius belegt bei jedem Wirken 1288 Byte neu im Kampfobjektpuffer | W | krit. | BE | Grafikpuffer des ersetzten Gegners (je Gegner 0x508 Byte) fuer den Zombie wiederverwenden | seg099 | schon in BrightEyes behoben |
-| 186 | Visibili wirkt nur auf den Zaubernden, der Kampf entfällt nur bei einem Einzelhelden | W | mittel | BE | der Kampf faellt aus, wenn alle lebenden Helden der Gruppe unsichtbar sind; wie im Loesungsbuch: die ganze Gruppe wird unsichtbar, die Kosten (Spielrunden x 5 AE) zahlt der Zaubernde einmal | seg032, seg101 | offen |
-| 189 | Stabzauber: Abfrage „keine Stabzauber mehr“ auf Stufe 7 statt 4 | W | mittel | BE | ab dem 5. Stabzauber (Zuschlag 99) gibt es keine mehr | seg098 | offen |
-| 190 | Stabzauber-Probe prüft die zweite Eigenschaft doppelt | W | mittel | BE | dritte Eigenschaft statt der zweiten ein zweites Mal | seg098 | offen |
-| 191 | Foramen aus dem Zaubermenü ignoriert den Türzuschlag 💰 | W | mittel | BE | Zuschlag der Tuer vor der Gruppe auch beim freien Foramen (Suche endet am Listenende -1) | seg098 | offen |
-| 192 | Gardianum kostet AE und schützt nicht | W | mittel | BE | der Gardianum-Schild gilt fuer einen Kampf; Staerke des Schildes = Stufe des Zaubernden + eingesetzte AE (Loesungsbuch); ausgewertet in seg102; der Gardianum-Schild faengt ab, die AE zahlt der Gegner trotzdem | seg032, seg099, seg102 | offen |
-| 197 | Foramen aus dem Zaubermenü wirkt nur nach geöffnetem Türmenü | W | mittel | BE | freies Foramen auch vor einer geschlossenen Tuer ohne geoeffnetes Tuermenue | seg099 | offen |
-| 199 | Hexenspeichel: AE-Prüfung greift nie 💰 | W | mittel |  | hoechstens die fehlenden LE heilen, je LE 2 AE, und nicht mehr AE ausgeben, als da sind | seg099 | offen |
-| 207 | Armatrutz: ein RS-Punkt mehr, als AE vorhanden 💰 | W | mittel | BE | groesster Bonus, dessen Quadrat die AE nicht uebersteigt | seg101, seg102 | offen |
-| 211 | g_ignite_mode wird nach dem Anzünden nicht zurückgesetzt | W | mittel | BE | Anzuendmodus zuruecksetzen, sonst findet "Brenne toter Stoff" danach nur noch diese Art | seg107 | offen |
-| 212 | Tollwut: Sanftmut ohne Prüfung des Zauberwerts (dort teilweise) | W | mittel | BE | Zauberwert pruefen (die Meldung "beherrscht den Zauber nicht" braeuchte einen neuen Text); Magier mit 4. Stabzauber zahlen 2 AE weniger (sub_ae_splash) | seg120 | offen |
-| 213 | Feuerbann wird gesetzt, aber nirgends ausgewertet | W | mittel | BE | Dauer Stufe in Stunden (Loesungsbuch); die Wirkung wertet seg102 aus | seg101, seg102 | offen |
-| 382 | Große Gier ist nicht umgesetzt | W | mittel |  | der Gegner verlaesst den Kampfplatz (Loesungsbuch), wie beim Horriphobus ueber die Flucht; Kosten 8 AE aus der Zaubertabelle. | seg099 | offen |
-| 383 | Transversalis auf der Landreise kostet AE ohne Wirkung | W | mittel |  | auf der Reise (Lager unterwegs) steht gs_town_id noch auf der Abreisestadt -> Meldung wie ausserhalb, keine AE | seg099 | offen |
-| 385 | Curian zaubert im Kampf nur im Computerkampf mit Magie | W | mittel |  | ein NSC (Curian) zaubert auch im normalen Kampf, nicht nur im Computerkampf mit Magie | seg036 | offen |
-| 187 | Transversalis-Kreuz darf eine Zeile unter die Karte | A | gering |  | das Kreuz bleibt auf der Karte (Zeilen 0..15) | seg074 | offen |
-| 188 | Meditation bei LE 6 oder 7 kostet LE und bringt keine AE | A | gering |  | ohne umwandelbare LE (ae <= 0) keine LE abziehen | seg098 | offen |
-| 193 | Spieltext „AUF %S RUHT …“ mit großem S | A | gering | BE | %S im geladenen Text zu %s machen | seg099 | offen |
-| 195 | Skelettarius: Leiche darunter verschwindet aus der Auswahl | A | gering | BE | object_id des Ziels sichern (darunterliegende Leiche bleibt waehlbar) | seg099 | offen |
-| 200 | Abbruch der Gegenstandswahl: inventory[−1] | A | gering | BE | Abbruch der Gegenstandswahl (-1) nicht als Inventarplatz benutzen; Abbruch der Gegenstandswahl (-1) nicht als Inventarplatz benutzen (g_dtp2 ist schon leer) | seg099, seg100 | offen |
-| 201 | Analüs: volle AE-Kosten, wenn nur der Zuschlag die Probe kippt | A | gering | BE | am Zuschlag gescheitert -> halbe AE wie bei misslungenem Zauber | seg099 | offen |
-| 202 | „Eigenschaften seid gelesen“ zeigt 80 % des Nahkampfschadens | A | gering | BE | Nahkampfschaden ungekuerzt anzeigen | seg100 | offen |
-| 203 | Exposami vergleicht mit einem noch leeren Listeneintrag | A | gering |  | nur beschriebene Eintraege vergleichen | seg100 | offen |
-| 205 | Eisenrost auf ein Tier kostet volle AE | A | gering |  | keine Kosten, wie bei Bannbaladin | seg100 | offen |
-| 206 | Spieltext „VERWANDLET“ | A | gering | BE | Tippfehler im geladenen Text zur Laufzeit berichtigen | seg100 | offen |
-| 208 | Paralue auf einen Helden prüft das alte Zauberziel | A | gering | BE | erst das neue Ziel setzen, dann pruefen | seg101 | offen |
-| 210 | Brenne entzündet immer die erste Fackel oder Laterne | A | gering | BE | den benutzten Inventarplatz anzuenden, nicht die erste Fackel/Laterne | seg101 | offen |
-| 386 | Analüs erkennt nur 28 Gegenstände, Grimring nicht (dort teilweise) | A | gering |  | magischer Gegenstand ohne Eintrag in g_analues_items -> Text 55 ("kann nicht sagen, was fuer ein Zauber") statt "nichts Besonderes" | seg099 | offen |
+| 186 | Visibili wirkt nur auf den Zaubernden, der Kampf entfällt nur bei einem Einzelhelden | W | mittel | BE | der Kampf faellt aus, wenn alle lebenden Helden der Gruppe unsichtbar sind; wie im Loesungsbuch: die ganze Gruppe wird unsichtbar, die Kosten (Spielrunden x 5 AE) zahlt der Zaubernde einmal | seg032, seg101 | erledigt (Branch bugfixes) |
+| 189 | Stabzauber: Abfrage „keine Stabzauber mehr“ auf Stufe 7 statt 4 | W | mittel | BE | ab dem 5. Stabzauber (Zuschlag 99) gibt es keine mehr | seg098 | erledigt (Branch bugfixes) |
+| 190 | Stabzauber-Probe prüft die zweite Eigenschaft doppelt | W | mittel | BE | dritte Eigenschaft statt der zweiten ein zweites Mal | seg098 | schon in BrightEyes behoben |
+| 191 | Foramen aus dem Zaubermenü ignoriert den Türzuschlag 💰 | W | mittel | BE | Zuschlag der Tuer vor der Gruppe auch beim freien Foramen (Suche endet am Listenende -1) | seg098 | schon in BrightEyes behoben (Suche jetzt mit Listenende -1, immer an) |
+| 192 | Gardianum kostet AE und schützt nicht | W | mittel | BE | der Gardianum-Schild gilt fuer einen Kampf; Staerke des Schildes = Stufe des Zaubernden + eingesetzte AE (Loesungsbuch); ausgewertet in seg102; der Gardianum-Schild faengt ab, die AE zahlt der Gegner trotzdem | seg032, seg099, seg102 | erledigt (Branch bugfixes) |
+| 197 | Foramen aus dem Zaubermenü wirkt nur nach geöffnetem Türmenü | W | mittel | BE | freies Foramen auch vor einer geschlossenen Tuer ohne geoeffnetes Tuermenue | seg099 | schon in BrightEyes behoben |
+| 199 | Hexenspeichel: AE-Prüfung greift nie 💰 | W | mittel |  | hoechstens die fehlenden LE heilen, je LE 2 AE, und nicht mehr AE ausgeben, als da sind | seg099 | erledigt (Branch bugfixes) |
+| 207 | Armatrutz: ein RS-Punkt mehr, als AE vorhanden 💰 | W | mittel | BE | groesster Bonus, dessen Quadrat die AE nicht uebersteigt | seg101, seg102 | erledigt (Branch bugfixes); Helden waren schon in BrightEyes behoben, jetzt auch Gegner (seg102) |
+| 211 | g_ignite_mode wird nach dem Anzünden nicht zurückgesetzt | W | mittel | BE | Anzuendmodus zuruecksetzen, sonst findet "Brenne toter Stoff" danach nur noch diese Art | seg107 | schon in BrightEyes behoben |
+| 212 | Tollwut: Sanftmut ohne Prüfung des Zauberwerts (dort teilweise) | W | mittel | BE | Zauberwert pruefen (die Meldung "beherrscht den Zauber nicht" braeuchte einen neuen Text); Magier mit 4. Stabzauber zahlen 2 AE weniger (sub_ae_splash) | seg120 | schon in BrightEyes behoben |
+| 213 | Feuerbann wird gesetzt, aber nirgends ausgewertet | W | mittel | BE | Dauer Stufe in Stunden (Loesungsbuch); die Wirkung wertet seg102 aus | seg101, seg102 | erledigt (Branch bugfixes) |
+| 382 | Große Gier ist nicht umgesetzt | W | mittel |  | der Gegner verlaesst den Kampfplatz (Loesungsbuch), wie beim Horriphobus ueber die Flucht; Kosten 8 AE aus der Zaubertabelle. | seg099 | erledigt (Branch bugfixes) |
+| 383 | Transversalis auf der Landreise kostet AE ohne Wirkung | W | mittel |  | auf der Reise (Lager unterwegs) steht gs_town_id noch auf der Abreisestadt -> Meldung wie ausserhalb, keine AE | seg099 | erledigt (Branch bugfixes) |
+| 385 | Curian zaubert im Kampf nur im Computerkampf mit Magie | W | mittel |  | ein NSC (Curian) zaubert auch im normalen Kampf, nicht nur im Computerkampf mit Magie | seg036 | erledigt (Branch bugfixes) |
+| 187 | Transversalis-Kreuz darf eine Zeile unter die Karte | A | gering |  | das Kreuz bleibt auf der Karte (Zeilen 0..15) | seg074 | erledigt (Branch bugfixes), Stufe alles |
+| 188 | Meditation bei LE 6 oder 7 kostet LE und bringt keine AE | A | gering |  | ohne umwandelbare LE (ae <= 0) keine LE abziehen | seg098 | erledigt (Branch bugfixes), Stufe alles |
+| 193 | Spieltext „AUF %S RUHT …“ mit großem S | A | gering | BE | %S im geladenen Text zu %s machen | seg099 | schon in BrightEyes behoben |
+| 195 | Skelettarius: Leiche darunter verschwindet aus der Auswahl | A | gering | BE | object_id des Ziels sichern (darunterliegende Leiche bleibt waehlbar) | seg099 | schon in BrightEyes behoben |
+| 200 | Abbruch der Gegenstandswahl: inventory[−1] | A | gering | BE | Abbruch der Gegenstandswahl (-1) nicht als Inventarplatz benutzen; Abbruch der Gegenstandswahl (-1) nicht als Inventarplatz benutzen (g_dtp2 ist schon leer) | seg099, seg100 | schon in BrightEyes behoben |
+| 201 | Analüs: volle AE-Kosten, wenn nur der Zuschlag die Probe kippt | A | gering | BE | am Zuschlag gescheitert -> halbe AE wie bei misslungenem Zauber | seg099 | erledigt (Branch bugfixes), Stufe alles |
+| 202 | „Eigenschaften seid gelesen“ zeigt 80 % des Nahkampfschadens | A | gering | BE | Nahkampfschaden ungekuerzt anzeigen | seg100 | erledigt (Branch bugfixes), Stufe alles |
+| 203 | Exposami vergleicht mit einem noch leeren Listeneintrag | A | gering |  | nur beschriebene Eintraege vergleichen | seg100 | erledigt (Branch bugfixes), Stufe alles |
+| 205 | Eisenrost auf ein Tier kostet volle AE | A | gering |  | keine Kosten, wie bei Bannbaladin | seg100 | erledigt (Branch bugfixes), Stufe alles |
+| 206 | Spieltext „VERWANDLET“ | A | gering | BE | Tippfehler im geladenen Text zur Laufzeit berichtigen | seg100 | schon in BrightEyes behoben |
+| 208 | Paralue auf einen Helden prüft das alte Zauberziel | A | gering | BE | erst das neue Ziel setzen, dann pruefen | seg101 | erledigt (Branch bugfixes), Stufe alles |
+| 210 | Brenne entzündet immer die erste Fackel oder Laterne | A | gering | BE | den benutzten Inventarplatz anzuenden, nicht die erste Fackel/Laterne | seg101 | schon in BrightEyes behoben |
+| 386 | Analüs erkennt nur 28 Gegenstände, Grimring nicht (dort teilweise) | A | gering |  | magischer Gegenstand ohne Eintrag in g_analues_items -> Text 55 ("kann nicht sagen, was fuer ein Zauber") statt "nichts Besonderes" | seg099 | erledigt (Branch bugfixes), Stufe alles; wie dort nur teilweise |
 
 ## Reise & Ereignisse (48)
 
