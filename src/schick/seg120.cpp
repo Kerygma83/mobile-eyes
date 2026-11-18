@@ -266,7 +266,15 @@ void rabies_frenzy(struct struct_hero* hero_rabies, signed int hero_pos_rabies)
 
 					/* one of the other heroes must pass CH+0 */
 					/* Original-Bug: other hero should be in same group, not dead, etc. */
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 273): a failed test (< 0) counts as success and the other hero
+					 * is not checked; only heroes of the group able to act, CH test passed (> 0) */
+					if (BUGFIX_WICHTIG ? ((hero_pos != hero_pos_rabies) && (get_hero(hero_pos)->group_id == gs_active_group_id) &&
+							check_hero(get_hero(hero_pos)) && (test_attrib(get_hero(hero_pos), ATTRIB_CH, 0) > 0)) :
+						((hero_pos != hero_pos_rabies) && (test_attrib(get_hero(hero_pos), ATTRIB_CH, 0) != 0)))
+#else
 					if ((hero_pos != hero_pos_rabies) && (test_attrib(get_hero(hero_pos), ATTRIB_CH, 0) != 0))
+#endif
 						/* Original-Bug: should be 'test_attrib(get_hero(i), ATTRIB_CH, 0) > 0'
 						 * (found by siebenstreich 2021-08-15) */
 					{
@@ -318,7 +326,12 @@ void rabies_frenzy(struct struct_hero* hero_rabies, signed int hero_pos_rabies)
 						{
 
 							/* spell must succeed */
+#ifdef M302de_ORIGINAL_BUGFIX
+							/* Schicksalsklinge-Bugfix Nr. 273: only a passed test (> 0) calms */
+							if (BUGFIX_WICHTIG ? (test_spell(hero_2, SP_SANFTMUT, 0) > 0) : (test_spell(hero_2, SP_SANFTMUT, 0) != 0)) {
+#else
 							if (test_spell(hero_2, SP_SANFTMUT, 0)) {
+#endif
 
 								done = 1;
 
