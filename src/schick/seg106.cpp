@@ -589,6 +589,15 @@ lab04:
 				sprintf(g_dtp2,	get_ttx(779), hero2->alias);
 				GUI_output(g_dtp2);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 397): an exchange only checks the load of the receiver;
+			 * check the giver as well if he gets heavier (exploit) */
+			} else if (BUGFIX_ALLES && (item_weight2 > item_weight1) &&
+				(hero1->attrib[ATTRIB_KK].current * 100 <= hero1->load + item_weight2 - item_weight1)) {
+
+				sprintf(g_dtp2,	get_ttx(779), hero1->alias);
+				GUI_output(g_dtp2);
+#endif
 			} else {
 				if (pos1 < 7) {
 					unequip(hero1, item_id1, pos1);
