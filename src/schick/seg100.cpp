@@ -87,7 +87,13 @@ void spell_exposami(void)
 
 			changed = 0;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 203): '<=' also compares arr[count], which is not
+			 * written yet. Compare only the written entries. */
+			for (j = 0; j < (BUGFIX_ALLES ? count : count + 1); j++) {
+#else
 			for (j = 0; j <= count; j++) {
+#endif
 				if (arr[j][0] == id) {
 					/* found an entry with this id */
 					arr[j][1]++;
