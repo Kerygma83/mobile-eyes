@@ -279,7 +279,13 @@ void repair_screen(struct smith_descr *smith, const signed int smith_id)
 
 					do_fill_rect(g_vga_memstart, 26, 26, 105, 33, 0);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 56): shows the money of this hero, but the repair is paid
+					 * from the party money */
+					make_valuta_str(g_dtp2, BUGFIX_ALLES ? get_party_money() : hero2->money);
+#else
 					make_valuta_str(g_dtp2, hero2->money);
+#endif
 					GUI_print_string(g_dtp2, 104 - GUI_get_space_for_string(g_dtp2, 0), 26);
 				}
 
