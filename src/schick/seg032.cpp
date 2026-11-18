@@ -1381,6 +1381,15 @@ signed int do_fight(const signed int fight_id)
 		prepare_area(gs_dungeon_id != DUNGEON_ID_NONE ? 0 : 1);
 	}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 410): after fights started directly by a dungeon handler the
+	 * combat music kept playing; only DNG_fight() switched back. In a dungeon play the dungeon music after
+	 * every fight. */
+	if (BUGFIX_ALLES && (gs_dungeon_id != DUNGEON_ID_NONE)) {
+		set_audio_track(ARCHIVE_FILE_DUNGEON_XMI);
+	}
+#endif
+
 	load_wallclock_nvf();
 	call_mouse();
 
