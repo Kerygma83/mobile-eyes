@@ -747,7 +747,15 @@ void journey_random_encounter(signed int tmp)
 
 	for (random_encounter_id = 0; random_encounter_id < 14; random_encounter_id++) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 181): "value <= W100" instead of "W100 <= value"; as the
+		 * values rise per column, only the first row with a value != 0 ever applies (hunts, snake, bear etc.
+		 * never happen except in landscape 7). Rising thresholds: W100 <= value. */
+		if ((BUGFIX_WICHTIG ? (roll_d100 <= g_trv_journey_random_encounter_stats[random_encounter_id][tmp]) :
+			(g_trv_journey_random_encounter_stats[random_encounter_id][tmp] <= roll_d100)) && g_trv_journey_random_encounter_stats[random_encounter_id][tmp]) {
+#else
 		if ((g_trv_journey_random_encounter_stats[random_encounter_id][tmp] <= roll_d100) && g_trv_journey_random_encounter_stats[random_encounter_id][tmp]) {
+#endif
 
 			gs_show_travel_map = g_wallclock_update = 0;
 			g_travel_event_active = 1;
