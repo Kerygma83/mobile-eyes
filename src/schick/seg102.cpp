@@ -848,6 +848,16 @@ void mspell_armatrutz(void)
 	signed int rs_bonus;
 
 	i = 0;
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 207, as Armatrutz of the heroes in seg101): the bonus up to i
+	 * may cost more AE than the enemy has. Largest bonus whose square does not exceed the AE. */
+	if (BUGFIX_WICHTIG) {
+		while ((i * i) <= g_spelluser_e->ae) {
+			i++;
+		}
+		--i;
+	} else
+#endif
 	while ((i * i) < g_spelluser_e->ae) {
 		i++;
 	}
