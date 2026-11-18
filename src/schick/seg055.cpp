@@ -316,6 +316,11 @@ void do_merchant(void)
 
 			/* debt logic for merchants */
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 66): in the armoury the group buys with the budget of the
+			 * Hetman, the debts with Stoerrebrandt are not asked for there (exploit) */
+			if (!BUGFIX_WICHTIG || (gs_town_typeindex != MERCHANT_TYPEINDEX_THORWAL_ZEUGHAUS)) {
+#endif
 			if ((gs_bank_deposit <= -1000) && !gs_debt_days) {
 
 				GUI_output(get_ttx(761));
@@ -350,6 +355,9 @@ void do_merchant(void)
 					done = 1;
 				}
 			}
+#ifdef M302de_ORIGINAL_BUGFIX
+			}
+#endif
 		}
 
 		if (g_mouse_rightclick_event || g_action == ACTION_ID_PAGE_UP) {
