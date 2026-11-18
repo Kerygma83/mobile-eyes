@@ -541,7 +541,14 @@ signed int DNG_step(void)
 		/* merge groups or reach hands through the mirror */
 		pos = DNG_POS(gs_dungeon_level, gs_x_target, gs_y_target);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 88): missing parentheses, square (1,8,5) shows the mirror
+		 * text in every dungeon instead of merging the groups. Both squares only in Hyggelik's ruin. */
+		if (BUGFIX_WICHTIG ? (gs_dungeon_id == DUNGEON_ID_HYGGELIKS_RUINE && (pos == DNG_POS(1,8,1) || pos == DNG_POS(1,8,5))) :
+			((gs_dungeon_id == DUNGEON_ID_HYGGELIKS_RUINE && pos == DNG_POS(1,8,1)) || pos == DNG_POS(1,8,5)))
+#else
 		if ((gs_dungeon_id == DUNGEON_ID_HYGGELIKS_RUINE && pos == DNG_POS(1,8,1)) || pos == DNG_POS(1,8,5))
+#endif
 		{
 			GUI_output(get_tx(33));
 
