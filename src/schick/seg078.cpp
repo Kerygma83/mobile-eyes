@@ -258,8 +258,16 @@ signed int DNG02_handler(void)
 
 	} else if ((target_pos == DNG_POS(0,10,6) || target_pos == DNG_POS(0,11,5)) && target_pos != gs_dng_handled_pos)
 	{
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 102): weight_sum is reset for every group, so the dummy value
+		 * 5000 for a group on (0,11,8) is lost unless that group is the last one. Reset once before the loop. */
+		weight_sum = 0;
+#endif
 		for (i = 0; i < 6; i++)
 		{
+#ifdef M302de_ORIGINAL_BUGFIX
+			if (!BUGFIX_WICHTIG)
+#endif
 			weight_sum = 0;
 
 			if (gs_groups_x_target[i] == 11 && gs_groups_y_target[i] == 6 &&
