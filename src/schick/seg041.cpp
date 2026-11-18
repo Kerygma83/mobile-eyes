@@ -256,6 +256,9 @@ signed int FIG_get_hero_weapon_attack_damage(struct struct_hero* hero, struct st
 	signed char enemy_gfx_id;
 	struct enemy_sheet* enemy_p;
 	signed int weapon_type;
+#ifdef M302de_ORIGINAL_BUGFIX
+	signed int ranged_index;	/* Schicksalsklinge-Bugfix Nr. 2 */
+#endif
 
 	if (attack_hero == 0) {
 		enemy_p = (struct enemy_sheet*)target; /* TODO: to attack an enemy enemy_p should be used instead of target */
@@ -295,7 +298,16 @@ signed int FIG_get_hero_weapon_attack_damage(struct struct_hero* hero, struct st
 		}
 #endif
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 2): the throwing weapon Schneidzahn has ranged_index -1 and was
+		 * computed like a melee weapon. Use the distance table of the other throwing axes (Wurfbeil, Wurfaxt). */
+		ranged_index = (BUGFIX_WICHTIG && (right_hand == ITEM_SCHNEIDZAHN) && (weapon->ranged_index == -1)) ?
+					2 : weapon->ranged_index;
+
+		if (ranged_index != -1) {
+#else
 		if (weapon->ranged_index != -1) {
+#endif
 
 			/* weapon does ranged damage */
 
@@ -322,7 +334,11 @@ signed int FIG_get_hero_weapon_attack_damage(struct struct_hero* hero, struct st
 				ranged_distance_type = RANGED_DISTANCE_TYPE_EXTREM_WEIT;
 			}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			p_rangedtab = &g_ranged_weapons_table[ranged_index];
+#else
 			p_rangedtab = &g_ranged_weapons_table[weapon->ranged_index];
+#endif
 
 			if (attack_hero) {
 				if (target->typus == HERO_TYPE_ZWERG) {
@@ -341,7 +357,11 @@ signed int FIG_get_hero_weapon_attack_damage(struct struct_hero* hero, struct st
 			damage_mod = (test_talent(hero,
 						(item_p_rh->subtype == WEAPON_TYPE_WURFWAFFE ? TA_WURFWAFFEN : TA_SCHUSSWAFFEN),
 						p_rangedtab->base_handicap + 2 * ranged_distance_type - 2 * target_size) > 0) ?
+#ifdef M302de_ORIGINAL_BUGFIX
+					p_rangedtab->damage_modifier[ranged_distance_type] : -damage;
+#else
 					g_ranged_weapons_table[weapon->ranged_index].damage_modifier[ranged_distance_type] : -damage;
+#endif
 
 			if (damage_mod != 0) { /* test is redundant */
 				damage += damage_mod;
