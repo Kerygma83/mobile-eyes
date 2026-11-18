@@ -85,6 +85,18 @@ void ask_miracle(void)
 #endif
 						}
 					}
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 61): the loop above runs over the slots 0..n-1
+					 * (n = size of the active group) instead of the heroes of the active group */
+					if (BUGFIX_ALLES) {
+						no_spellcaster_in_group = 1;
+						for (i = 0; i <= 6; i++) {
+							if ((get_hero(i)->typus >= HERO_TYPE_HEXE) && (get_hero(i)->group_id == gs_active_group_id)) {
+								no_spellcaster_in_group = 0;
+							}
+						}
+					}
+#endif
 
 					// Praios doesn't like groups with spellcasters.
 					if (no_spellcaster_in_group != 0) {
