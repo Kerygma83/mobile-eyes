@@ -993,7 +993,13 @@ void level_up(const signed int hero_pos)
 			}
 
 			while (hero->saved_spell_increases != 0) {
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 252): random_schick(SP__END) gives 1..86, but 85 is the last
+				 * spell; index 86 is saved_spell_increases, that try is wasted */
+				inc_spell_novice(hero, random_schick(BUGFIX_ALLES ? SP__END - 1 : SP__END));
+#else
 				inc_spell_novice(hero, random_schick(SP__END));
+#endif
 			}
 		}
 
