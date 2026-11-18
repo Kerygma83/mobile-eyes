@@ -328,6 +328,13 @@ signed int DNG03_handler(void)
 		i = get_first_hero_with_item(ITEM_KRISTALL) != -1 ? 0 : 1;
 
 		do {
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 353): with crystals there is no "later" (text 29);
+			 * answer 3 ends without effect */
+			if (BUGFIX_ALLES) {
+				j = !i ? GUI_radio(get_tx(14), 3, get_tx(15), get_tx(16), get_tx(29)) : GUI_radio(get_tx(14), 2, get_tx(15), get_tx(29));
+			} else
+#endif
 			j = GUI_radio(get_tx(14), 2, get_tx(15), !i ? get_tx(16) : get_tx(29));
 
 		} while (j == -1);
