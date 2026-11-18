@@ -1161,6 +1161,30 @@ void DNG_stub6(void)
 
 				l_di--;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 85): the names are taken from the slots 0, 1, 2, ...
+				 * (only skipping the strongest hero) without checking type and group. List only the heroes
+				 * able to act of the active group (as count_heroes_available_in_group()). */
+				if (BUGFIX_ALLES) {
+
+					for (l_si = 0; (l_si <= 6) && l_di; l_si++) {
+
+						hero1 = get_hero(l_si);
+
+						if ((l_si != strongest_hero_pos) && hero1->typus && (hero1->group_id == gs_active_group_id) &&
+							check_hero(hero1))
+						{
+							strcat(g_dtp2, hero1->alias);
+
+							if (--l_di) {
+
+								strcat(g_dtp2, (l_di >= 2 ? g_dng_stub6_str_comma : g_dng_stub6_str_and));
+							}
+						}
+					}
+
+				} else {
+#endif
 				l_si = 0;
 
 				do {
@@ -1177,6 +1201,9 @@ void DNG_stub6(void)
 					}
 
 				} while (l_di);
+#ifdef M302de_ORIGINAL_BUGFIX
+				}
+#endif
 
 				sprintf(g_text_output_buf, get_ttx(771), hero_auto->alias,
 					GUI_get_ptr(hero_auto->sex, 0),
