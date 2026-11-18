@@ -1170,6 +1170,12 @@ signed int do_fight(const signed int fight_id)
 				hero->blind_timer = 0;				/* unset blindness (set counter to 0) */
 				hero->ecliptifactus_timer = 0;			/* unset 'Ecliptifactus' (set counter to 0) */
 				hero->action_id = FIG_ACTION_MOVE;
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 405): the attack mode (aggressive/cautious) is kept for the next fight */
+				if (BUGFIX_ALLES) {
+					hero->fight_atpa_mod = 0;
+				}
+#endif
 			}
 		}
 
