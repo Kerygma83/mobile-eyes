@@ -248,44 +248,44 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 |---:|---|:---:|---|---|---|---|---|
 | 235 | ⚑ Zufallsheld aus Plätzen 0..n−1 statt aus den Gruppenmitgliedern | W | krit. | BE | alle 7 Plaetze wuerfeln (auch den NSC); ohne lebenden Helden der Gruppe keine Endlosschleife | seg002 | erledigt (Branch bugfixes) |
 | 244 | ⚑ Gruppenwechsel ohne Ausgang, wenn keine Gruppe frei handeln kann | W | krit. |  | nach einer vollen Runde ohne handlungsfaehige Gruppe nicht endlos weitersuchen: | seg049 | erledigt (Branch bugfixes) |
-| 248 | Stufenanstieg: ESC bei „WELCHE POSITIVE EIGENSCHAFT“ bringt rund 168 000 Dukaten 💰 | W | krit. |  | Abbruch (ESC, rechte Maustaste) wiederholt die Abfrage | seg050 | offen |
+| 248 | Stufenanstieg: ESC bei „WELCHE POSITIVE EIGENSCHAFT“ bringt rund 168 000 Dukaten 💰 | W | krit. |  | Abbruch (ESC, rechte Maustaste) wiederholt die Abfrage | seg050 | erledigt (Branch bugfixes) |
 | 260 | ⚑ Suche nach freier Gruppe ohne Grenze | W | krit. | BE | erste freie der 6 Gruppen, -1 wenn alle belegt sind; Abtrennen nur anbieten, wenn eine der 6 Gruppen frei ist | seg104 | erledigt (Branch bugfixes) |
 | 401 | ⚑ Entlassene Helden hinterlassen Lücken in den Heldenplätzen | W | krit. |  | die Heldenplaetze wieder lueckenlos sortieren (viele Stellen setzen das voraus) | seg061 | erledigt (Branch bugfixes; ändert die Heldenplätze im Spielstand) |
-| 229 | h_index wird nur einmal vor der Schleife auf −1 gesetzt | W | mittel |  | Held fuer jeden Timer neu suchen | seg002 | offen |
-| 233 | Heil-, Stab- und Lichttimer runden kleine Zeitsprünge weg | W | mittel | BE | den Rest der angebrochenen 5 bzw. 15 Minuten mitrechnen | seg002 | offen |
-| 234 | Stundenzählung für Kettenhemd-Schaden und Essen falsch | W | mittel | BE | Zahl der ueberschrittenen vollen Stunden | seg002 | offen |
-| 238 | Erneute Vergiftung löscht die Protokollbytes | W | mittel | BE | die Protokollbytes der erlittenen Verluste nur bei einem gesunden Helden loeschen, | seg047 | offen |
-| 240 | Erneute Erkrankung löscht die Protokollbytes, Verluste werden dauerhaft | W | mittel | BE | die Protokollbytes der erlittenen Verluste nur bei einem gesunden Helden loeschen, | seg047 | offen |
+| 229 | h_index wird nur einmal vor der Schleife auf −1 gesetzt | W | mittel |  | Held fuer jeden Timer neu suchen | seg002 | erledigt (Branch bugfixes) |
+| 233 | Heil-, Stab- und Lichttimer runden kleine Zeitsprünge weg | W | mittel | BE | den Rest der angebrochenen 5 bzw. 15 Minuten mitrechnen | seg002 | schon in BrightEyes behoben (Original-Bug 37) |
+| 234 | Stundenzählung für Kettenhemd-Schaden und Essen falsch | W | mittel | BE | Zahl der ueberschrittenen vollen Stunden | seg002 | schon in BrightEyes behoben (Original-Bug 38) |
+| 238 | Erneute Vergiftung löscht die Protokollbytes | W | mittel | BE | die Protokollbytes der erlittenen Verluste nur bei einem gesunden Helden loeschen, | seg047 | erledigt (Branch bugfixes) |
+| 240 | Erneute Erkrankung löscht die Protokollbytes, Verluste werden dauerhaft | W | mittel | BE | die Protokollbytes der erlittenen Verluste nur bei einem gesunden Helden loeschen, | seg047 | erledigt (Branch bugfixes) |
 | 243 | Gruppe teilen klappt nicht richtig, wenn der NSC in einer anderen Gruppe ist | W | mittel | BE-Fix | handlungsfaehige Helden der aktiven Gruppe ohne den NSC (Platz 6) zaehlen; den NSC nicht mitzaehlen, egal in welcher Gruppe er ist (Bright-Eyes-Fix) | seg049 | schon in BrightEyes behoben |
-| 249 | Stufenanstieg: ESC bei „WELCHE NEGATIVE EIGENSCHAFT“ senkt die Intuition | W | mittel |  | Abbruch (ESC, rechte Maustaste) wiederholt die Abfrage | seg050 | offen |
-| 250 | MR-Neuberechnung beim Stufenanstieg verträgt sich nicht mit MR-Gegenständen | W | mittel |  | mit dem Grundwert vergleichen; die Boni der MR-Gegenstaende so aufschlagen wie | seg050 | offen |
+| 249 | Stufenanstieg: ESC bei „WELCHE NEGATIVE EIGENSCHAFT“ senkt die Intuition | W | mittel |  | Abbruch (ESC, rechte Maustaste) wiederholt die Abfrage | seg050 | erledigt (Branch bugfixes) |
+| 250 | MR-Neuberechnung beim Stufenanstieg verträgt sich nicht mit MR-Gegenständen | W | mittel |  | mit dem Grundwert vergleichen; die Boni der MR-Gegenstaende so aufschlagen wie | seg050 | erledigt (Branch bugfixes) |
 | 253 | Spielende: Merker für bleibenden LE-Verlust wird gelöscht, LE-Maximum bleibt gesenkt | W | mittel | BE-Fix | den Merker fuer den bleibenden LE-Verlust behalten (das LE-Maximum bleibt ja gesenkt), | seg065 | in BrightEyes anders behoben (LE-Maximum wird beim Spielende wiederhergestellt) |
-| 254 | set_mod_slot() mit who = 0 für einen anderen Helden | W | mittel |  | who = Position dieses Helden; Position des betroffenen Helden als Besitzer eintragen | seg080, seg115 | offen |
-| 255 | Harikas Abschiedsgeschenk kostet Steigerungsversuche | W | mittel | BE | Steigerungsversuche sichern, inc_talent_novice() zieht sie ab | seg095 | offen |
-| 256 | Entlassene NSC kommen nie wieder | W | mittel | BE | Zustand des NSC vor dem Loeschen merken, sonst wird der Timer immer -1 | seg095 | offen |
+| 254 | set_mod_slot() mit who = 0 für einen anderen Helden | W | mittel |  | who = Position dieses Helden; Position des betroffenen Helden als Besitzer eintragen | seg080, seg115 | erledigt (Branch bugfixes) |
+| 255 | Harikas Abschiedsgeschenk kostet Steigerungsversuche | W | mittel | BE | Steigerungsversuche sichern, inc_talent_novice() zieht sie ab | seg095 | schon in BrightEyes behoben (Original-Bug 42) |
+| 256 | Entlassene NSC kommen nie wieder | W | mittel | BE | Zustand des NSC vor dem Loeschen merken, sonst wird der Timer immer -1 | seg095 | erledigt (Branch bugfixes) |
 | 259 | Brauen: Abtrennen des einzigen Helden einer Gruppe möglich | W | mittel | BE-Fix | handlungsfaehige Helden der aktiven Gruppe ohne NSC (wie count_heroes_available_in_group_ignore_npc(); nur abtrennen, wenn in der aktiven Gruppe noch ein handlungsfaehiger Held bleibt | seg104 | schon in BrightEyes behoben |
-| 264 | Verschwundener NSC: Datei und Timer um eins verschoben | W | mittel |  | Datei und Timer des NSC selbst (npc_id 1..6, wie add_npc()/remove_npc()) | seg113 | offen |
-| 269 | Paralyse und Frostschäden: Erholung mit umgekehrter Bedingung | W | mittel | BE | FIX_0269 = 1 dreht die Bedingung um (Verlust vorhanden -> zurueckgeben) | seg119 | offen |
-| 270 | Schlachtfeldfieber endet nie | W | mittel | BE | nach der Rueckgabe der KK wird der Held gesund | seg119 | offen |
-| 273 | Tollwut: Beruhigen und Sanftmut werten misslungene Proben als Erfolg | W | mittel | BE | nur handlungsfaehige Helden der Gruppe, CH-Probe gelungen (> 0); nur eine gelungene Probe (> 0) beruhigt | seg120 | offen |
-| 274 | Shurinknollengift und Bannstaub: Rückgabe der Werte fast nie | W | mittel |  | alle 12 Takte (Klammern um den Rest) | seg121 | offen |
-| 402 | Aufgesparte Zaubersteigerungen laufen über 127 💰 | W | mittel |  | aufgesparte Zaubersteigerungen hoechstens 127 (signed char); hoechstens 127 (signed char) | seg050 | offen |
-| 404 | Elixiere stapeln sich ohne Obergrenze 💰 | W | mittel |  | laufende Elixierwirkung (+5) auf derselben Eigenschaft des Helden suchen, -1 wenn keine; wirkt schon ein Elixier auf diese Eigenschaft, nur seine Dauer erneuern (kein weiteres +5) | seg108 | offen |
-| 230 | Aufräumen ungültiger Ziele setzt nur den aktuellen Eintrag zurück | A | gering |  | alle Eintraege des ungueltigen Ziels zuruecksetzen | seg002 | offen |
-| 231 | Notbehelf bei 100 belegten Timern versagt im Kampf | A | gering |  | auch im Kampf (g_timers_disabled) wirklich freigeben | seg002 | offen |
-| 237 | BP-Anzeige bei Last ab 110 % falsch | A | gering | BE | ab 110 % Last nur 1 BP, wie im Kampf (FIG_do_round) | seg046 | offen |
-| 242 | Ohne wählbaren Helden: Textbreite bleibt 3, geliefert wird Platz 0 (dort teilweise) | A | gering |  | Textbreite zuruecksetzen; die Rueckgabe bleibt 0 (die Aufrufer pruefen nicht auf -1) | seg047 | offen |
-| 245 | Nachtwache folgt beim Tauschen nur einem der beiden Helden | A | gering |  | auch die Wache des zweiten Helden mitnehmen; auch die Wache auf dem Zielplatz mitnehmen | seg049 | offen |
-| 246 | Regeneration: Ergebnis 0 bleibt 0, −1 wird zu 1 | A | gering | BE | auch Ergebnis 0 auf 1 setzen | seg049 | offen |
-| 251 | Zaubersteigerung: Zähler i wird je Runde nicht zurückgesetzt | A | gering |  | jede Runde wieder beim ersten Zauber beginnen | seg050 | offen |
-| 252 | Zufallszauber 1..86 statt 1..85 | A | gering |  | nur echte Zauber 1..SP__END-1 | seg050 | offen |
-| 258 | Misslungene Wundheilung setzt Wundfieber ohne Prüfung | A | gering | BE | eine laufende Erkrankung oder Genesung nicht von vorn beginnen | seg103 | offen |
-| 263 | Textdatei wird bei totem Patienten nicht zurückgeladen | A | gering |  | Textdatei auch bei nicht heilbarem Patienten zurueckladen | seg104 | offen |
-| 265 | Verschlimmerung zu Blauer Keuche mit 4 statt 5 % | A | gering |  | 5 % wie vorgesehen | seg119 | offen |
-| 266 | Nach dem Wechsel zu Blauer Keuche noch Dumpfschädel-Schaden am selben Tag | A | gering |  | nach der Verschlimmerung keinen Dumpfschaedel-Schaden mehr | seg119 | offen |
-| 403 | Stufenaufstieg erst ab 101 statt 100 AP | A | gering |  | Aufstieg schon bei genau der geforderten AP-Zahl | seg002 | offen |
-| 405 | Angriffsart bleibt nach dem Kampf im Helden stehen | A | gering |  | Angriffsart (aggressiv/vorsichtig) nicht in den naechsten Kampf mitnehmen | seg032 | offen |
-| 407 | Gruppengeld: Rest der Teilung verfällt | A | gering |  | der NSC allein bekommt den Betrag, nicht dazu; der Rest der Teilung geht an den ersten Helden | seg002 | offen |
+| 264 | Verschwundener NSC: Datei und Timer um eins verschoben | W | mittel |  | Datei und Timer des NSC selbst (npc_id 1..6, wie add_npc()/remove_npc()) | seg113 | erledigt (Branch bugfixes), immer an (nativ ungültiger Speicherzugriff: gs_npc_timers[7], überschrieb die Datei des nächsten NSC) |
+| 269 | Paralyse und Frostschäden: Erholung mit umgekehrter Bedingung | W | mittel | BE | FIX_0269 = 1 dreht die Bedingung um (Verlust vorhanden -> zurueckgeben) | seg119 | schon in BrightEyes behoben (Original-Bug 44) |
+| 270 | Schlachtfeldfieber endet nie | W | mittel | BE | nach der Rueckgabe der KK wird der Held gesund | seg119 | schon in BrightEyes behoben (Original-Bug 45) |
+| 273 | Tollwut: Beruhigen und Sanftmut werten misslungene Proben als Erfolg | W | mittel | BE | nur handlungsfaehige Helden der Gruppe, CH-Probe gelungen (> 0); nur eine gelungene Probe (> 0) beruhigt | seg120 | erledigt (Branch bugfixes) |
+| 274 | Shurinknollengift und Bannstaub: Rückgabe der Werte fast nie | W | mittel |  | alle 12 Takte (Klammern um den Rest) | seg121 | erledigt (Branch bugfixes) |
+| 402 | Aufgesparte Zaubersteigerungen laufen über 127 💰 | W | mittel |  | aufgesparte Zaubersteigerungen hoechstens 127 (signed char); hoechstens 127 (signed char) | seg050 | erledigt (Branch bugfixes) |
+| 404 | Elixiere stapeln sich ohne Obergrenze 💰 | W | mittel |  | laufende Elixierwirkung (+5) auf derselben Eigenschaft des Helden suchen, -1 wenn keine; wirkt schon ein Elixier auf diese Eigenschaft, nur seine Dauer erneuern (kein weiteres +5) | seg108 | erledigt (Branch bugfixes) |
+| 230 | Aufräumen ungültiger Ziele setzt nur den aktuellen Eintrag zurück | A | gering |  | alle Eintraege des ungueltigen Ziels zuruecksetzen | seg002 | erledigt (Branch bugfixes), Stufe alles |
+| 231 | Notbehelf bei 100 belegten Timern versagt im Kampf | A | gering |  | auch im Kampf (g_timers_disabled) wirklich freigeben | seg002 | erledigt (Branch bugfixes), Stufe alles |
+| 237 | BP-Anzeige bei Last ab 110 % falsch | A | gering | BE | ab 110 % Last nur 1 BP, wie im Kampf (FIG_do_round) | seg046 | schon in BrightEyes behoben (Original-Bug 6) |
+| 242 | Ohne wählbaren Helden: Textbreite bleibt 3, geliefert wird Platz 0 (dort teilweise) | A | gering |  | Textbreite zuruecksetzen; die Rueckgabe bleibt 0 (die Aufrufer pruefen nicht auf -1) | seg047 | erledigt (Branch bugfixes), Stufe alles, wie dort teilweise |
+| 245 | Nachtwache folgt beim Tauschen nur einem der beiden Helden | A | gering |  | auch die Wache des zweiten Helden mitnehmen; auch die Wache auf dem Zielplatz mitnehmen | seg049 | erledigt (Branch bugfixes), Stufe alles |
+| 246 | Regeneration: Ergebnis 0 bleibt 0, −1 wird zu 1 | A | gering | BE | auch Ergebnis 0 auf 1 setzen | seg049 | erledigt (Branch bugfixes), Stufe alles |
+| 251 | Zaubersteigerung: Zähler i wird je Runde nicht zurückgesetzt | A | gering |  | jede Runde wieder beim ersten Zauber beginnen | seg050 | erledigt (Branch bugfixes), Stufe alles |
+| 252 | Zufallszauber 1..86 statt 1..85 | A | gering |  | nur echte Zauber 1..SP__END-1 | seg050 | erledigt (Branch bugfixes), Stufe alles |
+| 258 | Misslungene Wundheilung setzt Wundfieber ohne Prüfung | A | gering | BE | eine laufende Erkrankung oder Genesung nicht von vorn beginnen | seg103 | erledigt (Branch bugfixes), Stufe alles |
+| 263 | Textdatei wird bei totem Patienten nicht zurückgeladen | A | gering |  | Textdatei auch bei nicht heilbarem Patienten zurueckladen | seg104 | erledigt (Branch bugfixes), Stufe alles |
+| 265 | Verschlimmerung zu Blauer Keuche mit 4 statt 5 % | A | gering |  | 5 % wie vorgesehen | seg119 | erledigt (Branch bugfixes), Stufe alles |
+| 266 | Nach dem Wechsel zu Blauer Keuche noch Dumpfschädel-Schaden am selben Tag | A | gering |  | nach der Verschlimmerung keinen Dumpfschaedel-Schaden mehr | seg119 | erledigt (Branch bugfixes), Stufe alles |
+| 403 | Stufenaufstieg erst ab 101 statt 100 AP | A | gering |  | Aufstieg schon bei genau der geforderten AP-Zahl | seg002 | schon in BrightEyes behoben (Feature-Mod 8: Aufstieg bei 50·n·(n+1) AP) |
+| 405 | Angriffsart bleibt nach dem Kampf im Helden stehen | A | gering |  | Angriffsart (aggressiv/vorsichtig) nicht in den naechsten Kampf mitnehmen | seg032 | erledigt (Branch bugfixes), Stufe alles |
+| 407 | Gruppengeld: Rest der Teilung verfällt | A | gering |  | der NSC allein bekommt den Betrag, nicht dazu; der Rest der Teilung geht an den ersten Helden | seg002 | erledigt (Branch bugfixes), Stufe alles |
 
 ## Gegenstände & Inventar (18)
 
