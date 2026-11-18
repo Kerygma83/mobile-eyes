@@ -86,6 +86,13 @@ void FIG_loot_enemies(void)
 
 		loot_names[loot_num] = (char*)(g_buffer9_ptr + 40 * loot_num);
 	}
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 15): with exactly 30 loot items, page 2 writes "MEHR"
+	 * to loot_names[30], which was never set. Fix: set it as well. */
+	if (BUGFIX_WICHTIG) {
+		loot_names[30] = (char*)(g_buffer9_ptr + 40 * 30);
+	}
+#endif
 
 	do {
 		loot_num = item_cnt = 0;
