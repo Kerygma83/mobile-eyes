@@ -160,10 +160,19 @@ void do_wildcamp(void)
 						answer = select_hero_ok(g_dtp2);
 
 						/* Original-Bug: not checked answer for following options */
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 129: with ESC (-1) g_wildcamp_herbstatus[-1] is read.
+						 * Check answer != -1 before all three. Always on: natively a read before the array. */
+						if ((answer != -1) &&
+							((g_wildcamp_magicstatus[answer] != 0) ||
+							(g_wildcamp_herbstatus[answer] != 0) ||
+							(g_wildcamp_replstatus[answer] != 0)))
+#else
 						if ((answer != -1 &&
 							g_wildcamp_magicstatus[answer] != 0) ||
 							g_wildcamp_herbstatus[answer] != 0 ||
 							g_wildcamp_replstatus[answer] != 0)
+#endif
 						{
 							GUI_output(get_ttx(331));
 							answer = -1;
