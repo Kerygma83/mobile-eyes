@@ -82,7 +82,13 @@ void poison_effect(void)
 				}
 
 				/* every hour, regenerate 1 KK */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 274): "!time_counter % 12" is "(!time_counter) % 12", true only
+				 * right after healing; every 12 ticks (parentheses around the rest), as with Goldleim */
+				if ((poison_ptr->log_1 != 0) && (BUGFIX_WICHTIG ? !(poison_ptr->time_counter % 12) : (!poison_ptr->time_counter % 12))) {
+#else
 				if ((poison_ptr->log_1 != 0) && (!poison_ptr->time_counter % 12 )) {
+#endif
 
 					sprintf(g_dtp2, get_ttx(573), hero->alias);
 
@@ -93,7 +99,12 @@ void poison_effect(void)
 				}
 
 				/* every hour, regenerate 1 GE */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 274 */
+				if ((poison_ptr->log_2 != 0) && (BUGFIX_WICHTIG ? !(poison_ptr->time_counter % 12) : (!poison_ptr->time_counter % 12))) {
+#else
 				if ((poison_ptr->log_2 != 0) && (!poison_ptr->time_counter % 12 )) {
+#endif
 
 					sprintf(g_dtp2, get_ttx(578), hero->alias);
 
@@ -388,7 +399,12 @@ void poison_effect(void)
 				} else {
 
 					/* every hour, regenerate one AE */
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Schicksalsklinge-Bugfix Nr. 274 */
+					if (BUGFIX_WICHTIG ? !(poison_ptr->time_counter % 12) : (!poison_ptr->time_counter % 12)) {
+#else
 					if (!poison_ptr->time_counter % 12) {
+#endif
 
 						poison_ptr->log_1--;
 						hero->ae++;
