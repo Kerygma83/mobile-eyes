@@ -2003,7 +2003,21 @@ static int g_web_test_probe[3] = { 0, 0, 0 };
  * Ergebnis in web_test_state() "fix": 1 = in Ordnung, 0 = Fehler, -1 = noch nicht gelaufen */
 static int g_web_test_fix = 0;
 static int g_web_test_fix_ergebnis = -1;
-extern "C" EMSCRIPTEN_KEEPALIVE void web_test_fix(const int nr) { g_web_test_fix_ergebnis = -1; g_web_test_fix = nr; }
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_fix(const int nr)
+{
+	g_web_test_fix_ergebnis = -1;
+	if (nr == 401) {
+		/* nur Abfrage, sofort (auch im Tempel): Heldenplätze 0..5 lückenlos? */
+		int luecke = 0, ok = 1;
+		for (int i = 0; i < 6; i++) {
+			if (get_hero(i)->typus == HERO_TYPE_NONE) luecke = 1;
+			else if (luecke) ok = 0;
+		}
+		g_web_test_fix_ergebnis = ok;
+		return;
+	}
+	g_web_test_fix = nr;
+}
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_probe(const int art, const int id, const int handicap)
 {
 	g_web_test_probe[1] = id; g_web_test_probe[2] = handicap; g_web_test_probe[0] = art;
