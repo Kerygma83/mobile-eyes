@@ -137,6 +137,13 @@ signed int DNG04_handler(void)
 
 			/* Original-BUG: assumption the leader is at pos 0 */
 			/* CH-5 for 1 day */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 93: the first available hero, with his position */
+			if (BUGFIX_ALLES) {
+				struct struct_hero *leader = get_first_hero_available_in_group();
+				set_mod_slot(i, DAYS(1), (uint8_t*)&leader->attrib[ATTRIB_CH].current, -5, (signed char)get_hero_index(leader));
+			} else
+#endif
 			set_mod_slot(i, DAYS(1), (uint8_t*)&get_hero(0)->attrib[ATTRIB_CH].current, -5, 0);
 		}
 

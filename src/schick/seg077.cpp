@@ -173,7 +173,12 @@ signed int DNG01_handler(void)
 			if (get_first_hero_with_item(ITEM_SEIL) != -1 || get_first_hero_with_item(ITEM_STRICKLEITER) != -1)
 			{
 				/* Original-Bug: better get_first_hero_available_in_group() */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 93: the first available hero climbs */
+				if (test_talent(BUGFIX_ALLES ? get_first_hero_available_in_group() : get_hero(0), TA_KLETTERN, 0) > 0)
+#else
 				if (test_talent(get_hero(0), TA_KLETTERN, 0) > 0)
+#endif
 				{
 					/* Original-Bug: '32 * ' should probably be '16 *'. */
 					g_dng_map[32 * gs_y_target + gs_x_target] = DNG_TILE_PIT_IN_CEILING << 4;
