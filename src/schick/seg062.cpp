@@ -136,7 +136,13 @@ void ask_miracle(void)
 
 								hero = get_hero(i);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+								/* Original-Bug (Schicksalsklinge-Bugfix Nr. 62): a transformed hero is taken without checking group and
+								 * gods_pissed; only heroes of the active group without the wrath of the gods (as in the renegade branch) */
+								if (hero->flags.transformed && (!BUGFIX_ALLES || ((hero->group_id == gs_active_group_id) && !hero->flags.gods_pissed))) {
+#else
 								if (hero->flags.transformed) {
+#endif
 
 									hero->flags.transformed = 0;
 
@@ -267,7 +273,13 @@ void ask_miracle(void)
 
 							hero = get_hero(i);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+							/* Original-Bug (Schicksalsklinge-Bugfix Nr. 62): a transformed hero is taken without checking group and
+							 * gods_pissed; only heroes of the active group without the wrath of the gods (as in the renegade branch) */
+							if (hero->flags.transformed && (!BUGFIX_ALLES || ((hero->group_id == gs_active_group_id) && !hero->flags.gods_pissed))) {
+#else
 							if (hero->flags.transformed) {
+#endif
 
 								hero->flags.transformed = 0;
 
