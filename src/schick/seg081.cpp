@@ -496,6 +496,28 @@ signed int DNG06_handler(void)
 			sub_hero_le(hero, 2);
 		}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	} else if (BUGFIX_WICHTIG && target_pos == DNG_POS(1,6,11) && target_pos != gs_dng_handled_pos)
+	{
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 355): the treasure can only be looted on the first visit.
+		 * It stays lootable (the rest is in gs_dng06_chest_dasptreas, part of the savegame); text, 500 ducats
+		 * and AP only on the first find. */
+		if (!gs_dng06_dasptreas_found)
+		{
+			GUI_output(get_tx(36));
+
+			p_money = get_party_money();
+			p_money += 50000L;
+			set_party_money(p_money);
+
+			gs_dng06_dasptreas_found = 1;
+
+			add_hero_ap_all(30);
+		}
+
+		loot_multi_chest(gs_dng06_chest_dasptreas, get_tx(37));
+
+#endif
 	} else if (target_pos == DNG_POS(1,6,11) && target_pos != gs_dng_handled_pos && !gs_dng06_dasptreas_found)
 	{
 		/* treasure of Daspota found */
