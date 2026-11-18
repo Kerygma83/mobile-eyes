@@ -443,7 +443,13 @@ signed int gather_herbs(struct struct_hero *hero, const signed int hours, const 
 	for (unique_herbs_count = herb_index = 0; herb_index < 12; herb_index++, ptr++) {
 
 		/* check if this is a special place for collecting the considered herb.. */
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 161): g_gather_herbs_special is int8_t, herb numbers
+		 * above 127 never match */
+		if (ptr->item_id == (BUGFIX_WICHTIG ? (uint8_t)g_gather_herbs_special : g_gather_herbs_special)) {
+#else
 		if (ptr->item_id == g_gather_herbs_special) {
+#endif
 
 			/* dirty code follows. The original herbs table is modified. */
 			ptr->chance_max += 10; // 10% higher chance to find the herb
@@ -460,7 +466,13 @@ signed int gather_herbs(struct struct_hero *hero, const signed int hours, const 
 			}
 		}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 161): g_gather_herbs_special is int8_t, herb numbers
+		 * above 127 never match */
+		if (ptr->item_id == (BUGFIX_WICHTIG ? (uint8_t)g_gather_herbs_special : g_gather_herbs_special)) {
+#else
 		if (ptr->item_id == g_gather_herbs_special) {
+#endif
 
 			/* The herbs table is reverted to original state. */
 			ptr->chance_max -= 10;
