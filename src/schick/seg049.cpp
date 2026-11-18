@@ -484,6 +484,12 @@ void GRP_swap_heroes(void)
 				if (g_wildcamp_guards[i] == hero_pos_1) {
 					g_wildcamp_guards[i] = hero_pos_2;
 				}
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 245): a guard on hero_pos_2 is not changed to hero_pos_1 */
+				else if (BUGFIX_ALLES && (g_wildcamp_guards[i] == hero_pos_2)) {
+					g_wildcamp_guards[i] = hero_pos_1;
+				}
+#endif
 			}
 
 			/* save hero1 in tmp */
@@ -645,6 +651,12 @@ void GRP_move_hero(const signed int src_pos)
 					if (g_wildcamp_guards[i] == src_pos) {
 						g_wildcamp_guards[i] = dst_pos;
 					}
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Schicksalsklinge-Bugfix Nr. 245: a guard on dst_pos is not changed to src_pos */
+					else if (BUGFIX_ALLES && (g_wildcamp_guards[i] == dst_pos)) {
+						g_wildcamp_guards[i] = src_pos;
+					}
+#endif
 				}
 
 				memcpy(g_renderbuf_ptr, src, sizeof(struct struct_hero));
