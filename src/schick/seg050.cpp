@@ -647,6 +647,43 @@ void level_up(const signed int hero_pos)
 	mr = (hero->attrib[ATTRIB_KL].normal + hero->attrib[ATTRIB_MU].normal + hero->level) / 3 - 2 * hero->attrib[ATTRIB_AG].normal;
 	mr += g_mr_modificators[hero->typus];
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 250): hero->mr contains the boni of MR items, mr does not. With such an
+	 * item the message appears although the base MR did not change; if the base MR rises by exactly the bonus,
+	 * nothing is updated. Compare with the base value; add the boni as add_equip_boni() (coronet, red ring in both
+	 * hands) and give_new_item_to_hero() (+5 per amulet) do. */
+	if (BUGFIX_WICHTIG) {
+		signed int mr_bonus = 0;
+
+		if (hero->inventory[HERO_INVENTORY_SLOT_HEAD].item_id == ITEM_STIRNREIF__BLUE) {
+			mr_bonus += 2;
+		}
+		if (hero->inventory[HERO_INVENTORY_SLOT_LEFT_HAND].item_id == ITEM_RING__RED) {
+			mr_bonus += 2;
+		}
+		if (hero->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].item_id == ITEM_RING__RED) {
+			mr_bonus += 2;
+		}
+		for (i = 0; i < NR_HERO_INVENTORY_SLOTS; i++) {
+			if (hero->inventory[i].item_id == ITEM_AMULETT__BLUE) {
+				mr_bonus += 5;
+			}
+		}
+
+		if (hero->mr - mr_bonus != mr) {
+			hero->mr = mr + mr_bonus;
+
+			sprintf(g_dtp2, get_tx2(41), hero->mr);
+			GUI_output(g_dtp2);
+
+			status_show(hero_pos);
+
+			g_status_page_hunger = g_status_page_thirst = -1;
+
+			update_status_bars();
+		}
+	} else
+#endif
 	if (hero->mr != mr) {
 
 		/* set new basic MR */
