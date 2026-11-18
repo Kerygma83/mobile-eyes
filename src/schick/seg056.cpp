@@ -341,6 +341,15 @@ void buy_screen(void)
 					l16 = l_di;
 				}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 54): 'stackable' is read from the selected item, not from the
+				 * cart entry, and 199 items need 3 slots, not 2. Stackability of the cart entry, 99 pieces per slot. */
+				if (BUGFIX_WICHTIG) {
+					num_slots_needed += (g_buy_shopping_cart[l_di].item_id != 0) && g_itemsdat[g_buy_shopping_cart[l_di].item_id].flags.stackable ?
+						(g_buy_shopping_cart[l_di].quantity + 98) / 99 :
+						g_buy_shopping_cart[l_di].quantity;
+				} else
+#endif
 				num_slots_needed += (g_buy_shopping_cart[l_di].item_id != 0) && g_itemsdat[item_id].flags.stackable ?
 					/* Original-Bug: the following formula is wrong.
 					 * 199 stackable items need 3 slots (99 + 99 + 1), not 2. */
@@ -382,7 +391,15 @@ void buy_screen(void)
 
 						GUI_output(get_ttx(401));
 
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Schicksalsklinge-Bugfix Nr. 54: count the additionally bought goods */
+					} else if (l3 == 1 && free_slots < num_slots_needed + (!BUGFIX_WICHTIG ? 0 :
+							(g_itemsdat[item_id].flags.stackable ?
+								(g_buy_shopping_cart[l16].quantity + l4 + 98) / 99 - (g_buy_shopping_cart[l16].quantity + 98) / 99 :
+								l4))) {
+#else
 					} else if (l3 == 1 && free_slots < num_slots_needed) {
+#endif
 
 						GUI_output(get_ttx(438));
 
@@ -433,7 +450,14 @@ void buy_screen(void)
 
 							GUI_output(get_ttx(401));
 
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 54: count the new goods */
+						} else if (free_slots < num_slots_needed + (!BUGFIX_WICHTIG ? 0 :
+							(g_itemsdat[g_item_selector_buy[item_selector_pos + item_selector_page_offset].item_id].flags.stackable ?
+								(l4 + 98) / 99 : l4))) {
+#else
 						} else if (free_slots < num_slots_needed) {
+#endif
 
 							GUI_output(get_ttx(438));
 
