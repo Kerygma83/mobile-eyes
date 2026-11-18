@@ -18,6 +18,9 @@
 #include "seg027.h"
 #include "seg029.h"
 #include "seg032.h"
+#if !defined(__BORLANDC__)
+#include "seg039.h"
+#endif
 #include "seg047.h"
 #include "seg049.h"
 #include "seg096.h"
@@ -241,6 +244,10 @@ void do_area_camp(void)
 
 					if (done != 0) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 313: the hero on watch of this incident is awake in the fight */
+						g_fig_camp_guard = ((gs_camp_incident >= 0) && (gs_camp_incident <= 2)) ? g_area_camp_guards[gs_camp_incident] : -1;
+#endif
 						gs_camp_incident = -1;
 
 						if (g_area_camp_area_type == AREA_TYPE_DUNGEON) {
@@ -250,6 +257,9 @@ void do_area_camp(void)
 							g_fig_discard = 1;
 
 							do_fight(g_dcampfights[random_schick(4) - 1]);
+#ifdef M302de_ORIGINAL_BUGFIX
+							g_fig_camp_guard = -1;
+#endif
 
 							if (g_game_state == GAME_STATE_MAIN) {
 								draw_main_screen();
@@ -263,6 +273,9 @@ void do_area_camp(void)
 
 						} else {
 							/* in a town */
+#ifdef M302de_ORIGINAL_BUGFIX
+							g_fig_camp_guard = -1;
+#endif
 							done = 0;
 							loose_random_item(get_hero(get_random_hero()), 100, get_ttx(832));
 						}

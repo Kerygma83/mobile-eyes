@@ -19,6 +19,9 @@
 #include "seg027.h"
 #include "seg029.h"
 #include "seg032.h"
+#if !defined(__BORLANDC__)
+#include "seg039.h"
+#endif
 #include "seg047.h"
 #include "seg049.h"
 #include "seg051.h"
@@ -359,12 +362,19 @@ void do_wildcamp(void)
 
 				} else if (!have_guards) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Schicksalsklinge-Bugfix Nr. 313: the hero on watch of this incident is awake in the fight */
+					g_fig_camp_guard = ((gs_camp_incident >= 0) && (gs_camp_incident <= 2)) ? g_wildcamp_guards[gs_camp_incident] : -1;
+#endif
 					gs_camp_incident = -1;
 					g_fig_initiative = 1;
 					g_fig_discard = 1;
 
 					/* pick a random campfight out of 4 possibilities */
 					do_fight(g_campfights[random_schick(4) - 1]);
+#ifdef M302de_ORIGINAL_BUGFIX
+					g_fig_camp_guard = -1;
+#endif
 
 					if (gs_travel_detour != 99 && g_game_state == GAME_STATE_MAIN) {
 

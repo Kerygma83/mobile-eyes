@@ -405,6 +405,10 @@ void FIG_init_enemies(void)
 	}
 }
 
+#if !defined(__BORLANDC__)
+signed int g_fig_camp_guard = -1;
+#endif
+
 void FIG_init_heroes(void)
 {
 	struct struct_hero *hero;
@@ -460,7 +464,13 @@ void FIG_init_heroes(void)
 			}
 
 			/* heroes sleep until they appear */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 313): in a camp raid only hero 0 is awake,
+			 * the hero on watch sleeps as well. g_fig_camp_guard is set by the camps (seg051, seg052). */
+			if (g_current_fight->heroes[i].round_appear && !(BUGFIX_WICHTIG && (i == g_fig_camp_guard))) {
+#else
 			if (g_current_fight->heroes[i].round_appear) {
+#endif
 
 				if (!hero->flags.dead) {
 					hero->flags.asleep = 1;

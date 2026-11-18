@@ -12,3 +12,8 @@ void FIG_load_enemy_sprites(struct enemy_sheet*, const signed int, const signed 
 void FIG_init_enemies(void);
 /* 0x3e */
 void FIG_init_heroes(void);
+
+#if !defined(__BORLANDC__)
+/* Schicksalsklinge-Bugfix Nr. 313: hero on watch during a camp raid (awake in FIG_init_heroes()), -1 none */
+extern signed int g_fig_camp_guard;
+#endif
