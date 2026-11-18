@@ -27,6 +27,22 @@
 #include "seg105.h"
 
 static unsigned char *g_hexenknoten_gfx_buf = NULL; // ds:0xacc8;
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Schicksalsklinge-Bugfix Nr. 204: size of the image in g_hexenknoten_gfx_buf */
+static signed int g_hexenknoten_width;
+static signed int g_hexenknoten_height;
+
+/**
+ * \brief   forgets the Hexenknoten image at the start of a fight
+ *
+ *          Original-Bug (Schicksalsklinge-Bugfix Nr. 204): g_hexenknoten_gfx_buf was never reset and pointed
+ *          into the fight object buffer of an earlier fight. Invalid memory access natively, always on.
+ */
+void fix204_hexenknoten_reset(void)
+{
+	g_hexenknoten_gfx_buf = NULL;
+}
+#endif
 
 /* Clairvoyance / Hellsicht */
 
@@ -271,6 +287,12 @@ void spell_hexenknoten(void)
 	if (g_hexenknoten_gfx_buf) {
 		rp = g_hexenknoten_gfx_buf;
 		/* TODO: graphic bug if cast more than once */
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 204): width and height were uninitialized when the spell
+		 * was cast a second time. Invalid memory access natively, always on. */
+		width = g_hexenknoten_width;
+		height = g_hexenknoten_height;
+#endif
 	} else {
 		rp = g_fightobj_buf_seek_ptr;
 		nvf.dst = rp;
@@ -282,6 +304,11 @@ void spell_hexenknoten(void)
 		process_nvf_extraction(&nvf);
 
 		g_hexenknoten_gfx_buf = g_fightobj_buf_seek_ptr;
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Schicksalsklinge-Bugfix Nr. 204 */
+		g_hexenknoten_width = width;
+		g_hexenknoten_height = height;
+#endif
 		/* move pointer further */
 		g_fightobj_buf_seek_ptr += width * height + 8;
 		g_fightobj_buf_freespace -= width * height + 8L;

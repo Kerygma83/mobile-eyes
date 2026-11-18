@@ -22,6 +22,9 @@ void spell_duplicatus(void);
 void spell_harmlos(void);
 /* 0x48 */
 void spell_hexenknoten(void);
+#ifdef M302de_ORIGINAL_BUGFIX
+void fix204_hexenknoten_reset(void);	/* Schicksalsklinge-Bugfix Nr. 204 */
+#endif
 
 
 /* Combat / Kampf */

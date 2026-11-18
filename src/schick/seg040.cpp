@@ -24,6 +24,9 @@
 #include "seg006.h"
 #include "seg032.h"
 #include "seg039.h"
+#ifdef M302de_ORIGINAL_BUGFIX
+#include "seg100.h"
+#endif
 
 static struct point8s g_cb_rear_border[15] = {
 	{ 0x00, 0x10 },
@@ -143,6 +146,10 @@ void FIG_preload_gfx(void)
 	g_figobj_gfxwidth_table = (int16_t*)(((HugePt)g_figobj_gfxbuf_table) + 0xfcL);
 	g_figobj_gfxheight_table = (int16_t*)(((HugePt)g_figobj_gfxwidth_table) + 0x7eL);
 	g_fightobj_buf_seek_ptr = (unsigned char*)(((HugePt)g_figobj_gfxheight_table) + 0x7eL);
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 204: the Hexenknoten image of an earlier fight is gone */
+	fix204_hexenknoten_reset();
+#endif
 	g_fightobj_buf = (unsigned char*)(((HugePt)g_fig_list_buffer) - 0x4217L);
 
 	/* set something in the hero charactersheet to -1 */
