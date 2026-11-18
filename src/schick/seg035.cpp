@@ -295,7 +295,13 @@ signed int check_hero_range_attack(const struct struct_hero *hero, const signed 
 		retval = 0;
 	}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 17): the line of fire is checked even if the message above
+	 * was shown, which may show it a second time */
+	if ((!BUGFIX_ALLES || retval) && (manhattan_distance(hero_x, hero_y, target_x, target_y) != 1)) {
+#else
 	if (manhattan_distance(hero_x, hero_y, target_x, target_y) != 1) {
+#endif
 
 		/* exchange coordinates if needed */
 		if (hero_x > target_x) {
