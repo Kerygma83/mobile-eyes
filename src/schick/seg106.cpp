@@ -93,6 +93,19 @@ signed int two_hand_collision(struct struct_hero* hero, const signed int item_id
 /* Borlandified and identical */
 /* is it inv_slot_2 -> inv_slot_1 or inv_slot_1 -> inv_slot_2 ? */
 /* probably slot_2 -> slot_1 ... */
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Schicksalsklinge-Bugfix Nr. 222: message "... KANN AN DIESER POSITION NICHT GETRAGEN WERDEN" (as in move_item()) */
+static void fix222_msg_not_here(const signed int item_id)
+{
+	if (is_in_int_array(item_id, g_items_pluralwords))
+		sprintf(g_dtp2, get_ttx(222), GUI_names_grammar(0x4000, item_id, 0), get_ttx(557));
+	else
+		sprintf(g_dtp2, get_ttx(222), GUI_names_grammar(0, item_id, 0), get_ttx(556));
+
+	GUI_output(g_dtp2);
+}
+#endif
+
 void move_item(signed int inv_slot_1, signed int inv_slot_2, struct struct_hero *hero)
 {
 	signed int item_id_1;
@@ -191,10 +204,42 @@ void move_item(signed int inv_slot_1, signed int inv_slot_2, struct struct_hero 
 								GUI_output(g_dtp2);
 							} else {
 								if (two_hand_collision(hero, item_id_2, inv_slot_1)) {
+#endif
 
 									sprintf(g_dtp2, get_ttx(829), hero->alias);
 									GUI_output(g_dtp2);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+								/* Original-Bug (Schicksalsklinge-Bugfix Nr. 222): if both slots are at the body, the displaced
+								 * item is moved without any check and without its boni (exploit). Check it as well and move
+								 * the boni of both items. */
+								} else if (BUGFIX_WICHTIG && (inv_slot_2 < HERO_INVENTORY_SLOT_KNAPSACK_1) && (item_id_1 != 0) &&
+									!can_hero_equip_item_at_slot(item_id_1, inv_slot_2)) {
+
+									fix222_msg_not_here(item_id_1);
+
+								} else if (BUGFIX_WICHTIG && (inv_slot_2 < HERO_INVENTORY_SLOT_KNAPSACK_1) && (item_id_1 != 0) &&
+									!(((inv_slot_1 == HERO_INVENTORY_SLOT_RIGHT_HAND) || (inv_slot_1 == HERO_INVENTORY_SLOT_LEFT_HAND)) && ((inv_slot_2 == HERO_INVENTORY_SLOT_RIGHT_HAND) || (inv_slot_2 == HERO_INVENTORY_SLOT_LEFT_HAND))) &&
+									two_hand_collision(hero, item_id_1, inv_slot_2)) {
+
+									sprintf(g_dtp2, get_ttx(829), hero->alias);
+									GUI_output(g_dtp2);
+
+								} else if (BUGFIX_WICHTIG) {
+									if (item_id_1 != 0) {
+										unequip(hero, item_id_1, inv_slot_1);
+									}
+									if (inv_slot_2 < HERO_INVENTORY_SLOT_KNAPSACK_1) {
+										unequip(hero, item_id_2, inv_slot_2);
+									}
+
+									add_equip_boni(hero, hero, item_id_2, inv_slot_2, inv_slot_1);
+
+									if ((inv_slot_2 < HERO_INVENTORY_SLOT_KNAPSACK_1) && (item_id_1 != 0)) {
+										add_equip_boni(hero, hero, item_id_1, inv_slot_1, inv_slot_2);
+									}
+									v3 = 1;
+#endif
 								} else {
 									if (item_id_1 != 0) {
 										unequip(hero, item_id_1, inv_slot_1);
