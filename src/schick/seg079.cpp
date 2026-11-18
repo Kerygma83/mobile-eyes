@@ -659,4 +659,11 @@ void DNG03_chest12_trap(void)
 
 		chest_poisoned2();
 	}
+#ifdef M302de_ORIGINAL_BUGFIX
+	else if (BUGFIX_ALLES) {
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 352): the empty poison thorn chest shows no text; report it
+		 * like a locked chest (TEXT.LTX 519) */
+		chest_closed();
+	}
+#endif
 }
