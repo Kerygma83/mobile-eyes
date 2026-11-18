@@ -50,6 +50,14 @@ void tevent_080(void)
 		{
 			gs_tevent080_tatzelwurm = 1;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 163): with gs_tevent080_tatzelwurm == 1 hero may be NULL
+			 * (no hunt), the text reads the name from address 0. Name the first available hero. Always on:
+			 * natively an invalid memory access. */
+			if (hero == NULL) {
+				hero = get_first_hero_available_in_group();
+			}
+#endif
 			sprintf(g_dtp2, get_tx2(87), hero->alias);
 
 			do {
