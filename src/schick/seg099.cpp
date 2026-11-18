@@ -930,6 +930,21 @@ void spell_hexenspeichel(void)
 
 	if (le != -1) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 199): the AE check never applies (g_spell_special_aecost
+		 * is still 0), and the first branch compares the missing LE with le * 2 (AE) instead of le.
+		 * Heal at most the missing LE, 2 AE per LE, and not more AE than available. */
+		if (BUGFIX_WICHTIG) {
+			if (get_spelltarget()->le_max - get_spelltarget()->le < le) {
+				g_spell_special_aecost = (get_spelltarget()->le_max - get_spelltarget()->le) * 2;
+			} else {
+				g_spell_special_aecost = le * 2;
+			}
+			if (get_spelluser()->ae < g_spell_special_aecost) {
+				g_spell_special_aecost = get_spelluser()->ae;
+			}
+		} else
+#endif
 		if (get_spelltarget()->le_max - get_spelltarget()->le < le * 2) {
 
 			g_spell_special_aecost = (get_spelltarget()->le_max - get_spelltarget()->le) * 2;
