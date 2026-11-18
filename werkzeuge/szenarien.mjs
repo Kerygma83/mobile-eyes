@@ -334,6 +334,32 @@ export const szenarien = [
 		],
 	},
 	{
+		// Bugfix 401: im Tempel einen vorderen Helden entlassen → die übrigen rücken lückenlos nach
+		name: 'Bugfixes: Held entlassen ohne Lücke',
+		aktionsknoepfe: true,
+		schritte: [
+			...spielBereit,
+			{ knopf: 'Held aufnehmen' }, { warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
+			...[1, 2, 3].flatMap((n) => [{ wahl: 1 }, { warteAuf: `z.helden == ${n} && z.ov == 1`, max: 3000 }, { warte: 300 }]),
+			{ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 },
+			// Fix an: den ersten Helden entlassen, die anderen rücken nach
+			{ knopf: 'Held entlassen' }, { warteAuf: 'z.ov == 1 && z.ovN == 3', max: 3000 },
+			{ wahl: 1 }, { warteAuf: 'z.helden == 2 && z.ov == 1', max: 3000 },
+			{ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.ov == 0', max: 3000 },
+			{ js: 'Module._web_test_fix(401)' },
+			{ erwarte: 'z.fix == 1', text: 'Heldenplätze lückenlos' },
+			{ bild: 'entlassen-nachgerueckt' },
+			// Fix aus (Einstellung): wieder den ersten entlassen → Lücke wie im Original
+			{ js: "einstellung.bugfixes.setze('aus')", seite: true },
+			{ knopf: 'Held entlassen' }, { warteAuf: 'z.ov == 1 && z.ovN == 2', max: 3000 },
+			{ wahl: 1 }, { warteAuf: 'z.helden == 1 && z.ov == 1', max: 3000 },
+			{ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.ov == 0', max: 3000 },
+			{ js: 'Module._web_test_fix(401)' },
+			{ erwarte: 'z.fix == 0', text: 'ohne Fix: Lücke' },
+			{ js: "einstellung.bugfixes.setze('an')", seite: true },
+		],
+	},
+	{
 		// Kampfzauber im Würfelprotokoll: Probe und Schaden in einem Eintrag (wlog_halten/wlog_freigeben in
 		// use_spell bzw. MON_cast_spell, Schaden aus FIG_do_spell_damage); Computerkampf mit Magie, alle sechs
 		// Helden (darunter Zauberkundige)

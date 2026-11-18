@@ -15,11 +15,11 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 
 | Nr | Fehler | Stufe | Schwere | Herkunft | Änderung dort | Dateien | Status |
 |---:|---|:---:|---|---|---|---|---|
-| 7 | ⚑ Heldenzug ohne verbliebene Heldenphasen: Endlosschleife möglich | W | krit. | BE | erst auf 0 Heldenphasen pruefen und den Zug an die Gegner geben (wie im Gegnerzweig) | seg032 | offen |
-| 15 | ⚑ Bei genau 30 Beutestücken schreibt „MEHR“ über einen nicht gesetzten Zeiger | W | krit. |  | auch loot_names[30] belegen, dorthin schreibt "MEHR" auf Seite 2 bei genau 30 Stueck | seg035 | offen |
+| 7 | ⚑ Heldenzug ohne verbliebene Heldenphasen: Endlosschleife möglich | W | krit. | BE | erst auf 0 Heldenphasen pruefen und den Zug an die Gegner geben (wie im Gegnerzweig) | seg032 | erledigt (Branch bugfixes) |
+| 15 | ⚑ Bei genau 30 Beutestücken schreibt „MEHR“ über einen nicht gesetzten Zeiger | W | krit. |  | auch loot_names[30] belegen, dorthin schreibt "MEHR" auf Seite 2 bei genau 30 Stueck | seg035 | erledigt (Branch bugfixes) |
 | 22 | ⚑ Übergelaufener Priester (Stufe 2) hängt das Spiel auf | W | krit. |  | ohne einen Zauber, den dieser Gegner auf seiner Seite einsetzen kann, gar nicht erst suchen | seg037 | erledigt (Branch bugfixes) |
 | 25 | ⚑ Fliehender Doppelgegner: Wegsuche hängt | W | krit. | BE-Fix | beim Fluchtziel im ersten Rueckschritt keinen Platz fuer den Schwanz verlangen, die | seg038 | schon in BrightEyes behoben |
-| 30 | ⚑ Angstgift: Schreiben über nicht gesetzten Zeiger bei Held gegen Held | W | krit. |  | Angstgift wirkt nur auf Gegner, beim Helden ist enemy_p nicht gesetzt | seg041 | offen |
+| 30 | ⚑ Angstgift: Schreiben über nicht gesetzten Zeiger bei Held gegen Held | W | krit. |  | Angstgift wirkt nur auf Gegner, beim Helden ist enemy_p nicht gesetzt | seg041 | erledigt (Branch bugfixes) |
 | 11 | Zauberziel: begehbare Objekte (Id ≥ 50) werden nicht abgewiesen | W | mittel |  | begehbare Objekte (Id >= 50) wie im Angriffszweig abweisen | seg033 | offen |
 | 18 | Computerkampf: Helden greifen auch übergelaufene Gegner an | W | mittel |  | uebergelaufene Gegner (Boeser Blick) kaempfen auf der Seite der Helden; uebergelaufene Gegner nicht angreifen; ein uebergelaufener Gegner steht in der Schusslinie wie ein Held | seg036 | offen |
 | 34 | Wurfwaffe wird vor der Schadensberechnung abgelegt 💰 | W | mittel | BE-Fix | Wurfwaffe erst nach der Schadensberechnung ablegen (Bright-Eyes-Fix, Original-Bug 32) | seg042 | prüfen: BrightEyes-Behebung, bei uns vermutlich aktiv |
@@ -85,7 +85,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 |---:|---|:---:|---|---|---|---|---|
 | 137 | ⚑ Schiffstempo in 16 Bit, Schnellsegler mit −106: Tempo 0 bringt das Spiel zum Absturz | W | krit. | BE | Grundtempo ohne Vorzeichen (150 statt -106), Produkt in 32 Bit, Ergebnis 1..127 | seg064 | erledigt (Branch bugfixes) |
 | 164 | ⚑ Waten durch den Bach mit uninitialisiertem Helden | W | krit. | BE | Held ist hier nicht gesetzt - den ersten verfuegbaren nehmen | seg113 | schon in BrightEyes behoben |
-| 174 | ⚑ Zustand 33 ist eine Endlosschleife | W | krit. |  | statt Endlosschleife das Gespraech beenden | seg116 | offen |
+| 174 | ⚑ Zustand 33 ist eine Endlosschleife | W | krit. |  | statt Endlosschleife das Gespraech beenden | seg116 | erledigt (Branch bugfixes) |
 | 180 | ⚑ Krakenmolch: Endlosschleife, wenn alle Helden über Bord oder tot sind | W | krit. | BE | Kampf endet, wenn kein Held mehr kaempft (sonst Endlosschleife) | seg117 | schon in BrightEyes behoben |
 | 184 | ⚑ Verirrt im Wald: alle sieben Heldenplätze sterben | W | krit. | BE | nur die Helden der verirrten Gruppe | seg118 | schon in BrightEyes behoben |
 | 127 | Nur die erste Seeroute (Thorwal–Prem) wird zurückgesetzt | W | mittel | BE | alle Seerouten zuruecksetzen | seg002 | offen |
@@ -136,7 +136,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 
 | Nr | Fehler | Stufe | Schwere | Herkunft | Änderung dort | Dateien | Status |
 |---:|---|:---:|---|---|---|---|---|
-| 80 | ⚑ Nur noch der NSC handlungsfähig: das Spiel läuft weiter | W | krit. | BE | die Pruefung von game_loop() anstossen, die den NSC allein nicht als handlungsfaehige; die Spielschleife prueft die Gruppen (der NSC allein zaehlt dort nicht); der NSC allein versucht es nicht noch einmal; die Spielschleife prueft die Gruppe | seg002, seg113, seg116 | offen |
+| 80 | ⚑ Nur noch der NSC handlungsfähig: das Spiel läuft weiter | W | krit. | BE | die Pruefung von game_loop() anstossen, die den NSC allein nicht als handlungsfaehige; die Spielschleife prueft die Gruppen (der NSC allein zaehlt dort nicht); der NSC allein versucht es nicht noch einmal; die Spielschleife prueft die Gruppe | seg002, seg113, seg116 | erledigt (Branch bugfixes; Teil in check_group schon in BrightEyes) |
 | 117 | Opferschale: ESC und große Eingaben (16-Bit-Überlauf) schenken Geld 💰 | W | krit. |  | in 32 Bit rechnen; ESC (-1) und Ueberlaeufe (<= 0) bringen kein Geld | seg085 | offen |
 | 362 | Fluch der Goldmünzen (Burgruine): jeder Kampf gilt sofort als gewonnen 💰 | W | krit. |  | der Fluch der Goldmuenzen wirkt nur in Hyggeliks Ruine; dort faellt der Kampf aus (3 wie bei Visibili: | seg032 | offen |
 | 79 | Stündliche Sondertimer laufen bei Zeitsprüngen nicht | W | mittel | BE | die stuendlichen Sondertimer aus do_timers() (Einhorn, Sphaerenriss, Orkmist-Faesser),; stuendliche Sondertimer mitzaehlen | seg002 | offen |
@@ -250,7 +250,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 | 244 | ⚑ Gruppenwechsel ohne Ausgang, wenn keine Gruppe frei handeln kann | W | krit. |  | nach einer vollen Runde ohne handlungsfaehige Gruppe nicht endlos weitersuchen: | seg049 | erledigt (Branch bugfixes) |
 | 248 | Stufenanstieg: ESC bei „WELCHE POSITIVE EIGENSCHAFT“ bringt rund 168 000 Dukaten 💰 | W | krit. |  | Abbruch (ESC, rechte Maustaste) wiederholt die Abfrage | seg050 | offen |
 | 260 | ⚑ Suche nach freier Gruppe ohne Grenze | W | krit. | BE | erste freie der 6 Gruppen, -1 wenn alle belegt sind; Abtrennen nur anbieten, wenn eine der 6 Gruppen frei ist | seg104 | erledigt (Branch bugfixes) |
-| 401 | ⚑ Entlassene Helden hinterlassen Lücken in den Heldenplätzen | W | krit. |  | die Heldenplaetze wieder lueckenlos sortieren (viele Stellen setzen das voraus) | seg061 | offen |
+| 401 | ⚑ Entlassene Helden hinterlassen Lücken in den Heldenplätzen | W | krit. |  | die Heldenplaetze wieder lueckenlos sortieren (viele Stellen setzen das voraus) | seg061 | erledigt (Branch bugfixes; ändert die Heldenplätze im Spielstand) |
 | 229 | h_index wird nur einmal vor der Schleife auf −1 gesetzt | W | mittel |  | Held fuer jeden Timer neu suchen | seg002 | offen |
 | 233 | Heil-, Stab- und Lichttimer runden kleine Zeitsprünge weg | W | mittel | BE | den Rest der angebrochenen 5 bzw. 15 Minuten mitrechnen | seg002 | offen |
 | 234 | Stundenzählung für Kettenhemd-Schaden und Essen falsch | W | mittel | BE | Zahl der ueberschrittenen vollen Stunden | seg002 | offen |
@@ -315,7 +315,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 | Nr | Fehler | Stufe | Schwere | Herkunft | Änderung dort | Dateien | Status |
 |---:|---|:---:|---|---|---|---|---|
 | 309 | Fehlgeschlagener Start von GEN.EXE: Spiel läuft ohne Puffer weiter | W | krit. |  | nach dem Aufraeumen beenden statt ohne Puffer weiterzulaufen | seg120 | entfällt (Web: eigene Heldenerschaffung) |
-| 414 | ⚑ Einhorn: Held als Zeiger im Spielstand (dort teilweise) | W | mittel |  | Heldenzeiger aus der gespeicherten Heldenposition neu setzen, der Speicherzeiger im Spielstand gilt nach dem Laden nicht mehr | seg116 | offen |
+| 414 | ⚑ Einhorn: Held als Zeiger im Spielstand (dort teilweise) | W | mittel |  | Heldenzeiger aus der gespeicherten Heldenposition neu setzen, der Speicherzeiger im Spielstand gilt nach dem Laden nicht mehr | seg116 | erledigt (Branch bugfixes) |
 | 275 | Übertrag der Subtraktion fehlt im High-Word der Titellänge | A | gering |  | 32 Bit rechnen, der Uebertrag geht ins High-Word | seg001 | offen |
 | 280 | Bright-Eyes-Fix für die AE-Leiste prüft den falschen Merker | A | gering | BE | AE-Leiste ausserhalb des Kampfes im 3D-Bildschirm neu zeichnen | seg002 | offen |
 | 281 | Anschnitt oben vergrößert die Bildhöhe, statt sie zu verkleinern (3 Stellen) | A | gering |  | Anschnitt oben verkleinert die Hoehe | seg003, seg066, seg075 | offen |
