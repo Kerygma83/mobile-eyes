@@ -449,7 +449,13 @@ void TRV_ford_test(const signed int handicap, const signed int time)
 			 * For (GE - handicap) >= 20: 100% success.
 			 * The intended behaviour probably was a usual GE-test with the given handicap. */
 #ifndef M302de_ORIGINAL_BUGFIX
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug 47 (Schicksalsklinge-Bugfix Nr. 151): only the result 0 counts as failed, so the
+			 * GE test almost always succeeds. Usual GE test: every result <= 0 fails. */
+			if (BUGFIX_WICHTIG ? (test_attrib(hero, ATTRIB_GE, handicap) <= 0) : (test_attrib(hero, ATTRIB_GE, handicap) == 0))
+#else
 			if (test_attrib(hero, ATTRIB_GE, handicap) == 0)
+#endif
 #else
 			if (test_attrib(hero, ATTRIB_GE, handicap) < 0)
 #endif
