@@ -206,6 +206,11 @@ signed int DNG11_handler(void)
 
 			sprintf(g_dtp2,	get_tx(26), hero->alias);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 119): with a wrong lever position "&&" skips the assignment
+			 * of test_result, which is read uninitialised below. Uninitialised variable natively, always on. */
+			test_result = 0;
+#endif
 			sprintf(g_text_output_buf,
 				(char*)((gs_dng11_lever_flag == 2 || gs_dng11_lever_flag == 3) && (test_result = test_talent(hero, TA_SCHLOESSER, 5)) > 0 ? get_tx(27) : get_tx(28)),
 				GUI_get_ptr(hero->sex, 3));
@@ -236,6 +241,11 @@ signed int DNG11_handler(void)
 
 			sprintf(g_dtp2, get_tx(26), hero->alias);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 119): with a wrong lever position "&&" skips the assignment
+			 * of test_result, which is read uninitialised below. Uninitialised variable natively, always on. */
+			test_result = 0;
+#endif
 			sprintf(g_text_output_buf,
 				(char*)((gs_dng11_lever_flag == 1 || gs_dng11_lever_flag == 3) && (test_result = test_talent(hero, TA_SCHLOESSER, 3)) > 0 ? get_tx(27) : get_tx(28)),
 				GUI_get_ptr(hero->sex, 3));
@@ -267,6 +277,11 @@ signed int DNG11_handler(void)
 
 			sprintf(g_dtp2,	get_tx(26), hero->alias);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 119): with a wrong lever position "&&" skips the assignment
+			 * of test_result, which is read uninitialised below. Uninitialised variable natively, always on. */
+			test_result = 0;
+#endif
 			sprintf(g_text_output_buf,
 				(char*)((gs_dng11_lever_flag == 5 || gs_dng11_lever_flag == 3) && (test_result = test_talent(hero, TA_SCHLOESSER, 5)) > 0 ? get_tx(27) : get_tx(28)),
 				GUI_get_ptr(hero->sex, 3));
