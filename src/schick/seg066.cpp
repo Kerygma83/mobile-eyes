@@ -1198,6 +1198,13 @@ void town_building_textures(void)
 							nvf_no = ((uint16_t)(nvf_no & 0x7fff) - 10) | 0x8000;
 						}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 439: entrance side of a temple seen from the side (bi == 1: temple) */
+						if (BUGFIX_ALLES && (bi == 1) &&
+							((g_entrance_angle == 1 && !(nvf_no & 0x8000)) || (g_entrance_angle == 3 && (nvf_no & 0x8000)))) {
+							load_town_texture(x + ptr[3], y + ptr[4], nvf_no, 252);
+						} else
+#endif
 						load_town_texture(x + ptr[3], y + ptr[4], nvf_no, l4);
 					}
 
@@ -1210,6 +1217,61 @@ void town_building_textures(void)
 	}
 }
 
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Original-Bug (Schicksalsklinge-Bugfix Nr. 439): temples seen from the side show the half-timbered wall of house type 3
+ * instead of their front; Attic drew only the front view of temples (TDIVERSE.NVF image 5). Create the side wall from
+ * the temple front: the outline (trapezoid) comes from the half-timbered wall, the pixels column by column from the
+ * temple front. Images 4 and 8 are the wall right beside the group and show only one half of the facade. */
+static void fix439_temple_side(uint8_t *p, const signed int w, const signed int h, const signed int nvf_no,
+				const signed int direction)
+{
+	struct nvf_extract_desc nvf;
+	signed int fw, fh;
+	signed int x, y, fx, fy, t, b, ft, fb;
+	uint8_t *q;
+
+	/* the temple front goes behind the wall in the render buffer (65000 bytes, the wall starts at 30000) */
+	if ((w < 2) || (w * h > 20000)) {
+		return;
+	}
+	q = p + w * h;
+	nvf.dst = q;
+	nvf.src = g_tex_floor[1];
+	nvf.image_num = 5;
+	nvf.compression_type = 3;
+	nvf.width = &fw;
+	nvf.height = &fh;
+	process_nvf_extraction(&nvf);
+
+	if (fw < 2) {
+		return;
+	}
+	for (x = 0; x < w; x++) {
+		if ((nvf_no % 10 == 4) || (nvf_no % 10 == 8)) {
+			fx = (direction ? 0 : fw / 2) + x * (fw / 2) / (w - 1);
+		} else {
+			fx = x * (fw - 1) / (w - 1);
+		}
+		if (fx > fw - 1) {
+			fx = fw - 1;
+		}
+		/* outline of the half-timbered wall in this column and height of the temple front in the source column */
+		for (t = 0; (t < h) && (p[t * w + x] == 128); t++);
+		for (b = h - 1; (b >= 0) && (p[b * w + x] == 128); b--);
+		for (ft = 0; (ft < fh) && (q[ft * fw + fx] == 128); ft++);
+		for (fb = fh - 1; (fb >= 0) && (q[fb * fw + fx] == 128); fb--);
+		for (y = 0; y < h; y++) {
+			if ((t > b) || (ft > fb) || (y < t) || (y > b)) {
+				p[y * w + x] = 128;
+			} else {
+				fy = (b == t) ? ft : ft + ((y - t) * (fb - ft) + (b - t) / 2) / (b - t);
+				p[y * w + x] = q[fy * fw + fx];
+			}
+		}
+	}
+}
+#endif
+
 void load_town_texture(signed int x, signed int y, signed int nvf_no, signed int v4)
 {
 	signed int width;
@@ -1220,6 +1282,15 @@ void load_town_texture(signed int x, signed int y, signed int nvf_no, signed int
 	uint8_t *src;
 	uint8_t *dst;
 	struct nvf_extract_desc nvf;
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 439: 252 = side wall at the entrance side of a temple (outline from house type 3) */
+	signed int temple = 0;
+
+	if (v4 == 252) {
+		temple = 1;
+		v4 = 188;
+	}
+#endif
 
 	direction = (nvf_no & 0x8000 ? 1: 0);
 	nvf_no &= 0x3fff;
@@ -1265,6 +1336,13 @@ void load_town_texture(signed int x, signed int y, signed int nvf_no, signed int
 
 	copy_width = width;
 	copy_height = height;
+
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 439 */
+	if (temple && BUGFIX_ALLES) {
+		fix439_temple_side(src, width, height, nvf_no, direction);
+	}
+#endif
 
 	if (x < 0) {
 		if (x + copy_width > 0) {
