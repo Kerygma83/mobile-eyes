@@ -136,6 +136,11 @@ void do_tavern(void)
 
 				GUI_output(tavern->quality < 5 ? get_ttx(475) : (tavern->quality < 15 ? get_ttx(476) : get_ttx(477)));
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 336): the hour passes before eating, so herokeeping() eats
+				 * provisions first; eat first, then let the hour pass */
+				if (!BUGFIX_ALLES)
+#endif
 				timewarp(HOURS(1));
 
 				for (i = 0; i <= 6; i++) {
@@ -169,6 +174,12 @@ void do_tavern(void)
 					}
 				}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 336 */
+				if (BUGFIX_ALLES) {
+					timewarp(HOURS(1));
+				}
+#endif
 
 				p_money_before = get_party_money();
 				p_money_after *= 10L;
