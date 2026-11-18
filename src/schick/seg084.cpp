@@ -60,7 +60,13 @@ signed int DNG09_handler(void)
 	/* TODO: not the leader ? */
 	hero = get_hero(0);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 113): operator precedence, (gs_day_timer % 90) * 20 is true at
+	 * every full minute; every 20 minutes */
+	if (gs_dng09_pit_flag && !(BUGFIX_ALLES ? (gs_day_timer % MINUTES(20)) : (gs_day_timer % 90 * 20)))
+#else
 	if (gs_dng09_pit_flag && !(gs_day_timer % 90 * 20))
+#endif
 	{
 		GUI_output(get_tx(32));
 	}
