@@ -601,6 +601,12 @@ signed int drop_item(struct struct_hero *hero, const signed int inv_slot, signed
 			}
 		}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 126): the checks below are also done if nothing was dropped
+		 * (undroppable item, answered with no, quantity 0); the sacrifice only counts if something was dropped */
+		if (!BUGFIX_WICHTIG || (retval && !(p_item->flags.stackable && (quantity == 0))))
+		{
+#endif
 		/* check for the pirate cave on Manrek to bring Efferd a gift */
 		if ((item_id == ITEM_DREIZACK || item_id == ITEM_NETZ) &&
 			(gs_dungeon_id == DUNGEON_ID_PIRATENHOEHLE) && (gs_x_target == 9) && (gs_y_target == 9))
@@ -615,6 +621,9 @@ signed int drop_item(struct struct_hero *hero, const signed int inv_slot, signed
 		{
 			gs_dng12_ingerimm_sacrifice = 1;
 		}
+#ifdef M302de_ORIGINAL_BUGFIX
+		}
+#endif
 	}
 
 	return retval;
