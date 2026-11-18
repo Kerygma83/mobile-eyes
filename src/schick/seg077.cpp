@@ -170,7 +170,14 @@ signed int DNG01_handler(void)
 		{
 			/* check if a ROPE LADDER or a ROPE is available */
 			/* Original-Bug: Why not check for a mage with staffspell level >= 3? */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 92): rope, rope ladder or a mage with staff spell
+			 * level >= 3 (rope of the adept), as at the pits */
+			if (BUGFIX_WICHTIG ? (DNG_check_climb_tools() != -1) :
+				(get_first_hero_with_item(ITEM_SEIL) != -1 || get_first_hero_with_item(ITEM_STRICKLEITER) != -1))
+#else
 			if (get_first_hero_with_item(ITEM_SEIL) != -1 || get_first_hero_with_item(ITEM_STRICKLEITER) != -1)
+#endif
 			{
 				/* Original-Bug: better get_first_hero_available_in_group() */
 #ifdef M302de_ORIGINAL_BUGFIX
