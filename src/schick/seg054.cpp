@@ -507,8 +507,15 @@ void do_inn(void)
 			price_einzelzimmer = 30;
 			price_suite = 100;
 			price_schlafsaal += price_schlafsaal * inn->price_mod / 100;
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 52): the modifier is taken from the (already modified)
+			 * dormitory price instead of the own price */
+			price_einzelzimmer += (BUGFIX_WICHTIG ? price_einzelzimmer : price_schlafsaal) * inn->price_mod / 100;
+			price_suite += (BUGFIX_WICHTIG ? price_suite : price_schlafsaal) * inn->price_mod / 100;
+#else
 			price_einzelzimmer += price_schlafsaal * inn->price_mod / 100;
 			price_suite += price_schlafsaal * inn->price_mod / 100;
+#endif
 
 			tw_bak = g_textbox_width;
 			g_textbox_width = 5;
