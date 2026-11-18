@@ -667,6 +667,23 @@ void DNG15_collapsing_ceiling(uint8_t* ptr)
 			gs_y_target = gs_y_target_bak;
 			break;
 		}
+#ifdef M302de_ORIGINAL_BUGFIX
+		case 3:
+		{
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 121): "case 3" (blocked) is missing, the group walks through
+			 * and text 45 is never shown. The blocked passage stops the group; offer to clear it (text 45). */
+			if (BUGFIX_WICHTIG) {
+				if (GUI_bool(get_tx(45)))
+				{
+					DNG15_clear_way(ptr);
+				} else {
+					gs_x_target = gs_x_target_bak;
+					gs_y_target = gs_y_target_bak;
+				}
+			}
+			break;
+		}
+#endif
 		case 4:
 		{
 			if (random_schick(100) >= 65)
