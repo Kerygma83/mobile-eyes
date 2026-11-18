@@ -595,6 +595,15 @@ signed int AFIG_select_autospell(struct struct_hero *hero, const signed int hero
 		/* reset the target of the hero */
 		hero->target_object_id = 0;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 319): a spell with a value below -5 cannot be cast
+		 * (test_spell() returns 0, use_spell() still takes half of the AE): don't cast in this turn */
+		if (BUGFIX_WICHTIG && (hero->spells[spell_id] < -5)) {
+			done = 1;
+			continue;
+		}
+#endif
+
 		if ((spell_mode = AFIG_get_spell(spell_id, renegade)) != -1) {
 
 			if (spell_mode == 2) {
