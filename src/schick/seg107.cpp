@@ -302,6 +302,20 @@ void item_apply_weapon_poison(void)
 
 	signed int bottle_id;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 400): using the poison circumvents the class lock (e.g. warriors and
+	 * poisons); check it here as well */
+	if (BUGFIX_ALLES && !can_hero_use_item(g_itemuser, g_used_item_id)) {
+
+		sprintf(g_dtp2, get_ttx(221), g_itemuser->alias,
+			get_ttx((g_itemuser->sex != 0 ? 593 : 9) + g_itemuser->typus),
+			GUI_names_grammar(2, g_used_item_id, 0));
+
+		GUI_output(g_dtp2);
+		return;
+	}
+#endif
+
 	if ((g_itemuser->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].item_id != ITEM_NONE) &&
 		(g_itemuser->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].item_id != ITEM_KURZBOGEN) &&
 		(g_itemuser->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].item_id != ITEM_LANGBOGEN) &&
