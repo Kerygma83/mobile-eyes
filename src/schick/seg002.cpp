@@ -1974,6 +1974,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_bugfixes(const int stufe) { g_bugfixes 
 #endif
 
 #if defined(WEB_TESTHOOKS)
+#include "seg064.h"	/* get_passage_travel_hours (web_test_fix 137) */
 /* ---- Nur im Test-Build (TESTHOOKS=1): Abkürzungen und Zustand für Browser-Tests ---- */
 static int g_web_test_fight = 0;	/* Kampf-ID, wird in game_loop() gestartet */
 static int g_web_test_sign = 0;		/* Wegweiser-Typindex, wird in game_loop() gesetzt */
@@ -1998,6 +1999,11 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_test_talk(const int art, const int talk
 
 /* Probe des ersten Helden (Würfel-Log): art 1 = Talent (test_talent), 2 = Eigenschaft (test_attrib) */
 static int g_web_test_probe[3] = { 0, 0, 0 };
+/* Behebung aus der Bugfix-Liste (docs/bugfixes.md) in einer gezielt hergestellten Lage prüfen;
+ * Ergebnis in web_test_state() "fix": 1 = in Ordnung, 0 = Fehler, -1 = noch nicht gelaufen */
+static int g_web_test_fix = 0;
+static int g_web_test_fix_ergebnis = -1;
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_fix(const int nr) { g_web_test_fix_ergebnis = -1; g_web_test_fix = nr; }
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_probe(const int art, const int id, const int handicap)
 {
 	g_web_test_probe[1] = id; g_web_test_probe[2] = handicap; g_web_test_probe[0] = art;
@@ -2120,10 +2126,10 @@ extern "C" EMSCRIPTEN_KEEPALIVE const char* web_test_state(void)
 	snprintf(buf, sizeof(buf),
 		"{\"timer\":%d,\"stadt\":%d,\"ort\":%d,\"dungeon\":%d,\"x\":%d,\"y\":%d,"
 		"\"richtung\":%d,\"helden\":%d,\"kampf\":%d,\"dialog\":%d,\"menue\":%d,"
-		"\"karte\":%d,\"haupt\":%d,\"spielzustand\":%d,\"eingabe\":%d,\"modus\":%d}",
+		"\"karte\":%d,\"haupt\":%d,\"spielzustand\":%d,\"eingabe\":%d,\"modus\":%d,\"fix\":%d}",
 		g_native_timer_active, gs_town_id, gs_town_loc_type, gs_dungeon_id, gs_x_target, gs_y_target,
 		gs_direction, gs_total_hero_counter, g_in_fight, g_dialogbox_lock, g_menu_input_busy,
-		gs_show_travel_map, web_screen_mode(), g_game_state, g_web_test_input_result, g_game_mode);
+		gs_show_travel_map, web_screen_mode(), g_game_state, g_web_test_input_result, g_game_mode, g_web_test_fix_ergebnis);
 	return buf;
 }
 
@@ -2172,6 +2178,43 @@ static void web_test_hooks(void)
 		g_web_test_probe[0] = 0;
 		if (art == 1) test_talent(get_hero(0), g_web_test_probe[1], g_web_test_probe[2]);
 		else test_attrib(get_hero(0), g_web_test_probe[1], g_web_test_probe[2]);
+	}
+
+	if (g_web_test_fix) {
+		const int nr = g_web_test_fix;
+		g_web_test_fix = 0;
+		if (nr == 137) {
+			/* Schiffstempo: alle Grundtempi der Schiffstabelle (seg063, 150 als signed char) und Wetterlagen */
+			static const int8_t tempo[] = { 120, 100, (int8_t)150, 90, 80, 60, 40 };
+			const signed int w1 = gs_weather1, w2 = gs_weather2;
+			int ok = 1;
+			for (unsigned t = 0; t < sizeof(tempo); t++) {
+				for (gs_weather1 = 1; gs_weather1 <= 6; gs_weather1++) {
+					for (gs_weather2 = 1; gs_weather2 <= 7; gs_weather2++) {
+						const signed int h = get_passage_travel_hours(100, tempo[t]);
+						if ((h <= 0) || (gs_sea_travel_passage_speed2 < 1) || (gs_sea_travel_passage_speed2 > 127)) ok = 0;
+					}
+				}
+			}
+			gs_weather1 = w1; gs_weather2 = w2;
+			g_web_test_fix_ergebnis = ok;
+		} else if (nr == 221) {
+			/* Gegenstandsverlust bei einem Helden ohne ablegbaren Gegenstand */
+			static char text[] = "%s %s";
+			struct inventory sicher[NR_HERO_INVENTORY_SLOTS];
+			memcpy(sicher, get_hero(0)->inventory, sizeof(sicher));
+			memset(get_hero(0)->inventory, 0, sizeof(sicher));
+			loose_random_item(get_hero(0), 100, text);
+			memcpy(get_hero(0)->inventory, sicher, sizeof(sicher));
+			g_web_test_fix_ergebnis = 1;
+		} else if (nr == 235) {
+			/* Zufallsheld ohne lebenden Helden in der Gruppe */
+			int tot[7];
+			for (int i = 0; i <= 6; i++) { tot[i] = get_hero(i)->flags.dead; get_hero(i)->flags.dead = 1; }
+			get_random_hero();
+			for (int i = 0; i <= 6; i++) get_hero(i)->flags.dead = tot[i];
+			g_web_test_fix_ergebnis = 1;
+		}
 	}
 }
 #endif
