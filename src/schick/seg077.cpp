@@ -188,12 +188,22 @@ signed int DNG01_handler(void)
 #endif
 				{
 					/* Original-Bug: '32 * ' should probably be '16 *'. */
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 94): dungeon maps are 16 squares wide */
+					g_dng_map[(BUGFIX_WICHTIG ? 16 : 32) * gs_y_target + gs_x_target] = DNG_TILE_PIT_IN_CEILING << 4;
+#else
 					g_dng_map[32 * gs_y_target + gs_x_target] = DNG_TILE_PIT_IN_CEILING << 4;
+#endif
 
 					DNG_dec_level();
 
 					/* Original-Bug: '32 * ' should probably be '16 *'. */
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Schicksalsklinge-Bugfix Nr. 94 */
+					g_dng_map[(BUGFIX_WICHTIG ? 16 : 32) * gs_y_target + gs_x_target] = DNG_TILE_PIT << 4;
+#else
 					g_dng_map[32 * gs_y_target + gs_x_target] = DNG_TILE_PIT << 4;
+#endif
 
 					gs_y_target++;
 				}
