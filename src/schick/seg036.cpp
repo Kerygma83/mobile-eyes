@@ -202,6 +202,10 @@ signed int AFIG_change_hero_weapon(struct struct_hero *hero)
 		/* grab the first melee weapon in the knapsack,
 		 * and exchange it with the broken weapon. */
 		if (item_p->flags.weapon &&
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 316): a broken weapon from the knapsack is taken as well */
+			!(BUGFIX_WICHTIG && hero->inventory[pos].flags.broken) &&
+#endif
 			(item_p->subtype != WEAPON_TYPE_SCHUSSWAFFE) &&
 			(item_p->subtype != WEAPON_TYPE_WURFWAFFE) &&
 			(item_p->subtype != WEAPON_TYPE_SPEER))
@@ -938,6 +942,29 @@ void AFIG_hero_turn(struct struct_hero *hero, const signed int hero_pos, signed 
 					try_autospell = 0;
 				}
 			}
+
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 316): a broken weapon stays in the hand, the auto fight
+			 * never changes it. If an intact melee weapon is in the knapsack, take it (costs 2 BP). */
+			if (BUGFIX_WICHTIG && (hero->action_id == FIG_ACTION_MOVE) && (hero->fight_bp_left > 2) &&
+				g_itemsdat[hero->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].item_id].flags.weapon &&
+				hero->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].flags.broken)
+			{
+				for (i = HERO_INVENTORY_SLOT_KNAPSACK_1; i < NR_HERO_INVENTORY_SLOTS; i++) {
+
+					cnt = hero->inventory[i].item_id;
+
+					if (g_itemsdat[cnt].flags.weapon && !hero->inventory[i].flags.broken &&
+						(g_itemsdat[cnt].subtype != WEAPON_TYPE_SCHUSSWAFFE) &&
+						(g_itemsdat[cnt].subtype != WEAPON_TYPE_WURFWAFFE) &&
+						(g_itemsdat[cnt].subtype != WEAPON_TYPE_SPEER))
+					{
+						AFIG_change_hero_weapon(hero);
+						break;
+					}
+				}
+			}
+#endif
 
 			if ((hero->action_id == FIG_ACTION_MOVE) && (hero->fight_bp_left > 0)) {
 
