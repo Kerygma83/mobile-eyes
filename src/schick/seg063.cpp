@@ -340,7 +340,13 @@ void do_harbor(void)
 
 				p_money = get_party_money();
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 132: check the money only if the group wants to know something
+				 * (not when leaving) */
+				if ((!BUGFIX_ALLES || (answer == 1) || (answer == 2)) && (p_money < 10L)) {
+#else
 				if (p_money < 10L) {
+#endif
 
 					GUI_output(get_tx(8));
 
