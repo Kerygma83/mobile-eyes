@@ -947,6 +947,9 @@ signed int do_fight(const signed int fight_id)
 	signed int direction_bak;
 	signed int tw_bak;
 	signed int escape_positions[6];
+#ifdef M302de_ORIGINAL_BUGFIX
+	signed int max_enemies_bak = 0;	/* Schicksalsklinge-Bugfix Nr. 9 */
+#endif
 
 	if ((gs_group_member_counts[gs_active_group_id] == 1) && (get_hero(0)->invisible != 0))
 	{
@@ -990,6 +993,9 @@ signed int do_fight(const signed int fight_id)
 
 		/* reduce number of enemies to MAX_ENEMIES */
 		memset(&g_current_fight->enemies[g_max_enemies], 0, sizeof(struct fight_enemy) * (20 - g_max_enemies));
+#ifdef M302de_ORIGINAL_BUGFIX
+		max_enemies_bak = g_max_enemies;
+#endif
 		g_max_enemies = 0;
 	}
 
@@ -1182,7 +1188,13 @@ signed int do_fight(const signed int fight_id)
 
 			FIG_split_ap();
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 9): never true, g_max_enemies has been reset to 0
+			 * after shortening the enemy list above. Check the remembered shortening. */
+			if (((BUGFIX_ALLES ? max_enemies_bak : g_max_enemies) != 0) && !g_fig_discard) {
+#else
 			if ((g_max_enemies != 0) && !g_fig_discard) {
+#endif
 
 				for (i = 0; i < 20; i++) {
 					g_enemy_sheets[i].flags.dead = 1;
