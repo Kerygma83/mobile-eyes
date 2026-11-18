@@ -276,7 +276,12 @@ signed int AFIG_can_attack_neighbour(const signed int start_x, const signed int 
 	} else if (!mode) {
 
 		/* target is an enemy */
-		if ((target >= 10) && (target < 30) && !g_enemy_sheets[target - 10].flags.dead) {
+		if ((target >= 10) && (target < 30) && !g_enemy_sheets[target - 10].flags.dead
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 18): renegade enemies (Boeser Blick) fight on the side of the heroes */
+			&& !(BUGFIX_WICHTIG && g_enemy_sheets[target - 10].flags.renegade)
+#endif
+			) {
 			return 1;
 		} else {
 			return 0;
@@ -363,7 +368,12 @@ signed int AFIG_search_spell_target(const signed int x, const signed int y, cons
 		} else if (renegade == 0) {
 
 			/* attack only enemies */
-			if ((target >= 10) && (target < 30) && !g_enemy_sheets[target - 10].flags.dead)
+			if ((target >= 10) && (target < 30) && !g_enemy_sheets[target - 10].flags.dead
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 18: not the renegade ones */
+				&& !(BUGFIX_WICHTIG && g_enemy_sheets[target - 10].flags.renegade)
+#endif
+				)
 			{
 				will_attack = 1;
 				done = 1;
@@ -374,7 +384,12 @@ signed int AFIG_search_spell_target(const signed int x, const signed int y, cons
 #endif
 						 (((target < 10) && !get_hero(target - 1)->flags.dead && !get_hero(target - 1)->flags.unconscious
 						) || ( (target >= 50) && !is_in_int_array(target - 50, g_cb_obj_nonobstacle)
-						))
+						)
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 18: a renegade enemy blocks the line like a hero */
+						|| (BUGFIX_WICHTIG && (target >= 10) && (target < 30) && !g_enemy_sheets[target - 10].flags.dead)
+#endif
+						)
 					)
 				)
 				{
