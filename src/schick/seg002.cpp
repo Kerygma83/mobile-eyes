@@ -2140,10 +2140,10 @@ extern "C" EMSCRIPTEN_KEEPALIVE const char* web_test_state(void)
 	snprintf(buf, sizeof(buf),
 		"{\"timer\":%d,\"stadt\":%d,\"ort\":%d,\"dungeon\":%d,\"x\":%d,\"y\":%d,"
 		"\"richtung\":%d,\"helden\":%d,\"kampf\":%d,\"dialog\":%d,\"menue\":%d,"
-		"\"karte\":%d,\"haupt\":%d,\"spielzustand\":%d,\"eingabe\":%d,\"modus\":%d,\"fix\":%d}",
+		"\"karte\":%d,\"haupt\":%d,\"spielzustand\":%d,\"eingabe\":%d,\"modus\":%d,\"fix\":%d,\"bugfixes\":%d}",
 		g_native_timer_active, gs_town_id, gs_town_loc_type, gs_dungeon_id, gs_x_target, gs_y_target,
 		gs_direction, gs_total_hero_counter, g_in_fight, g_dialogbox_lock, g_menu_input_busy,
-		gs_show_travel_map, web_screen_mode(), g_game_state, g_web_test_input_result, g_game_mode, g_web_test_fix_ergebnis);
+		gs_show_travel_map, web_screen_mode(), g_game_state, g_web_test_input_result, g_game_mode, g_web_test_fix_ergebnis, g_bugfixes);
 	return buf;
 }
 
