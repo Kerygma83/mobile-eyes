@@ -439,6 +439,17 @@ void init_global_buffer(void)
 
 	g_buffer9_ptr3 = (HugePt)(g_buffer9_ptr2 = (unsigned char*)g_buffer9_ptr);
 	g_ani_unknown4 = 0;
+
+#if defined(M302de_ORIGINAL_BUGFIX) && !defined(__BORLANDC__)
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 436): g_buffer7_ptr has 10000 bytes, but load_tx() and others
+	 * read up to 64000 bytes into it; STRASSE.LTX (13458 bytes) overwrote the tx2 texts in g_buffer8_ptr
+	 * behind it (garbled texts in city events). Natively the buffer gets its own memory of the full size;
+	 * g_buffer8_ptr and g_buffer9_ptr stay where they are. Buffer overflow, always on. */
+	{
+		static char buffer7[64000];
+		g_buffer7_ptr = buffer7;
+	}
+#endif
 }
 
 /* Borlandified and identical */
