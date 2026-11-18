@@ -336,7 +336,12 @@ signed int use_magic(struct struct_hero *hero)
 				return 0;
 			}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 189: from the 5th staff spell on (handicap 99) there are no more */
+			if (BUGFIX_WICHTIG ? (hero->staff_level >= 4) : (hero->staff_level == 7)) {
+#else
 			if (hero->staff_level == 7) {
+#endif
 				/* Original-Bug: This never happens.
 				 * The highest possible staff spell is the 4th one, since the 5th staff spell has handicap 99.
 				 * The check should ask for '== 4' instead. */
