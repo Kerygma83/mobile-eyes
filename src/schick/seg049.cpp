@@ -408,6 +408,14 @@ void GRP_switch_to_next(const signed int mode)
 		gs_dungeon_id_bak = gs_groups_dungeon_id_bak[group];
 		gs_dungeon_level_bak = gs_groups_dng_level_bak[group];
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 346): the event square marker keeps the square of the old group,
+		 * so the square of the new group triggers again; set it to the square of the new group (Osterpatch NRS 2016) */
+		if (BUGFIX_WICHTIG && gs_dungeon_id) {
+			gs_dng_handled_pos = DNG_POS(gs_dungeon_level, gs_x_target, gs_y_target);
+		}
+#endif
+
 		GRP_sort_heroes();
 
 		for (group = 0; group <= 6; group++) {
