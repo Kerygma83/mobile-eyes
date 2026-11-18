@@ -18,7 +18,7 @@ Dieses Repository enthält **keine** Spieldaten. Nötig ist die deutsche GOG-Fas
 | Pfad | Inhalt |
 | --- | --- |
 | `BrightEyes/` | Untermodul: BrightEyes mit unseren Änderungen (Branch `brighteyes-web` dieses Repos) |
-| `werkzeuge/` | Build-Image, Build-Skript, HTML-Seiten (`shell.html` Spiel, `gen-shell.html` Heldenerschaffung, `dialog.js` Overlays), Browser-Tests |
+| `werkzeuge/` | Build-Image, Build-Skript, HTML-Seiten (`shell.html` Spiel, `gen-shell.html` Heldenerschaffung), Oberfläche (`dialog.js` Overlays, `aktionen.js`, `karte.js`, `minimap.js`, `heldenbogen.js`, `kampf.js`, `menue.js` …), Browser-Tests (`szenarien.mjs`), Veröffentlichung (`pages.sh`) |
 | `werkzeug.sh` | führt Befehle im Build-Container aus (auf dem Host ist kein Compiler nötig) |
 | `werkzeuge/pwa/` | Manifest, Icon (`icon.svg`, PNGs mit `icons.sh`), Vorlage des Service Workers |
 | `compose.yaml`, `nginx.conf` | Auslieferung von `build/web` (mit Spieldaten, nur LAN) auf Port 8180 und `build/web-frei` (ohne) auf 8181 |
@@ -61,10 +61,17 @@ Alles prüfen (nativer Build, Test-Build mit Abkürzungen, Browser-Szenarien in 
 Ergebnisse und Screenshots in `build/regression/`):
 
 ```sh
-./pruefen.sh            # alles, ca. 3 Minuten
+./pruefen.sh            # alles, ca. 10 Minuten
 ./pruefen.sh kampf      # nur Szenarien mit „kampf“ im Namen
 SCHNELL=1 ./pruefen.sh  # ohne nativen Build
 BROWSER=webkit ./pruefen.sh  # mit der Safari-Engine statt Chromium
+```
+
+Veröffentlichen (Build ohne Spieldaten als Branch `gh-pages`, Tag `v<VERSION>` aus der Datei `VERSION`;
+nur mit sauberem Arbeitsverzeichnis):
+
+```sh
+werkzeuge/pages.sh --push
 ```
 
 Einzelner Ad-hoc-Browsertest (Screenshots nach `build/screens/`):

@@ -1,11 +1,13 @@
 # Schicksalsklinge mobil – Stufenplan
 
-Stand: 16.11.2026 · Basis: BrightEyes (Henne), Branch `web` in `BrightEyes/`, Build über `./werkzeug.sh`
+Stand: 18.11.2026 · Basis: BrightEyes (Henne), Branch `web` in `BrightEyes/`, Build über `./werkzeug.sh`
 Ziel: Die Schicksalsklinge als installierbare Web-App (PWA). Die Spiellogik bleibt aus BrightEyes, die Bedienung wird Bereich für Bereich durch ein mobiles Interface ersetzt.
 
 ## Stand heute
 
-Meilenstein A und B erreicht (16.11.): Das Spiel ist im Browser vom Intro über die Heldenerschaffung bis in Dungeons durchspielbar, auch längere Testpartien laufen ohne Hänger. Die App ist auf echten Android- und iOS-Geräten installiert und getestet, mit Ton und Spielständen. Die Fassung ohne Spieldaten (Version 0.2) steht auf GitHub Pages, die Spieldaten liest jeder selbst ein.
+Meilenstein A und B erreicht (16.11.): Das Spiel ist im Browser vom Intro über die Heldenerschaffung bis in Dungeons durchspielbar, auch längere Testpartien laufen ohne Hänger. Die App ist auf echten Android- und iOS-Geräten installiert und getestet, mit Ton und Spielständen. Die Fassung ohne Spieldaten (Version 0.6, 17.11.) steht auf GitHub Pages, die Spieldaten liest jeder selbst ein.
+
+Seit Meilenstein B (17.11., Versionen 0.3–0.6): Startmenü mit Titelbild, Ortsaktionen als beschriftete Knöpfe, Minimap neben dem Steuerkreuz, Menü in der Leiste (Speichern/Laden, Tagebuch, Karte, Einstellungen), Heldenbogen mit Gegenstandskacheln (Stufe 10), Kampfbildschirm mit Zoom, Befehlsknöpfen, schrägen Pfeilen und Kampflog (Stufe 12), Musik in der Heldenerschaffung. Damit fehlt für Meilenstein C vor allem der Rest von Stufe 9.
 
 Dazu gekommen und nicht im ursprünglichen Plan: Questlog, Würfelprotokoll, Datumszeile, schneller Autokampf, Einstellungen (Schreibung, Schriftgröße, Layout).
 
@@ -35,19 +37,19 @@ Aufwand in Arbeitsstunden (gemeinsame Sitzungen mit Claude, grob geschätzt; Feh
 | 5 | PWA ✓ | Installierbar, offline, Vollbild, Hoch-/Querformat | 3–4 h |
 | 6 | Ton ✓ | Soundeffekte und CD-Musik (OGG aus der GOG-Fassung) | 6–10 h |
 | | **Meilenstein B: Installierbare App** ✓ | Auf echtem Android- und iOS-Gerät getestet | |
-| 7 | Bugfixes übernehmen | Fehlerkorrekturen aus MeowMuhMuhCow/NRS als Schalter | 8–16 h |
-| 8 | Mobiles UI I: Dialoge (weitgehend) | Alle `GUI_*`-Dialoge als HTML (große Schrift, Touch) | 8–12 h |
+| 7 | Bugfixes übernehmen (geparkt) | Fehlerkorrekturen aus MeowMuhMuhCow/NRS als Schalter | 8–16 h |
+| 8 | Mobiles UI I: Dialoge ✓ | Alle `GUI_*`-Dialoge als HTML (große Schrift, Touch) | 8–12 h |
 | 9 | Mobiles UI II: Bewegung und Orte (teilweise) | Wischgesten, Ortsaktionen als Knöpfe statt Icon-Leiste | 8–12 h |
-| 10 | Mobiles UI III: Helden und Inventar | Charakterbogen und Inventar als native Ansicht | 12–20 h |
+| 10 | Mobiles UI III: Helden und Inventar ✓ | Charakterbogen und Inventar als native Ansicht | 12–20 h |
 | 11 | Mobiles UI IV: Reisen und Karte (weitgehend) | Ziele antippen, Reiseereignisse als Dialoge | 6–10 h |
-| 12 | Mobiles UI V: Kampf | Felder antippen, Aktionsleiste, Zoom | 12–20 h |
+| 12 | Mobiles UI V: Kampf ✓ | Felder antippen, Aktionsleiste, Zoom | 12–20 h |
 | | **Meilenstein C: Mobile Fassung** | Komplett im Hochformat spielbar | |
 | 13 | Upstream und Pflege | Korrekturen an BrightEyes zurückgeben, Updates einpflegen | laufend |
 | 4 | Spieldaten vom Nutzer ✓ | Daten-Import (GOG-Installer, ZIP oder Dateien), Prüfsumme, Ablage im Browser | 4–6 h |
 
 Summe bis Meilenstein A: ca. 18–28 h · bis B: ca. 31–48 h · bis C: ca. 85–138 h.
 
-**Nächste Schritte (17.11.):** Rest von Stufe 9 (Wischgesten, Beschriftungen prüfen), danach 10 und 12. Kleine Reste: langes Kampfmenü ohne Scrollen (Stufe 8), Spielstand der DOS-Fassung laden (Stufe 3), Reiseereignisse als Dialoge prüfen (Stufe 11).
+**Nächste Schritte (18.11.):** Rest von Stufe 9 (Wischgesten, Beschriftungen bei Händler, Heiler, Taverne und im Dungeon prüfen) → Meilenstein C. Kleine Reste: Spielstand der DOS-Fassung laden (Stufe 3), Reiseereignisse als Dialoge prüfen (Stufe 11). Danach Stufe 7 (Bugfixes) nach Entscheidung.
 
 Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander parallel. 4 braucht 3 und kommt erst vor einer Veröffentlichung. 5 zunächst mit eingebauten Spieldaten (intern), die Variante ohne Daten folgt mit 4. 6 unabhängig ab 1. 7 jederzeit ab 1. 8 vor 9–12 (gemeinsame Brücke C ↔ HTML). 9–12 untereinander frei.
 
@@ -190,7 +192,7 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
   - Die Musik liegt nicht in `index.data`. Der Service Worker legt jeden Track beim ersten Abspielen dauerhaft ab.
   - Das Tonmenü des Spiels (Musik/Effekte an oder aus) wirkt wie im Original.
 - **Szenario:** Effekt und Musik im Tempel. Geprüft werden das Auswerten der VOC-Datei und das Laden des Tracks; hören kann der Testbrowser nichts.
-- **Offen:** Musik in der Heldenerschaffung (ngen nutzt eigene FLAC-Pfade). Auf iOS gilt der Stummschalter, Ton erst nach der ersten Berührung. Wirkliches Hören nur auf dem Gerät prüfbar.
+- **Musik in der Heldenerschaffung** seit 17.11. Auf iOS gilt der Stummschalter, Ton erst nach der ersten Berührung. Wirkliches Hören nur auf dem Gerät prüfbar.
 
 ## Stufe 7 – Bugfixes übernehmen
 
@@ -202,6 +204,8 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Risiken:** Beide Projekte stammen von Bright-Eyes ab, sind aber unterschiedlich weit umbenannt → Übertragung von Hand, Eintrag für Eintrag.
 
+**Stand (17.11.):** Geparkt. MeowMuhMuhCow hat inzwischen auch eine native SDL2-Fassung (`Nativ/`, C, Testversion, Fixes laut eigener Angabe im Spiel ungetestet). Ein Wechsel der Basis würde alle Web-Anpassungen in BrightEyes (rund 50 Commits) neu erfordern; sinnvoller ist, Korrekturen einzeln aus `s_fix.h` zu übernehmen, zuerst die kritischen (Hänger, Speicherfehler), je mit eigenem Szenario.
+
 ## Stufe 8 – Mobiles UI I: Dialoge
 
 **Ziel:** Alle Text- und Auswahlfenster als gut lesbare HTML-Dialoge.
@@ -210,7 +214,7 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Abnahmekriterien:** Alle Dialoge der Regressionstests erscheinen als HTML; Zurück schließt; Spiellogik unverändert.
 
-**Stand (14.11.):** Grundlage fertig. `GUI_input`, `GUI_radio`/`GUI_bool` und `GUI_dialogbox` melden sich per `EM_JS` an die Seite, das Overlay zeigt Text, Optionen, Eingabefeld und Porträt. Die Box des Spiels wird verdeckt, indem die Ansicht auf dem Bild davor stehen bleibt. Das Spiel bleibt für Ablauf und Ergebnis zuständig. Text- und Zahleneingaben im Overlay auf dem Gerät geprüft (16.11.). Offen: lange Menüs (Kampf: 13 Einträge) ohne Scrollen.
+**Stand (14.11.):** Grundlage fertig. `GUI_input`, `GUI_radio`/`GUI_bool` und `GUI_dialogbox` melden sich per `EM_JS` an die Seite, das Overlay zeigt Text, Optionen, Eingabefeld und Porträt. Die Box des Spiels wird verdeckt, indem die Ansicht auf dem Bild davor stehen bleibt. Das Spiel bleibt für Ablauf und Ergebnis zuständig. Text- und Zahleneingaben im Overlay auf dem Gerät geprüft (16.11.). Das lange Kampfmenü erscheint seit 17.11. als Befehlsknöpfe im Bedienfeld des Kampfs (Stufe 12). Groß-/Kleinschreibung: Einstellung „Schreibung“ mit Wörterbuch aus den Spieltexten (siehe Merkposten).
 
 **Merkposten Groß-/Kleinschreibung und Schriftart:** Die Spieltexte liegen im Original nur in Großbuchstaben vor, die Spielschrift hat keine Kleinbuchstaben. Im Overlay ist das lange Fließtext in Versalien (derzeit Georgia). Mögliche Wege:
 - Wörterbuch für die deutsche Großschreibung (Substantive), alles andere klein, Satzanfänge groß. Das Wörterbuch aus den Spieltexten selbst aufbauen und die Sonderfälle von Hand pflegen, etwa Eigennamen, Anreden und Abkürzungen wie „GGST.“.
@@ -219,11 +223,13 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 ## Stufe 9 – Mobiles UI II: Bewegung und Orte
 
-**Stand (17.11.):** Ortsaktionen als beschriftete Knöpfe direkt unter dem Bild (`werkzeuge/aktionen.js`, seg029 `web_icons()`), darunter Steuerkreuz und eine Reihe für Protokoll, Aufträge und Einstellungen; OK und Zurück nur noch in den Vollbild-Ansichten. Auf dem iPhone getestet. Abschaltbar in den Einstellungen, im flachen Querformat die Icons. Offen: Beschriftungen bei Händler, Heiler, Taverne, Lager und im Dungeon prüfen; Wischgesten.
+**Stand (17.11.):** Ortsaktionen als beschriftete Knöpfe direkt unter dem Bild (`werkzeuge/aktionen.js`, seg029 `web_icons()`), darunter Steuerkreuz mit Minimap (Stadt, Dungeon; im Lager beides ausgeblendet) und eine Reihe für Protokoll, Aufträge und Menü; OK und Zurück nur noch in den Vollbild-Ansichten. Auf dem iPhone getestet. Abschaltbar in den Einstellungen, im flachen Querformat die Icons. Offen: Beschriftungen bei Händler, Heiler, Taverne, Lager und im Dungeon prüfen; Wischgesten.
 
 **Umfang:** Wischen (vor/zurück/drehen) auf der 3D-Ansicht; die Icon-Leiste rechts wird zu beschrifteten Knöpfen aus den Aktionstabellen des Spiels (je nach Ort: Tempel, Händler, Taverne …); Hochformat-Layout: Ansicht oben, Gruppe und Aktionen darunter.
 
 ## Stufe 10 – Mobiles UI III: Helden und Inventar
+
+**Stand (17.11.):** Heldenbogen im Hochformat (`werkzeuge/heldenbogen.js`, `heldenbogen.cpp`): Gruppe, Reiter für Grundwerte, AT/PA, Talente und Zauber, Gegenstandskarte mit passenden Aktionen, Ausrüstung und Rucksack als Kacheln. Aktionen laufen über die Eingaben des Originals in `status_menu`. Version 0.5.
 
 **Umfang:** Charakterbogen, Talente, Zauber und Inventar als native Ansicht, die direkt aus den Heldendaten liest (`hero.h`); Gegenstände per Antippen/Ziehen bewegen, über die vorhandenen Spielfunktionen.
 
@@ -236,6 +242,8 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 **Umfang:** Reisekarte zoom- und verschiebbar, Ziele antippen statt Rechtsklick-Menü (im Original zeigt der Wegweiser erst die Karte, das Zielmenü öffnet erst ein Rechtsklick; bis dahin: Knopf „Zurück“); Reiseereignisse über die Dialoge aus Stufe 8.
 
 ## Stufe 12 – Mobiles UI V: Kampf
+
+**Stand (17.11.):** Kampffeld zoom- und verschiebbar (Knöpfe, zwei Finger), folgt dem Kämpfer am Zug (`werkzeuge/kampf.js`, `kampf.cpp`). Darunter das Bedienfeld: Gruppe mit LE/AE, Kampflog statt der kurzlebigen Treffersterne (mit Zauberschaden), Befehle gruppiert mit BP-Kosten, Auswahllisten, bei Ziel- und Bewegungswahl schräge Pfeile; erstes Tippen markiert, zweites bestätigt. Auf dem iPhone getestet, Version 0.6.
 
 **Umfang:** Kampffeld mit Zoom, Felder antippen für Bewegen/Angriff, Aktionsleiste statt Menü, Trefferanzeige gut sichtbar.
 
