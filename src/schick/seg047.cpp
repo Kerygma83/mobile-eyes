@@ -653,6 +653,13 @@ signed int select_hero_ok_forced(char *title)
 	} else {
 
 		g_talented_hero_pos = -1;
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 242): g_textbox_width is not restored (stays 3); partly, as there:
+		 * the result stays 0, the callers do not check for -1 */
+		if (BUGFIX_ALLES) {
+			g_textbox_width = tw_bak;
+		}
+#endif
 		return 0;
 	}
 }
