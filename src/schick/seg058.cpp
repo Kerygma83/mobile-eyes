@@ -555,9 +555,17 @@ void do_smith(void)
 		return;
 	}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 337): Gurthag cannot be used any more after the cellar exit; talking
+	 * still gives his cellar exit dialog (Osterpatch NRS) */
+	if (gs_smith_kicked_flags[gs_town_typeindex] ||
+		gs_smith_flogged_flags[gs_town_typeindex] ||
+		(!BUGFIX_WICHTIG && (gs_town_typeindex == 1 && gs_dng14_cellarexit_flag))) {
+#else
 	if (gs_smith_kicked_flags[gs_town_typeindex] ||
 		gs_smith_flogged_flags[gs_town_typeindex] ||
 		(gs_town_typeindex == 1 && gs_dng14_cellarexit_flag)) {
+#endif
 
 		talk_smith();
 		leave_location();
