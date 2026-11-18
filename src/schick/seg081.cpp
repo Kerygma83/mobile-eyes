@@ -553,6 +553,11 @@ void DNG09_pitfall(void)
 
 	if (!gs_dng09_pit_flag)
 	{
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 111): hero still points to the first available hero, the loop over
+		 * 7 slots reads and writes behind the last hero. Start at slot 0. Invalid memory access, always on. */
+		hero = get_hero(0);
+#endif
 		for (i = l3 = 0; i <= 6; i++, hero++)
 		{
 			if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) &&

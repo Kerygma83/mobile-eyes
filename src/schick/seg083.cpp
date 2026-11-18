@@ -162,6 +162,11 @@ signed int DNG08_handler(void)
 		{
 			GUI_output(get_tx(6));
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 111): hero still points to the first available hero, the loop over
+			 * 7 slots reads and writes behind the last hero. Start at slot 0. Invalid memory access, always on. */
+			hero = get_hero(0);
+#endif
 			for (i = 0; i <= 6; i++, hero++)
 			{
 				if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) &&
@@ -186,6 +191,11 @@ signed int DNG08_handler(void)
 		{
 			GUI_output(get_tx(6));
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 111): hero still points to the first available hero, the loop over
+			 * 7 slots reads and writes behind the last hero. Start at slot 0. Invalid memory access, always on. */
+			hero = get_hero(0);
+#endif
 			for (i = 0; i <= 6; i++, hero++)
 			{
 				if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) && !hero->flags.dead)
@@ -314,6 +324,11 @@ signed int DNG08_handler(void)
 	{
 		GUI_output(get_tx(20));
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 111): hero still points to the first available hero, the loop over
+		 * 7 slots reads and writes behind the last hero. Start at slot 0. Invalid memory access, always on. */
+		hero = get_hero(0);
+#endif
 		for (i = 0; i <= 6; i++, hero++)
 		{
 			if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) &&
