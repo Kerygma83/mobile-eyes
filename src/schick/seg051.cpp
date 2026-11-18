@@ -415,7 +415,13 @@ void do_wildcamp(void)
 
 				done = 1;
 			}
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 367): the 7th icon (continue the journey) is only shown at
+		 * a good camp place, but clicking its invisible field works everywhere (exploit: no night camp) */
+		} else if ((g_action == ACTION_ID_ICON_7) && (!BUGFIX_WICHTIG || g_good_camp_place)) {
+#else
 		} else if (g_action == ACTION_ID_ICON_7) {
+#endif
 			done = 1;
 		}
 	}
