@@ -14,6 +14,10 @@ signed int give_new_item_to_group(signed int, const signed int, signed int);
 signed int can_hero_use_item(const struct struct_hero*, const signed int);
 /* 0x43 */
 signed int can_hero_equip_item_at_slot(const signed int, const signed int);
+#if !defined(__BORLANDC__)
+/* Schicksalsklinge-Bugfix Nr. 390 */
+signed int fix390_unbreakable(struct inventory*);
+#endif
 /* 0x48 */
 signed int where_has_hero_incomplete_stack_of_item(struct struct_hero*, const signed int);
 /* 0x4d */

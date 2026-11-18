@@ -26,6 +26,9 @@
 #include "seg096.h"
 #include "seg098.h"
 #if !defined(__BORLANDC__)
+#include "seg105.h"
+#endif
+#if !defined(__BORLANDC__)
 #include "wurflog.h"
 #endif
 
@@ -232,6 +235,15 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 
 				target_weapon_type = weapon_check(p_target_hero);
 			}
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 390): set unbreakable weapons to bf -99 before the breakage tests */
+			if (BUGFIX_ALLES) {
+				fix390_unbreakable(p_weapon_attacker);
+				if (target_is_hero != 0) {
+					fix390_unbreakable(p_weapon_target);
+				}
+			}
+#endif
 
 			if (attacker_weapon_type == -1) {
 				/* no valid weapon == bare hands */
@@ -642,7 +654,12 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 #endif
 
 									} else {
+#ifdef M302de_ORIGINAL_BUGFIX
+										/* Schicksalsklinge-Bugfix Nr. 390: an unbreakable weapon (bf -99) of the defender stays unbreakable */
+										if ((target_is_hero != 0) && (!BUGFIX_ALLES || (p_weapon_target->bf != -99))) {
+#else
 										if (target_is_hero != 0) {
+#endif
 											p_weapon_target->bf++;
 										}
 
@@ -650,7 +667,12 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 									}
 								} else {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+									/* Schicksalsklinge-Bugfix Nr. 390: an unbreakable weapon (bf -99) of the defender stays unbreakable */
+									if ((target_is_hero != 0) && (!BUGFIX_ALLES || (p_weapon_target->bf != -99))) {
+#else
 									if (target_is_hero != 0) {
+#endif
 										p_weapon_target->bf++;
 									}
 

@@ -21,6 +21,9 @@
 #include "seg096.h"
 #include "seg102.h"
 #if !defined(__BORLANDC__)
+#include "seg105.h"
+#endif
+#if !defined(__BORLANDC__)
 #include "wurflog.h"
 #endif
 
@@ -613,7 +616,13 @@ void mspell_eisenrost(void)
 
 		} else if (!get_spelltarget()->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].flags.broken) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 390): unbreakable weapons do not break by Eisenrost */
+			if ((get_spelltarget()->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].bf > 0) &&
+				!(BUGFIX_ALLES && fix390_unbreakable(&get_spelltarget()->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND]))) {
+#else
 			if (get_spelltarget()->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].bf > 0) {
+#endif
 
 				get_spelltarget()->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND].flags.broken = 1;
 

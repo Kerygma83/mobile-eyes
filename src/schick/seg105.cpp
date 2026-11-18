@@ -218,6 +218,23 @@ signed int can_hero_use_item(const struct struct_hero *hero, const signed int it
  * \param   inv_slot[in] inventory slot to check for equippability
  * \return  0: not possible / 1: possible
  */
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Original-Bug (Schicksalsklinge-Bugfix Nr. 390): unbreakable weapons may break (hero against hero, Curian's staff with
+ * bf 5 in the data). Magic wand, witches broom, magic orc nose, magic short sword and Grimring are unbreakable (bf -99),
+ * whatever the data or the old bug (bf++ at -99) say (Osterpatch NRS 2016). Returns 1 for such a weapon. */
+signed int fix390_unbreakable(struct inventory *p)
+{
+	if ((p->item_id == ITEM_ZAUBERSTAB) || (p->item_id == ITEM_HEXENBESEN) || (p->item_id == ITEM_ORKNASE__MAGIC) ||
+		(p->item_id == ITEM_KURZSCHWERT__MAGIC) || (p->item_id == ITEM_GRIMRING))
+	{
+		p->bf = -99;
+		return 1;
+	}
+
+	return 0;
+}
+#endif
+
 signed int can_hero_equip_item_at_slot(const signed int item_id, const signed int inv_slot)
 {
 	// assert(inv_slot) < HERO_INVENTORY_SLOT_KNAPSACK_1 // only for inv_slot at the body

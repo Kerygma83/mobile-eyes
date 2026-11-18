@@ -436,6 +436,13 @@ void FIG_do_enemy_action(struct enemy_sheet* p_enemy, const signed int enemy_id)
 								wlog_result(wlog_schlecht, "pariert");
 #endif
 
+#ifdef M302de_ORIGINAL_BUGFIX
+								/* Original-Bug (Schicksalsklinge-Bugfix Nr. 390): unbreakable weapons to bf -99 before the parry
+								 * breakage test (Curian's staff) */
+								if (BUGFIX_ALLES && (target_is_hero != 0)) {
+									fix390_unbreakable(p_weapon);
+								}
+#endif
 								if ((randval2 == randval) && (target_is_hero != 0) && (p_weapon->bf != -99)) {
 									/* if both random values agree and hero got attacked and his weapon is not unbreakable */
 									/* now if 1W12 + BF is >= 16, weapon is broken. Otherwise, BF is increased by 1. */
