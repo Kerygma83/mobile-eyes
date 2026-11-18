@@ -19,6 +19,9 @@
 #include "seg008.h"
 #include "seg028.h"
 #include "seg029.h"
+#if !defined(__BORLANDC__)
+#include "seg026.h"
+#endif
 #include "seg047.h"
 #include "seg049.h"
 #include "seg096.h"
@@ -417,6 +420,33 @@ void GRP_switch_to_next(const signed int mode)
 #endif
 
 		GRP_sort_heroes();
+
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 437): gs_town_typeindex (which house) and gs_town_locdata (text of
+		 * the status line) are not kept per group. If the new group already stands in a location (e.g. a brewing hero
+		 * in the inn), both values of the old group stay, and the LTX file of another town may still be loaded:
+		 * wrong name in the status line, prices and flags of the wrong inn. Determine the location of the new group
+		 * as when entering (enter_location) from the location table of its town, after loading the table and the
+		 * texts of this town (as prepare_town_area). */
+		if (BUGFIX_WICHTIG && (gs_town_loc_type != LOCTYPE_NONE) && (gs_town_id != TOWN_ID_NONE) && !gs_dungeon_id) {
+
+			struct location *loc;
+
+			if (g_town_loaded_town_id != gs_town_id) {
+				load_area_description(1);
+			}
+
+			load_tx(gs_town_id + ARCHIVE_FILE_CITY_LTX);
+
+			for (loc = &g_locations_tab[0]; loc->pos != -1; loc++) {
+				if (loc->pos == 256 * gs_x_target + gs_y_target) {
+					gs_town_typeindex = loc->typeindex;
+					gs_town_locdata = loc->locdata;
+					break;
+				}
+			}
+		}
+#endif
 
 		for (group = 0; group <= 6; group++) {
 			gs_food_message[group] = gs_unconscious_message[group] = 0;
