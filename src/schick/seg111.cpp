@@ -18,6 +18,9 @@
 #include "seg026.h"
 #include "seg032.h"
 #include "seg047.h"
+#ifdef M302de_ORIGINAL_BUGFIX
+#include "seg051.h"
+#endif
 #include "seg092.h"
 #include "seg096.h"
 #include "seg097.h"
@@ -199,9 +202,17 @@ void tevent_059(void)
 			}
 		}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Schicksalsklinge-Bugfix Nr. 374: the second camp keeps the status of the first one */
+		g_wildcamp_keep_status = 1;
+#endif
 		gs_town_loc_type = LOCTYPE_WILDCAMP;
 		do_location();
 		gs_town_loc_type = LOCTYPE_NONE;
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* in case do_location() did not reach do_wildcamp() */
+		g_wildcamp_keep_status = 0;
+#endif
 	}
 }
 

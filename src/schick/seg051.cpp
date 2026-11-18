@@ -66,6 +66,10 @@ signed char g_wildcamp_herbstatus[7];	// ds:0xe3c1
 signed char g_wildcamp_replstatus[7];	// ds:0xe3c8
 signed char g_wildcamp_magicstatus[7];	// ds:0xe3cf
 signed char g_wildcamp_guardstatus[8];	// ds:0xe3d6
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Schicksalsklinge-Bugfix Nr. 374: 1 = the next do_wildcamp() continues the camp before */
+signed int g_wildcamp_keep_status = 0;
+#endif
 
 void do_wildcamp(void)
 {
@@ -87,6 +91,24 @@ void do_wildcamp(void)
 
 	l_di = g_request_refresh = 1;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 374): the mountain hut (tevent_059) calls do_wildcamp() twice,
+	 * the second camp started with fresh status, so the group could hunt, gather herbs etc. twice.
+	 * The second camp keeps the status of the first one. */
+	if (!(BUGFIX_ALLES && g_wildcamp_keep_status)) {
+
+		for (i = 0; i <= 6; i++) {
+
+			g_wildcamp_herbstatus[i] = g_wildcamp_replstatus[i] =
+				g_wildcamp_magicstatus[i] = g_wildcamp_guardstatus[i] = 0;
+		}
+
+		for (i = 0; i < 3; i++) {
+			g_wildcamp_guards[i] = -1;
+		}
+	}
+	g_wildcamp_keep_status = 0;
+#else
 	for (i = 0; i <= 6; i++) {
 
 		g_wildcamp_herbstatus[i] = g_wildcamp_replstatus[i] =
@@ -96,6 +118,7 @@ void do_wildcamp(void)
 	for (i = 0; i < 3; i++) {
 		g_wildcamp_guards[i] = -1;
 	}
+#endif
 
 	i = !g_good_camp_place ? 6 : 7;
 	draw_loc_icons(i, MENU_ICON_GUARDS, MENU_ICON_REPLENISH_SUPPLIES, MENU_ICON_APPLY_TALENT, MENU_ICON_MAGIC, MENU_ICON_GATHER_HERBS, MENU_ICON_SLEEP, MENU_ICON_QUIT_CAMP);
