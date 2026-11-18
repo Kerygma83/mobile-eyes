@@ -116,6 +116,10 @@ void THO_hetmann(void)
 
 			GUI_dialogbox((unsigned char*)g_dtp2, get_tx2(85), get_tx2(14), 0);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 76): Isleif is reset from "done" (2) to "known" (1); only set 0 to 1 */
+			if (!BUGFIX_WICHTIG || !gs_informer_flags[INFORMER_ID_ISLEIF])
+#endif
 			gs_informer_flags[INFORMER_ID_ISLEIF] = 1;
 			gs_subvention++;
 			gs_got_main_quest = 1;
@@ -125,6 +129,10 @@ void THO_hetmann(void)
 
 			GUI_dialogbox((unsigned char*)g_dtp2, get_tx2(85), get_tx2(15), 0);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 76): Isleif is reset from "done" (2) to "known" (1); only set 0 to 1 */
+			if (!BUGFIX_WICHTIG || !gs_informer_flags[INFORMER_ID_ISLEIF])
+#endif
 			gs_informer_flags[INFORMER_ID_ISLEIF] = 1;
 			gs_got_main_quest = 1;
 			gs_quested_months = 0;

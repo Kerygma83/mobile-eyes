@@ -740,6 +740,13 @@ void TLK_old_woman(const signed int state)
 	} else if (state == 38) {
 		timewarp(HOURS(1));
 	} else if (state == 41) {
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 76): Isleif only from unknown (0) to known (1), "done" (2) stays */
+		if (BUGFIX_WICHTIG) {
+			gs_tevent093_flag = gs_tevent091_flag = gs_isleif_jandas_regards = 1;
+			if (!gs_informer_flags[INFORMER_ID_ISLEIF]) gs_informer_flags[INFORMER_ID_ISLEIF] = 1;
+		} else
+#endif
 		gs_tevent093_flag = gs_tevent091_flag = gs_informer_flags[INFORMER_ID_ISLEIF] = gs_isleif_jandas_regards = 1;
 	}
 }
