@@ -163,6 +163,45 @@ signed int DNG10_handler(void)
 	} else if (target_pos == DNG_POS(0,1,8) && target_pos != gs_dng_handled_pos)
 	{
 		/* TRAP: a floorplate */
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 116): the bolts only hit when disarming fails.
+		 * Bits of gs_dng10_floorplate_found: 0x01 found, 0x02 disarmed (old value 1 = found).
+		 * The bolts hit if the plate is not found, disarming is declined or fails. */
+		if (BUGFIX_ALLES) {
+
+			if (!(gs_dng10_floorplate_found & 0x02))
+			{
+				if ((gs_dng10_floorplate_found & 0x01) || test_talent(hero, TA_SINNESSCHAERFE, 5) > 0)
+				{
+					gs_dng10_floorplate_found |= 0x01;
+
+					if (GUI_bool(get_tx(13)) && test_talent(hero, TA_SCHLOESSER, 7) > 0)
+					{
+						gs_dng10_floorplate_found |= 0x02;
+					}
+				}
+
+				if (!(gs_dng10_floorplate_found & 0x02))
+				{
+					if (gs_dng10_floorplate_loads)
+					{
+						sprintf(g_dtp2,	get_tx(14), hero->alias);
+
+						gs_dng10_floorplate_loads--;
+
+						sub_hero_le(hero, dice_roll(3, 6, 0));
+
+						GUI_output(g_dtp2);
+
+					} else if (gs_dng10_floorplate_found & 0x01) {
+						/* empty trap: only report it if the plate is known */
+						GUI_output(get_tx(15));
+					}
+				}
+			}
+
+		} else
+#endif
 		if (gs_dng10_floorplate_found || test_talent(hero, TA_SINNESSCHAERFE, 5) > 0)
 		{
 			gs_dng10_floorplate_found = 1;
