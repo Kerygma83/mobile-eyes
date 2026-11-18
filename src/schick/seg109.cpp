@@ -528,6 +528,13 @@ signed int TRV_ferry(char *msg, signed int price)
 
 			if (GUI_bool(get_tx(33))) {
 				/* Original-Bug? What if the ferry was entered in backward direction, is this possible? */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 150: yes (repeatable ferry events); turn the current direction */
+				if (BUGFIX_WICHTIG) {
+					gs_journey_direction = (gs_journey_direction == JOURNEY_DIRECTION_FORWARD ? JOURNEY_DIRECTION_CHANGE_TO_BACKWARD : JOURNEY_DIRECTION_CHANGE_TO_FORWARD);
+					done = 1;
+				} else
+#endif
 				gs_journey_direction = done = JOURNEY_DIRECTION_CHANGE_TO_BACKWARD; // this is value 1
 			}
 		}
