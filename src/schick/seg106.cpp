@@ -728,6 +728,9 @@ signed int get_max_light_time(void)
 #ifdef M302de_ORIGINAL_BUGFIX
 		if (!hero->typus)
 			continue;
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 347): light sources of other groups count as well */
+		if (BUGFIX_ALLES && (hero->group_id != gs_active_group_id))
+			continue;
 #endif
 
 		for (j = 0; j < NR_HERO_INVENTORY_SLOTS; j++) {
