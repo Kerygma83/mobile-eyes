@@ -148,6 +148,73 @@ signed int DNG06_handler(void)
 			sub_hero_le(hero_second, random_schick(6));
 		}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	} else if (BUGFIX_WICHTIG && target_pos == DNG_POS(0,9,7) && target_pos != gs_dng_handled_pos)
+	{
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 354): once the stone secured the trapdoor, the square is
+		 * dead and the door (0,11,1) stays locked forever (DNG_door()).
+		 * gs_dng06_pitdoor_flag as bits: 0x01 trapdoor secured, 0x02 trapdoor found, 0x04 stone found.
+		 * Old values (0 or 1) fit: 1 = secured also counts as found. The square stays active, findings are
+		 * remembered and the stone toggles the lock; so the door (0,11,1) becomes free again (DNG_door()
+		 * only checks bit 0). Secured: no pit in the map square, unsecured: pit visible. */
+		if (!(gs_dng06_pitdoor_flag & 0x03))
+		{
+			hero = get_hero(0);
+			for (i = 0; i <= 6; i++, hero++)
+			{
+				if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) &&
+					check_hero(hero) && (test_talent(hero, TA_GEFAHRENSINN, 5) > 0))
+				{
+					gs_dng06_pitdoor_flag |= 0x02;
+					break;
+				}
+			}
+		}
+
+		l3 = 0; /* 1 = stone moved */
+
+		if ((gs_dng06_pitdoor_flag & 0x03) && GUI_bool(get_tx(7)))
+		{
+			GUI_output(get_tx(8));
+
+			if (!(gs_dng06_pitdoor_flag & 0x05))
+			{
+				hero = get_hero(0);
+				for (i = 0; i <= 6; i++, hero++)
+				{
+					if ((hero->typus != HERO_TYPE_NONE) &&
+						(hero->group_id == gs_active_group_id) &&
+						check_hero(hero) &&
+						(test_talent(hero, TA_GEFAHRENSINN, 5) > 0))
+					{
+						gs_dng06_pitdoor_flag |= 0x04;
+						break;
+					}
+				}
+			}
+
+			if ((gs_dng06_pitdoor_flag & 0x05) && GUI_bool(get_tx(9)))
+			{
+				gs_dng06_pitdoor_flag = (gs_dng06_pitdoor_flag | 0x06) ^ 0x01;
+
+				GUI_output(get_tx(10));
+
+				amap_ptr[MAP_POS(9,7)] &= 0x0f;
+				if (!(gs_dng06_pitdoor_flag & 0x01))
+				{
+					amap_ptr[MAP_POS(9,7)] |= (DNG_TILE_PIT << 4);
+				}
+
+				l3 = 1;
+			}
+		}
+
+		if (!l3 && !(gs_dng06_pitdoor_flag & 0x01))
+		{
+			DNG_fallpit_test(6);
+		}
+
+#endif
 	} else if (target_pos == DNG_POS(0,9,7) && target_pos != gs_dng_handled_pos && !gs_dng06_pitdoor_flag)
 	{
 		hero = get_hero(0);

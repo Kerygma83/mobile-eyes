@@ -139,9 +139,17 @@ void DNG_door(const signed int action)
 					{
 						GUI_output(get_tx(18));
 
+#ifdef M302de_ORIGINAL_BUGFIX
+					} else if (!(gs_dungeon_id == DUNGEON_ID_PIRATENHOEHLE && pos == DNG_POS(0,12,8) && gs_dng11_lever_flag != 4) &&
+							/* Original-Bug (Schicksalsklinge-Bugfix Nr. 354): the Daspota door (0,11,1) is only locked while
+							 * the trapdoor is secured with the stone (bit 0 of gs_dng06_pitdoor_flag) */
+							!(gs_dungeon_id == DUNGEON_ID_DASPOTASCHATZ && pos == DNG_POS(0,11,1) && (BUGFIX_WICHTIG ? (gs_dng06_pitdoor_flag & 0x01) : gs_dng06_pitdoor_flag)) &&
+							!(gs_dungeon_id == DUNGEON_ID_ZWERGENFESTE && gs_dng12_watertrap_water_runs))
+#else
 					} else if (!(gs_dungeon_id == DUNGEON_ID_PIRATENHOEHLE && pos == DNG_POS(0,12,8) && gs_dng11_lever_flag != 4) &&
 							!(gs_dungeon_id == DUNGEON_ID_DASPOTASCHATZ && pos == DNG_POS(0,11,1) && gs_dng06_pitdoor_flag) &&
 							!(gs_dungeon_id == DUNGEON_ID_ZWERGENFESTE && gs_dng12_watertrap_water_runs))
+#endif
 					{
 						/* for this door works an IRON KEY [first type] */
 						/* BEWARE: there are two types of IRON KEYs in the game */
