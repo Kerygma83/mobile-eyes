@@ -1354,7 +1354,16 @@ void load_town_texture(signed int x, signed int y, signed int nvf_no, signed int
 
 	if (y < 0) {
 		if (y + copy_height > 0) {
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 281): clipping at the top must shrink the height (as width += x) */
+			if (BUGFIX_ALLES) {
+				copy_height += y;
+			} else {
+				copy_height -= y;
+			}
+#else
 			copy_height -= y;
+#endif
 			src += __abs__(y) * width;
 			y = 0;
 		}

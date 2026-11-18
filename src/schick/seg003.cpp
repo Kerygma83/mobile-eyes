@@ -189,7 +189,16 @@ void door_frame(const signed int no, signed int x, signed int y, const signed in
 	}
 
 	if ((y < 0) && ((y + height) > 0)) {
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 281): clipping at the top must shrink the height (as width += x) */
+		if (BUGFIX_ALLES) {
+			height += y;
+		} else {
+			height -= y;
+		}
+#else
 		height -= y;
+#endif
 		p1 += __abs__(y) * l1;
 		y = 0;
 	}

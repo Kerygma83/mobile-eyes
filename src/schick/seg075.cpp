@@ -706,7 +706,16 @@ void DNG_draw_walls(signed int x, signed int y, signed int a3)
 	}
 
 	if ((y < 0) && ((y + height2) > 0)) {
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 281): clipping at the top must shrink the height (as width += x) */
+		if (BUGFIX_ALLES) {
+			height2 += y;
+		} else {
+			height2 -= y;
+		}
+#else
 		height2 -= y;
+#endif
 		dst_ptr += __abs__(y) * nvf_width;
 		y = 0;
 	}
