@@ -40,8 +40,17 @@ void spell_eigenschaften(void)
 	damage_range_template(g_spelltarget_e->dam1, &min, &max);
 
 	/* Remark: For unknown reasons the shown TP-values of enemies are scaled down to 80% */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug 63 (Schicksalsklinge-Bugfix Nr. 202): only the damage of enemy ranged attacks is reduced
+	 * to 80 %, melee damage is not. Show the melee damage unreduced. */
+	if (!BUGFIX_ALLES) {
+		min = min * 8 / 10;
+		max = max * 8 / 10;
+	}
+#else
 	min = min * 8 / 10;
 	max = max * 8 / 10;
+#endif
 
 	sprintf(g_dtp2, get_tx(25), GUI_name_singular(g_monnames_index[g_spelltarget_e->monster_id]),
           g_spelltarget_e->level,	/* Level */
