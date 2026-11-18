@@ -423,6 +423,13 @@ void spell_paralue(void)
 	} else {
 		/* cast a hero */
 		/* TODO: the first check can be removed, cause it would not give a message */
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 208): the old target of the last spell is checked here.
+		 * Set the new target first. */
+		if (BUGFIX_ALLES) {
+			g_spelltarget = get_hero(get_spelluser()->target_object_id - 1);
+		}
+#endif
 		if (get_spelltarget() != get_spelluser()) {
 
 			/* set the target  */
