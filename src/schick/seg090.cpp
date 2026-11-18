@@ -296,6 +296,11 @@ signed int DNG12_handler(void)
 #endif
 
 #if !defined(__BORLANDC__)
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 358): the door closes again and again, it can be picked again
+		 * (1 AP each); it only closes while the water trap is active */
+		if (!BUGFIX_ALLES || gs_dng12_watertrap_active)
+#endif
 		if (div16((uint16_t)ptr[MAP_POS(3,11)]) == DNG_TILE_OPEN_DOOR)
 #else
 		/* REMARK: enforce cast to uint16_t */
@@ -312,6 +317,10 @@ signed int DNG12_handler(void)
 #endif
 
 #if !defined(__BORLANDC__)
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Schicksalsklinge-Bugfix Nr. 358: the door (3,6) as well */
+		if (!BUGFIX_ALLES || gs_dng12_watertrap_active)
+#endif
 		if (div16((uint16_t)ptr[MAP_POS(3,6)]) == 2)
 #else
 		/* REMARK: enforce cast to uint16_t */
