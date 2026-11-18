@@ -260,27 +260,35 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 			}
 
 			if (target_is_hero) {
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 31): the armour encumbrance of the attacker instead of
+				 * the attacked hero is used for his AT value */
+#define FIX31_RS_BE ((BUGFIX_ALLES ? p_target_hero : hero)->rs_be)
+#else
+#define FIX31_RS_BE hero->rs_be
+#endif
 
 				if (target_weapon_type == -1) {
 					/* Original-Bug? Why is target_hero mixed with hero??
 					 * Probably, the intention was
 					 * target_hero_at_val = p_target_hero->at_talent_bonus[WEAPON_TYPE_WAFFENLOS] + p_target_hero->fight_atpa_mod - p_target_hero->rs_be / 2;
 					 */
-					target_hero_at_val = p_target_hero->at_talent_bonus[WEAPON_TYPE_WAFFENLOS] + p_target_hero->fight_atpa_mod - hero->rs_be / 2;
+					target_hero_at_val = p_target_hero->at_talent_bonus[WEAPON_TYPE_WAFFENLOS] + p_target_hero->fight_atpa_mod - FIX31_RS_BE / 2;
 				} else {
 					/* Probably, the intention was
 					 * target_hero_at_val = p_target_hero->at_talent_bonus[p_target_hero->weapon_type] + p_target_hero->fight_atpa_mod - p_target_hero->rs_be / 2;
 					 */
-					target_hero_at_val = p_target_hero->at_talent_bonus[p_target_hero->weapon_type] + p_target_hero->fight_atpa_mod - hero->rs_be / 2;
+					target_hero_at_val = p_target_hero->at_talent_bonus[p_target_hero->weapon_type] + p_target_hero->fight_atpa_mod - FIX31_RS_BE / 2;
 				}
 
 				/* Probably, the intention was
 				 * if (target_hero->rs_be & 1) {
 				 */
-				if (hero->rs_be & 1) {
+				if (FIX31_RS_BE & 1) {
 					/* if rs_be is odd, subtract another point. Changes the rounding behavior of 'target_hero->rs_be / 2' above to "round up". */
 					target_hero_at_val--;
 				}
+#undef FIX31_RS_BE
 
 				/* spell_dunkelheit is active -> AT-4 */
 				if (gs_ingame_timers[INGAME_TIMER_DARKNESS]) {
@@ -435,7 +443,14 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 						if (target_weapon_type == -1) {
 							target_pa_val = p_target_hero->pa_talent_bonus[WEAPON_TYPE_WAFFENLOS] - p_target_hero->fight_atpa_mod - p_target_hero->rs_be / 2;
 						} else {
+#ifdef M302de_ORIGINAL_BUGFIX
+							/* Schicksalsklinge-Bugfix Nr. 31: the PA modifier of the weapon, not the AT modifier
+							 * (as in seg043 and "WERTE PRUEFEN") */
+							target_pa_val = p_target_hero->pa_talent_bonus[p_target_hero->weapon_type] - p_target_hero->fight_atpa_mod - p_target_hero->rs_be / 2
+								+ (BUGFIX_ALLES ? p_target_hero->weapon_pa_mod : p_target_hero->weapon_at_mod);
+#else
 							target_pa_val = p_target_hero->pa_talent_bonus[p_target_hero->weapon_type] - p_target_hero->fight_atpa_mod - p_target_hero->rs_be / 2 + p_target_hero->weapon_at_mod;
+#endif
 						}
 
 						if (p_target_hero->action_id == FIG_ACTION_GUARD) {
