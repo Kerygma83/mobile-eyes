@@ -181,7 +181,13 @@ void spell_gardanium(void)
 
 			/* TODO: this adds the AE to a variable no one reads */
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 192): the shield is never evaluated. Strength of the
+			 * shield = level of the caster + AE spent (Loesungsbuch), evaluated in seg102, valid for one fight */
+			gs_gardanium_used_ae += answer + (BUGFIX_WICHTIG ? get_spelluser()->level : 0);
+#else
 			gs_gardanium_used_ae += answer;
+#endif
 			/* set AE costs */
 			g_spell_special_aecost = answer;
 			/* prepare the message */

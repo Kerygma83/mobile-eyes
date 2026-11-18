@@ -643,6 +643,30 @@ void mspell_eisenrost(void)
 	}
 }
 
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Schicksalsklinge-Bugfix Nr. 192/213: protection of a hero against Fulminictus/Ignifaxius of an enemy.
+ * Feuerbann halves the fire damage (Loesungsbuch); Gardianum: the shield of the group absorbs damage
+ * until it is used up (gs_gardanium_used_ae, reset at the start of each fight in do_fight()). */
+static signed int hero_spell_protect(signed int damage, const signed int fire)
+{
+	if (BUGFIX_WICHTIG && (g_spelluser_e->target_object_id > 0) && (g_spelluser_e->target_object_id < 10)) {
+		if (fire && get_hero(g_spelluser_e->target_object_id - 1)->fireban) {
+			damage /= 2;
+		}
+		if (gs_gardanium_used_ae > 0) {
+			if (gs_gardanium_used_ae >= damage) {
+				gs_gardanium_used_ae -= damage;
+				damage = 0;
+			} else {
+				damage -= gs_gardanium_used_ae;
+				gs_gardanium_used_ae = 0;
+			}
+		}
+	}
+	return damage;
+}
+#endif
+
 void mspell_fulminictus(void)
 {
 	signed int damage;
@@ -659,7 +683,12 @@ void mspell_fulminictus(void)
 	}
 
 	/* do the damage */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* the enemy pays the AE anyway */
+	MON_do_spell_damage(hero_spell_protect(damage, 0));
+#else
 	MON_do_spell_damage(damage);
+#endif
 
 	/* set the cost */
 	g_mspell_ae_cost = damage;
@@ -685,11 +714,27 @@ void mspell_ignifaxius(void)
 		damage = g_spelluser_e->ae;
 	}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Feuerbann or Gardianum protect; fully absorbed -> no side effects, the enemy pays the AE anyway */
+	if (BUGFIX_WICHTIG) {
+		rs_malus = hero_spell_protect(damage, 1);
+		if ((rs_malus == 0) && (damage > 0)) {
+			*g_dtp2 = '\0';
+			g_mspell_ae_cost = damage;
+			return;
+		}
+		MON_do_spell_damage(rs_malus);
+		rs_malus = rs_malus / 10;
+	} else {
+#endif
 	/* do the damage */
 	MON_do_spell_damage(damage);
 
 	/* calc RS malus */
 	rs_malus = damage / 10;
+#ifdef M302de_ORIGINAL_BUGFIX
+	}
+#endif
 
 	if (g_spelluser_e->target_object_id < 10) {
 		/* target is a hero */

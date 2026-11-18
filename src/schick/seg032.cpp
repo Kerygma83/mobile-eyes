@@ -977,6 +977,9 @@ signed int do_fight(const signed int fight_id)
 		if (vis_seen && vis_all) {
 			return 3;
 		}
+
+		/* Schicksalsklinge-Bugfix Nr. 192: the Gardianum shield is valid for one fight */
+		gs_gardanium_used_ae = 0;
 	}
 #endif
 
