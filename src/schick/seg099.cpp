@@ -1098,6 +1098,13 @@ char* spell_analues(void)
 #endif
 
 	strcpy(g_text_output_buf, get_tx(52));
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 386, dort teilweise): a magic item without an entry in
+	 * g_analues_items shows "nothing special"; text 55 ("cannot say what kind of spell") instead */
+	if (BUGFIX_ALLES && item_id && get_spelluser()->inventory[inv_slot].flags.magic) {
+		strcpy(g_text_output_buf, get_tx(55));
+	}
+#endif
 
 	if (item_id) {
 
