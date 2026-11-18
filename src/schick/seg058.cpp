@@ -438,7 +438,12 @@ void repair_screen(struct smith_descr *smith, const signed int smith_id)
 
 						price -= (percent * price) / 100L;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Original-Bug (Schicksalsklinge-Bugfix Nr. 57): with exactly enough money a bargain test for 0 % follows */
+						if (percent == 0 && (BUGFIX_ALLES ? (p_money >= price) : (p_money > price))) {
+#else
 						if (percent == 0 && p_money > price) {
+#endif
 
 							GUI_output(get_ttx(489));
 							l12 = 2;
