@@ -352,7 +352,13 @@ void tevent_098(void)
 				sprintf(g_dtp2,	get_tx2(32), hero->alias);
 				GUI_output(g_dtp2);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 165): i is still the number of answers (3), not the
+				 * position of the jumper; hero_disappear() writes the CHR file of slot 3 */
+				hero_disappear(hero, BUGFIX_WICHTIG ? hero_pos : i, 33);
+#else
 				hero_disappear(hero, i, 33);
+#endif
 
 				do {
 					answer = GUI_radio(get_tx2(37), 3, get_tx2(28),	get_tx2(29), get_tx2(30));
