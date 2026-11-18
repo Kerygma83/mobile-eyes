@@ -2878,6 +2878,11 @@ static void timers_daily(void)
 #ifdef M302de_ORIGINAL_BUGFIX
 	/* Original-Bug: Reenable identifying item in the academy */
 	gs_academy_daily_ident = 0;
+
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 39): breaking curses in the academy is possible only once in the game */
+	if (BUGFIX_WICHTIG) {
+		gs_academy_daily_curse = 0;
+	}
 #endif
 
 	/* Decrase monthly credit cens timer (bank) */
