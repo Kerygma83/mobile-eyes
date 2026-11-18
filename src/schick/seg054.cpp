@@ -381,6 +381,18 @@ void do_inn(void)
 	}
 #endif
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 334): the insulted innkeeper does not throw the group out.
+	 * He talks to the group (dialog in the kicked state) and it has to leave (without copy_palette(): the inn
+	 * was not drawn, Osterpatch NRS). The kick is valid for this one visit (as in the tavern). */
+	if (BUGFIX_ALLES && (done == 0) && gs_inn_kicked_flags[gs_town_typeindex]) {
+		talk_inn();
+		gs_inn_kicked_flags[gs_town_typeindex] = 0;
+		leave_location();
+		return;
+	}
+#endif
+
 	if (done == 0) {
 
 		refresh = g_request_refresh = 1;
@@ -443,6 +455,12 @@ void do_inn(void)
 
 			talk_inn();
 			g_request_refresh = 1;
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 334: if the innkeeper throws the group out in the talk, it leaves the inn */
+			if (BUGFIX_ALLES && gs_inn_kicked_flags[gs_town_typeindex]) {
+				done = 1;
+			}
+#endif
 
 		} else if (g_action == ACTION_ID_ICON_2) { /* order food */
 
