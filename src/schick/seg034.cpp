@@ -793,7 +793,13 @@ void FIG_move_hero(struct struct_hero *hero, const signed int hero_pos, signed i
 
 							sel_y = -1;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+							/* Original-Bug (Schicksalsklinge-Bugfix Nr. 12): escaping over the upper and lower edge
+							 * costs one BP more than over the left/right edge */
+							if (BUGFIX_ALLES ? (hero->fight_bp_left > bp_cost) : (bp_cost < (hero->fight_bp_left - 1))) {
+#else
 							if (bp_cost < (hero->fight_bp_left - 1)) {
+#endif
 
 								g_fig_move_pathdir[path_end] = 1;
 								g_fig_move_pathdir[path_end + 1] = -1;
@@ -803,7 +809,13 @@ void FIG_move_hero(struct struct_hero *hero, const signed int hero_pos, signed i
 
 							sel_y = 24;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+							/* Original-Bug (Schicksalsklinge-Bugfix Nr. 12): escaping over the upper and lower edge
+							 * costs one BP more than over the left/right edge */
+							if (BUGFIX_ALLES ? (hero->fight_bp_left > bp_cost) : (bp_cost < (hero->fight_bp_left - 1))) {
+#else
 							if (bp_cost < (hero->fight_bp_left - 1)) {
+#endif
 
 								g_fig_move_pathdir[path_end] = 3;
 								g_fig_move_pathdir[path_end + 1] = -1;
