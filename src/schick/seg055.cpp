@@ -176,7 +176,14 @@ void do_merchant(void)
 	D1_INFO("\tAuswahl: %2d [0, 18] (je kleiner der Wert, desto groesser die Auswahl)\n", sortiment);
 #endif
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 332): the street merchant and Treborn Kolberg have no opening hours */
+	if ((gs_day_timer < HOURS(8) || gs_day_timer > HOURS(19)) && gs_town_loc_type != LOCTYPE_MARKET &&
+		(!BUGFIX_ALLES || ((gs_town_typeindex != MERCHANT_TYPEINDEX_STREET_MERCHANT) &&
+					(gs_town_typeindex != MERCHANT_TYPEINDEX_TREBORN_KOLBERG))))
+#else
 	if ((gs_day_timer < HOURS(8) || gs_day_timer > HOURS(19)) && gs_town_loc_type != LOCTYPE_MARKET)
+#endif
 	{
 		/* shop closed */
 
