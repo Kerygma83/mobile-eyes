@@ -291,24 +291,24 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 
 | Nr | Fehler | Stufe | Schwere | Herkunft | Änderung dort | Dateien | Status |
 |---:|---|:---:|---|---|---|---|---|
-| 214 | Magisches Bastardschwert ist als „benutzbar“ markiert (dort teilweise) | W | krit. | BE | Gegenstaende mit Nummer ausserhalb der Benutzen-Tabelle (magisches | seg107 | offen |
+| 214 | Magisches Bastardschwert ist als „benutzbar“ markiert (dort teilweise) | W | krit. | BE | Gegenstaende mit Nummer ausserhalb der Benutzen-Tabelle (magisches | seg107 | erledigt (Branch bugfixes), immer an (nativ ungültiger Speicherzugriff: Handler hinter g_usable_items_table); wie dort teilweise |
 | 221 | ⚑ Zufälliger Gegenstandsverlust: Endlosschleife ohne ablegbaren Gegenstand | W | krit. | BE | ohne ablegbaren Gegenstand nichts verlieren (sonst Endlosschleife) | seg105 | erledigt (Branch bugfixes) |
-| 222 | Tausch zweier Körperplätze ohne Prüfung und Boni 💰 | W | krit. |  | Meldung "... KANN AN DIESER POSITION NICHT GETRAGEN WERDEN" (wie in move_item()); liegen beide Plaetze am Koerper, auch den verdraengten Gegenstand pruefen | seg106 | offen |
-| 218 | Analüs verspricht Wirkungen magischer Gegenstände, die es nicht gibt (dort teilweise) | W | mittel | BE | der gruene Ring (Schutz vor magischem Feuer) bewahrt vor den verbrannten Haenden | seg085 | offen |
-| 220 | Zähler der belegten Inventarplätze driftet | W | mittel | BE | Stapel hoechstens 99, beim Zusammenlegen den Platzzaehler senken; neuer Stapel beim Empfaenger belegt einen Platz | seg106 | offen |
-| 225 | Laterne nachfüllen: Öl beim letzten Zauberer gesucht, beim Benutzer entfernt | W | mittel | BE | Oel und Laterne beim Benutzer suchen, nicht beim letzten Zauberer | seg107 | offen |
-| 216 | Truhenliste: 20 Byte je Name zu kurz | A | gering |  | 30 Byte je Name wie in loot_simple_chest() | seg092 | offen |
-| 217 | Mengenabfrage lässt sich nicht abbrechen | A | gering |  | ESC (oder eine negative Eingabe) nimmt nichts mit | seg092 | offen |
-| 223 | Wasserschlauch in der Hand wird nicht gefunden | A | gering | BE | auch den Wasserschlauch in der Hand finden | seg106 | offen |
-| 224 | Waffengift: Schleuder wird nicht ausgeschlossen | A | gering | BE | auch die Schleuder ist eine Fernwaffe | seg107 | offen |
-| 226 | Tarnele: Meldung ohne Text (dort teilweise) | A | gering |  | keinen alten Text zeigen; ein leerer Text oeffnet kein Fenster | seg108 | offen |
-| 227 | Antikrankheitselixier ohne Krankheit schreibt in disease[0] | A | gering |  | ohne Krankheit nichts aendern (disease[0] ist unbenutzt) | seg108 | offen |
-| 390 | Unzerbrechliche Waffen können zerbrechen (Held gegen Held, Curians Stab) (dort teilweise) | A | gering |  | Zauberstab, Hexenbesen, magische Orknase, magisches Kurzschwert und Grimring sind unzerbrechlich (bf -99),; unzerbrechliche Gegenstaende vor den Bruchpruefungen auf bf -99 setzen (Curians Stab); unzerbrechliche Waffe (bf -99) des Angegriffenen bleibt unzerbrechlich; unzerbrechliche Gegenstaende (wie in seg042) auch bei der Parade gegen Gegner auf bf -99 setzen (Curians Stab); vor der Bruchpruefung der Parade; unzerbrechliche Waffen (Zauberstab, Hexenbesen, magische Orknase, magisches Kurzschwert, Grimring) zerbrechen; unzerbrechliche Waffen zerbrechen nicht (bf > 0 bleibt Bedingung) | seg042, seg043, seg100, seg102 | offen |
-| 394 | Wegwerfen: höchstens 99 Stück, Mengenabfrage auch bei einem Stück | A | gering |  | bei einem einzelnen Stueck nicht nach der Menge fragen | seg105 | offen |
-| 397 | Tausch zwischen Helden prüft nur die Traglast des Empfängers 💰 | A | gering |  | beim Tausch auch die Traglast des Gebenden pruefen, wenn er dadurch schwerer wird | seg106 | offen |
-| 398 | Zweihänder von rechter in linke Hand: falsche Meldung | A | gering |  | Tausch zwischen den Haenden kann keine Zweihandkollision ergeben | seg106 | offen |
-| 400 | Waffengift über BENUTZEN umgeht die Klassensperre | A | gering |  | Klassensperre (z. B. Krieger und Gifte) auch beim Benutzen pruefen | seg107 | offen |
-| 418 | Schatzkarte: wer nur Hjores Kartenteil 9 hat, bekommt „keine Kartenteile gefunden“ | A | gering |  | Hjores Kartenteil 9 zaehlt bei der Pruefung mit, ob ueberhaupt ein Teil da ist (gezeichnet wird es ja auch) | seg025 | offen |
+| 222 | Tausch zweier Körperplätze ohne Prüfung und Boni 💰 | W | krit. |  | Meldung "... KANN AN DIESER POSITION NICHT GETRAGEN WERDEN" (wie in move_item()); liegen beide Plaetze am Koerper, auch den verdraengten Gegenstand pruefen | seg106 | erledigt (Branch bugfixes) |
+| 218 | Analüs verspricht Wirkungen magischer Gegenstände, die es nicht gibt (dort teilweise) | W | mittel | BE | der gruene Ring (Schutz vor magischem Feuer) bewahrt vor den verbrannten Haenden | seg085 | erledigt (Branch bugfixes), wie dort teilweise |
+| 220 | Zähler der belegten Inventarplätze driftet | W | mittel | BE | Stapel hoechstens 99, beim Zusammenlegen den Platzzaehler senken; neuer Stapel beim Empfaenger belegt einen Platz | seg106 | erledigt (Branch bugfixes) |
+| 225 | Laterne nachfüllen: Öl beim letzten Zauberer gesucht, beim Benutzer entfernt | W | mittel | BE | Oel und Laterne beim Benutzer suchen, nicht beim letzten Zauberer | seg107 | schon in BrightEyes behoben (g_spelluser wird auf den Benutzer gesetzt) |
+| 216 | Truhenliste: 20 Byte je Name zu kurz | A | gering |  | 30 Byte je Name wie in loot_simple_chest() | seg092 | erledigt (Branch bugfixes), immer an (nativ Pufferüberlauf auf dem Stack) |
+| 217 | Mengenabfrage lässt sich nicht abbrechen | A | gering |  | ESC (oder eine negative Eingabe) nimmt nichts mit | seg092 | erledigt (Branch bugfixes), Stufe alles |
+| 223 | Wasserschlauch in der Hand wird nicht gefunden | A | gering | BE | auch den Wasserschlauch in der Hand finden | seg106 | erledigt (Branch bugfixes), Stufe alles |
+| 224 | Waffengift: Schleuder wird nicht ausgeschlossen | A | gering | BE | auch die Schleuder ist eine Fernwaffe | seg107 | erledigt (Branch bugfixes), Stufe alles |
+| 226 | Tarnele: Meldung ohne Text (dort teilweise) | A | gering |  | keinen alten Text zeigen; ein leerer Text oeffnet kein Fenster | seg108 | erledigt (Branch bugfixes), Stufe alles, wie dort teilweise |
+| 227 | Antikrankheitselixier ohne Krankheit schreibt in disease[0] | A | gering |  | ohne Krankheit nichts aendern (disease[0] ist unbenutzt) | seg108 | erledigt (Branch bugfixes), Stufe alles |
+| 390 | Unzerbrechliche Waffen können zerbrechen (Held gegen Held, Curians Stab) (dort teilweise) | A | gering |  | Zauberstab, Hexenbesen, magische Orknase, magisches Kurzschwert und Grimring sind unzerbrechlich (bf -99),; unzerbrechliche Gegenstaende vor den Bruchpruefungen auf bf -99 setzen (Curians Stab); unzerbrechliche Waffe (bf -99) des Angegriffenen bleibt unzerbrechlich; unzerbrechliche Gegenstaende (wie in seg042) auch bei der Parade gegen Gegner auf bf -99 setzen (Curians Stab); vor der Bruchpruefung der Parade; unzerbrechliche Waffen (Zauberstab, Hexenbesen, magische Orknase, magisches Kurzschwert, Grimring) zerbrechen; unzerbrechliche Waffen zerbrechen nicht (bf > 0 bleibt Bedingung) | seg042, seg043, seg100, seg102 | erledigt (Branch bugfixes), Stufe alles, wie dort teilweise |
+| 394 | Wegwerfen: höchstens 99 Stück, Mengenabfrage auch bei einem Stück | A | gering |  | bei einem einzelnen Stueck nicht nach der Menge fragen | seg105 | erledigt (Branch bugfixes), Stufe alles |
+| 397 | Tausch zwischen Helden prüft nur die Traglast des Empfängers 💰 | A | gering |  | beim Tausch auch die Traglast des Gebenden pruefen, wenn er dadurch schwerer wird | seg106 | erledigt (Branch bugfixes), Stufe alles |
+| 398 | Zweihänder von rechter in linke Hand: falsche Meldung | A | gering |  | Tausch zwischen den Haenden kann keine Zweihandkollision ergeben | seg106 | erledigt (Branch bugfixes), Stufe alles |
+| 400 | Waffengift über BENUTZEN umgeht die Klassensperre | A | gering |  | Klassensperre (z. B. Krieger und Gifte) auch beim Benutzen pruefen | seg107 | erledigt (Branch bugfixes), Stufe alles |
+| 418 | Schatzkarte: wer nur Hjores Kartenteil 9 hat, bekommt „keine Kartenteile gefunden“ | A | gering |  | Hjores Kartenteil 9 zaehlt bei der Pruefung mit, ob ueberhaupt ein Teil da ist (gezeichnet wird es ja auch) | seg025 | erledigt (Branch bugfixes), Stufe alles |
 
 ## Technik & Oberfläche (20)
 
