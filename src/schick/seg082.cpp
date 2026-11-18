@@ -359,7 +359,13 @@ void DNG09_statues(const signed int prob, const signed int bonus)
 			GUI_output(get_tx(10));
 
 			/* increase estimation */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 70): the god ids are 1..14 (Praios..Ifirn); the loop changes the
+			 * unused entry 0 and skips Ifirn */
+			for (i = (BUGFIX_ALLES ? 1 : 0); i < (BUGFIX_ALLES ? 15 : 14); i++) {
+#else
 			for (i = 0; i < 14; i++) {
+#endif
 				gs_gods_estimation[i] += bonus;
 			}
 

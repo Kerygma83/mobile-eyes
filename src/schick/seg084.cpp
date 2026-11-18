@@ -353,7 +353,13 @@ signed int DNG09_handler(void)
 
 			add_hero_ap_all(60);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 70): the god ids are 1..14 (Praios..Ifirn); the loop changes the
+			 * unused entry 0 and skips Ifirn */
+			for (i = (BUGFIX_ALLES ? 1 : 0); i < (BUGFIX_ALLES ? 15 : 14); i++) {
+#else
 			for (i = 0; i < 14; i++) {
+#endif
 				gs_gods_estimation[i] += 100L;
 			}
 
