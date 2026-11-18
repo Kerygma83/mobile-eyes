@@ -1044,6 +1044,67 @@ void town_water_and_grass(void)
 	}
 }
 
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Original-Bug (Schicksalsklinge-Bugfix Nr. 438): the side walls of the houses (images 4..9 and 14..19) show the facade
+ * the wrong way round on the left side of the street. Attic drew every side wall only once, for the right side of the
+ * street; the left side uses the same image, so the facade runs backwards there. Swap the columns and bring each one
+ * to the height of the trapezoid at its new place: the wall keeps its perspective, the content runs the right way. */
+
+/* get a column of a house wall (colour 128 = transparent) and its visible range */
+static void fix438_column(const uint8_t *p, const signed int w, const signed int h, const signed int x,
+			uint8_t *c, signed int *t, signed int *b)
+{
+	signed int y;
+
+	*t = -1;
+	*b = -1;
+	for (y = 0; y < h; y++) {
+		c[y] = p[y * w + x];
+		if (c[y] != 128) {
+			if (*t == -1) {
+				*t = y;
+			}
+			*b = y;
+		}
+	}
+}
+
+/* fill column x: the visible range [t, b] gets the content of the source column c ([ct, cb]), scaled */
+static void fix438_column_set(uint8_t *p, const signed int w, const signed int h, const signed int x,
+			const signed int t, const signed int b, const uint8_t *c, const signed int ct, const signed int cb)
+{
+	signed int y;
+
+	for (y = 0; y < h; y++) {
+		if ((t == -1) || (ct == -1) || (y < t) || (y > b)) {
+			p[y * w + x] = 128;
+		} else if (b == t) {
+			p[y * w + x] = c[ct];
+		} else {
+			p[y * w + x] = c[ct + ((y - t) * (cb - ct) + (b - t) / 2) / (b - t)];
+		}
+	}
+}
+
+static void fix438_reverse_side(uint8_t *p, const signed int w, const signed int h)
+{
+	signed int d;
+	signed int ta, ba, tb, bb;
+	uint8_t a[136];
+	uint8_t b[136];
+
+	if (h > 136) {
+		return;
+	}
+	for (d = 0; d < w / 2; d++) {
+		fix438_column(p, w, h, d, a, &ta, &ba);
+		fix438_column(p, w, h, w - 1 - d, b, &tb, &bb);
+		fix438_column_set(p, w, h, d, ta, ba, b, tb, bb);
+		fix438_column_set(p, w, h, w - 1 - d, tb, bb, a, ta, ba);
+	}
+}
+#endif
+
 /**
  * \brief   draws building textures
  */
@@ -1192,6 +1253,15 @@ void load_town_texture(signed int x, signed int y, signed int nvf_no, signed int
 	nvf.width = &width;
 	nvf.height = &height;
 	process_nvf_extraction(&nvf);
+
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 438: the farther side walls 5, 6, 7 and 9 (15, 16, 17, 19) on the left side of the
+	 * street; 4 and 8 (the wall right beside the group) Attic drew the right way round */
+	if (BUGFIX_ALLES && !direction && (v4 >= 2) && (v4 <= 5) &&
+		((nvf_no % 10 == 5) || (nvf_no % 10 == 6) || (nvf_no % 10 == 7) || (nvf_no % 10 == 9))) {
+		fix438_reverse_side(src, width, height);
+	}
+#endif
 
 	copy_width = width;
 	copy_height = height;
