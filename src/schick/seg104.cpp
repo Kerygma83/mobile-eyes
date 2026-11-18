@@ -219,6 +219,21 @@ signed int do_alchemy(struct struct_hero* hero, const signed int recipe_id, cons
 
 }
 
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Original-Bug (Schicksalsklinge-Bugfix Nr. 260): first of the 6 groups without members, -1 if all are taken */
+static signed int alchemy_free_group(void)
+{
+	signed int i;
+
+	for (i = 0; i < 6; i++) {
+		if (gs_group_member_counts[i] == 0) {
+			return i;
+		}
+	}
+	return -1;
+}
+#endif
+
 signed int plan_alchemy(struct struct_hero *hero)
 {
 	signed int retval;
@@ -314,6 +329,8 @@ signed int plan_alchemy(struct struct_hero *hero)
 								(gs_total_hero_counter > 1) &&
 #else
 								((hero == get_hero(6)) || (count_heroes_available_in_group_ignore_npc() > 1)) && /* still allow to single out the NPC if he is the brewing hero */
+								/* Original-Bug (Schicksalsklinge-Bugfix Nr. 260): offer to split only if one of the 6 groups is free */
+								(!BUGFIX_WICHTIG || (alchemy_free_group() != -1)) &&
 #endif
 								(gs_town_loc_type != LOCTYPE_WILDCAMP) &&
 								(g_alchemy_recipes[recipe_index].duration > 8)
@@ -364,6 +381,12 @@ signed int plan_alchemy(struct struct_hero *hero)
 
 								/* find an empty group */
 								/* Original-Bug: only 6 groups, but 7 heroes might cause an 'out of boundary' here */
+#ifdef M302de_ORIGINAL_BUGFIX
+								/* Schicksalsklinge-Bugfix Nr. 260: only offered above if a group is free */
+								if (BUGFIX_WICHTIG) {
+									l5 = alchemy_free_group();
+								} else
+#endif
 								for (l5 = 0; gs_group_member_counts[l5] != 0; l5++);
 
 								hero->group_id = (signed char)l5;
