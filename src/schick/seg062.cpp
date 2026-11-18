@@ -321,6 +321,24 @@ void ask_miracle(void)
 						/* sated for 7 days */
 						if (!gs_ingame_timers[INGAME_TIMER_FIRUN_SATED]) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+							/* Original-Bug (Schicksalsklinge-Bugfix Nr. 63): only one random hero is sated, although the text
+							 * addresses all ("IHR"); all heroes of the group are sated */
+							if (BUGFIX_WICHTIG) {
+								miracle_modify((uint8_t*)&get_hero(0)->hunger_timer - (uint8_t*)get_hero(0), DAYS(7), 1);
+
+								for (i = 0; i <= 6; i++) {
+									if ((get_hero(i)->typus != HERO_TYPE_NONE) && (get_hero(i)->group_id == gs_active_group_id) &&
+										!get_hero(i)->flags.dead && !get_hero(i)->flags.gods_pissed)
+									{
+										get_hero(i)->hunger = get_hero(i)->thirst = 0;
+									}
+								}
+
+								strcpy(g_dtp2, get_tx2(20));
+								gs_ingame_timers[INGAME_TIMER_FIRUN_SATED] = DAYS(7);
+							} else {
+#endif
 							i = get_random_hero();
 
 							if (i != -1 && !(get_hero(i))->flags.gods_pissed) {
@@ -333,6 +351,9 @@ void ask_miracle(void)
 								sprintf(g_dtp2, get_tx2(20), (get_hero(i))->alias);
 								gs_ingame_timers[INGAME_TIMER_FIRUN_SATED] = DAYS(7);
 							}
+#ifdef M302de_ORIGINAL_BUGFIX
+							}
+#endif
 						}
 					}
 					break;
