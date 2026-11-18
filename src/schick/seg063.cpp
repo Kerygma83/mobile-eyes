@@ -485,6 +485,13 @@ void do_harbor(void)
 					gs_y_target_bak = gs_travel_destination_y;
 					gs_direction = ((gs_travel_destination_viewdir + 2) & 3);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 372): every detour value leads into the Totenschiff;
+				 * with 99 (group dead, fight left) another group is already active and stays where it is
+				 * (as on a land journey, seg093) */
+				} else if (BUGFIX_WICHTIG && (gs_travel_detour != DUNGEON_ID_TOTENSCHIFF)) {
+					done = 1;
+#endif
 				} else {
 					done = 1;
 					DNG_enter_dungeon(DUNGEON_ID_TOTENSCHIFF);
@@ -508,7 +515,12 @@ void do_harbor(void)
 		copy_palette();
 		leave_location();
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 372: with 99 another group is active, its town stays */
+	} else if (!BUGFIX_WICHTIG || (gs_travel_detour != 99)) {
+#else
 	} else {
+#endif
 
 		gs_town_id = TOWN_ID_NONE;
 	}
