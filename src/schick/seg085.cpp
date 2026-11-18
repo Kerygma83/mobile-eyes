@@ -83,6 +83,13 @@ signed int DNG10_handler(void)
 
 			if (GUI_bool((!(gs_dng10_lever_found & 2) ? get_tx(6) : get_tx(41))))
 			{
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 435): the stone only counts as removed after using the lever;
+				 * with this answer it is removed, the next visit shows text 41 */
+				if (BUGFIX_ALLES) {
+					gs_dng10_lever_found |= 2;
+				}
+#endif
 				if (GUI_bool(get_tx(7))) {
 
 					gs_dng10_lever_found |= 2;
