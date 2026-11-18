@@ -6003,6 +6003,12 @@ void set_party_money(int32_t money)
 		if (heroes > 1) {
 			heroes--;
 		} else {
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 407): the NPC alone gets the amount added instead of set */
+			if (BUGFIX_ALLES) {
+				hero->money = money;
+			} else
+#endif
 			hero->money += money;
 			heroes = 0;
 		}
@@ -6011,6 +6017,12 @@ void set_party_money(int32_t money)
 	if (heroes != 0) {
 
 		hero_money = money / heroes;
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Schicksalsklinge-Bugfix Nr. 407: the rest of the division is lost; it goes to the first hero */
+		if (BUGFIX_ALLES) {
+			money -= hero_money * heroes;
+		}
+#endif
 
 		hero = get_hero(0);
 
@@ -6019,6 +6031,13 @@ void set_party_money(int32_t money)
 			if (hero->typus && (hero->group_id == gs_active_group_id) && !hero->flags.dead) {
 
 				/* account the money to hero */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 407 */
+				if (BUGFIX_ALLES) {
+					hero->money = hero_money + money;
+					money = 0;
+				} else
+#endif
 				hero->money = hero_money;
 			} else {
 				if (hero->group_id == gs_active_group_id) {
