@@ -1123,6 +1123,13 @@ char* spell_analues(void)
 					break;
 				} else {
 					/* nothing found string */
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Schicksalsklinge-Bugfix Nr. 201: failed only because of the handicap -> half AE as for
+					 * a failed spell */
+					if (BUGFIX_ALLES) {
+						g_spell_special_aecost = get_spell_cost(SP_ANALUES_ARCANSTRUKTUR, 1);
+					}
+#endif
 					strcpy(g_text_output_buf, get_tx(55));
 					break;
 				}
