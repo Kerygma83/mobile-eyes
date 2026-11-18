@@ -3532,8 +3532,20 @@ void sub_mod_timers(const int32_t val)
 					/* reset all slots of invalid target */
 					for (j = 0; j < 100; j++) {
 						if (gs_modification_timers[j].target == target) {
+#ifdef M302de_ORIGINAL_BUGFIX
+							/* Original-Bug (Schicksalsklinge-Bugfix Nr. 230): only the current entry (sp) is reset;
+							 * reset all entries of the invalid target */
+							if (BUGFIX_ALLES) {
+								gs_modification_timers[j].target = gs_modification_timers[j].modifier = 0;
+								gs_modification_timers[j].offset = 0;
+							} else {
+								sp->target = sp->modifier = 0;
+								sp->offset = 0;
+							}
+#else
 							sp->target = sp->modifier = 0;
 							sp->offset = 0;
+#endif
 						}
 					}
 				}
