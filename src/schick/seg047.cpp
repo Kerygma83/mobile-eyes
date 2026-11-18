@@ -247,6 +247,19 @@ signed int check_heroes_KK(const signed int val)
 	struct struct_hero *hero;
 	signed int sum;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 81): slot 0 is counted without checks; the first two heroes able
+	 * to act of the active group */
+	if (BUGFIX_ALLES) {
+		hero = get_first_hero_available_in_group();
+
+		sum = hero->attrib[ATTRIB_KK].current + hero->attrib[ATTRIB_KK].mod;
+
+		if ((hero = (struct struct_hero*)get_second_hero_available_in_group()) != NULL) {
+			sum += hero->attrib[ATTRIB_KK].current + hero->attrib[ATTRIB_KK].mod;
+		}
+	} else {
+#endif
 	hero = get_hero(0);
 
 	/* Orig-BUG: not checked if hero is valid */
@@ -258,6 +271,9 @@ signed int check_heroes_KK(const signed int val)
 	if (hero->typus && (hero->group_id == gs_active_group_id) && !hero->flags.dead) {
 		sum += hero->attrib[ATTRIB_KK].current + hero->attrib[ATTRIB_KK].mod;
 	}
+#ifdef M302de_ORIGINAL_BUGFIX
+	}
+#endif
 
 #if !defined(__BORLANDC__)
 	wlog_note(WLOG_PROBE, sum >= val ? WLOG_GUT : WLOG_SCHLECHT, "KK der ersten beiden Helden: %d gegen %d, %s",
