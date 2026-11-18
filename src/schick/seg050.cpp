@@ -820,6 +820,13 @@ void level_up(const signed int hero_pos)
 			while (hero->saved_spell_increases != 0 && v2 < 3) {
 
 				v2++;
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 251): i is not reset at the start of a round, so the first loop
+				 * of HEXE, AUELF, FIRNELF and WALDELF only runs in the first round */
+				if (BUGFIX_ALLES) {
+					i = 1;
+				}
+#endif
 
 				switch (hero->typus) {
 
