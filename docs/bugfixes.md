@@ -88,49 +88,49 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 | 174 | ⚑ Zustand 33 ist eine Endlosschleife | W | krit. |  | statt Endlosschleife das Gespraech beenden | seg116 | erledigt (Branch bugfixes) |
 | 180 | ⚑ Krakenmolch: Endlosschleife, wenn alle Helden über Bord oder tot sind | W | krit. | BE | Kampf endet, wenn kein Held mehr kaempft (sonst Endlosschleife) | seg117 | schon in BrightEyes behoben |
 | 184 | ⚑ Verirrt im Wald: alle sieben Heldenplätze sterben | W | krit. | BE | nur die Helden der verirrten Gruppe | seg118 | schon in BrightEyes behoben |
-| 127 | Nur die erste Seeroute (Thorwal–Prem) wird zurückgesetzt | W | mittel | BE | alle Seerouten zuruecksetzen | seg002 | offen |
-| 136 | Passagepreis in 16 Bit: lange Routen werden spottbillig 💰 | W | mittel |  | mit der Entfernung in 32 Bit multiplizieren | seg064 | offen |
+| 127 | Nur die erste Seeroute (Thorwal–Prem) wird zurückgesetzt | W | mittel | BE | alle Seerouten zuruecksetzen | seg002 | schon in BrightEyes behoben |
+| 136 | Passagepreis in 16 Bit: lange Routen werden spottbillig 💰 | W | mittel |  | mit der Entfernung in 32 Bit multiplizieren | seg064 | tritt nativ nicht auf (unsigned int hat 32 Bit) |
 | 142 | Reiseereignisse: Lage wird nach Richtungswechsel falsch korrigiert 💰 | W | mittel | BE-Fix | Lage direkt nach dem Ereignis setzen, bei Richtungswechsel durch das Ereignis | seg094 | schon in BrightEyes behoben |
-| 149 | replenish_stocks() bekommt die Heldenposition als Versuchszähler | W | mittel | BE | zweiter Parameter ist der Versuchszaehler, nicht die Heldenposition | seg109 | offen |
-| 150 | „UMKEHREN“ auf der Rückreise behält die Rückwärtsrichtung (9 Stellen) | W | mittel | BE | Umkehren kehrt die aktuelle Richtung um | seg109, seg113, seg114, seg115, seg116, seg118 | offen |
-| 151 | Furt: GE-Probe gilt fast immer als bestanden | W | mittel | BE | gewoehnliche GE-Probe, jedes Ergebnis <= 0 ist misslungen | seg109 | offen |
-| 152 | Fährpreis wächst bei jedem Versuch weiter | W | mittel | BE | Preis bei jedem Versuch aus dem Grundpreis berechnen | seg109 | offen |
-| 153 | Gruppenproben zählen alle 7 Plätze ohne Gruppen- und Todesprüfung | W | mittel | BE | nur lebende Helden der aktiven Gruppe; nur lebende Helden der aktiven Gruppe (wie count_heroes_in_group()) | seg109, seg116 | offen |
-| 158 | Steilhang: Strickleiter macht den Sturz schlimmer | W | mittel | BE | schwerer Sturz nur ohne Seil und ohne Strickleiter | seg111 | offen |
-| 159 | Gorahs Hütte: Silentium-Auswahl wird nie wiederholt 💰 | W | mittel |  | Nicht-Magier oder misslungener Silentium fuehren zurueck in die Auswahl | seg111 | offen |
-| 161 | Kräuterbonus für Gegenstände über 127 greift nie | W | mittel |  | Kraeuternummern ueber 127 (int8_t) richtig vergleichen | seg051 | offen |
-| 162 | Wegzoll 15 Dukaten insgesamt statt pro Person 💰 | W | mittel |  | 15 Dukaten pro Person, wie im Text verlangt | seg112 | offen |
-| 165 | Sturz in die Klamm: hero_disappear() mit der Antwortzahl als Position | W | mittel |  | Position des Springers uebergeben | seg113 | offen |
-| 166 | Harpyien: Fluchtoption ist kein Versuch 💰 | W | mittel | BE | VERSUCHEN ZU FLIEHEN? fuehrt zur Kriegskunst-Probe (else gehoert zur Antwort) | seg113 | offen |
-| 167 | Nebeltal: Funktionsadresse als Held | W | mittel | BE | Funktion aufrufen statt ihre Adresse als Helden zu nehmen | seg113 | offen |
-| 170 | Firun-Opfer: Schlafbonus bleibt für spätere Lager stehen 💰 | W | mittel |  | Schlafbonus gilt nur fuer dieses Lager | seg114 | offen |
-| 177 | AT- und PA-Proben verkehrt herum (Höhlenbär, Krakenmolch) | W | mittel | BE | Attacke gelingt bei W20 <= AT; Schaden bei misslungener Parade (W20 > PA); Treffer bei W20 <= AT | seg117 | offen |
-| 178 | Kvillotter beißt nie | W | mittel | BE | das schlechteste misslungene Ergebnis merken, sein Held wird gebissen | seg117 | offen |
-| 179 | Krakenmolch: GE-Probe falsch ausgewertet | W | mittel | BE | misslungene GE-Probe = Wuergen, Patzer (-99) = Packen | seg117 | offen |
-| 181 | Zufallsbegegnungen: Vergleich verkehrt herum, fast alle unerreichbar | W | mittel |  | aufsteigende Schwellen: W100 <= Wert | seg117 | offen |
-| 185 | Kletterpartie: tödlicher Sturz bei knapp verfehlter Probe statt beim Patzer | W | mittel | BE | toedlich ist nur der Patzer (-99) | seg118 | offen |
-| 367 | Weiterreisen ohne Nachtlager über unsichtbares Symbol 💰 | W | mittel |  | Weiterreisen nur ueber das sichtbare 7. Symbol (guter Lagerplatz) | seg051 | offen |
-| 368 | Tavernenhinweis schaltet Reiseereignisse 66 und 75 ab | W | mittel |  | das Geruecht ueber das Raeuberlager setzt nicht den Erledigt-Merker von Reiseereignis 75 (Osterpatch NRS); Reiseereignis 75 bleibt moeglich (Osterpatch NRS); Hinweis auf den Nahrungsplatz setzt den Rastplatz-Merker, nicht den Erledigt-Merker der Spur (Kampf F066); Rastplatz-Merker statt Erledigt-Merker der Spur (Osterpatch NRS) | seg073 | offen |
-| 372 | Seereise: jeder Umweg-Wert führt ins Totenschiff 💰 | W | mittel |  | nur der Umweg ins Totenschiff fuehrt dorthin; bei 99 (Gruppe tot, Kampf verlassen); bei 99 ist eine andere Gruppe aktiv, ihr Ort bleibt (wie bei der Landreise, seg093) | seg063 | offen |
-| 128 | Sprung bis Mitternacht (Swafnild) überspringt feste Ereignisse und verbraucht 25 Stunden Licht | A | gering | BE | gewoehnlicher Zeitsprung bis Mitternacht (feste Uhrzeiten, Licht und Stunden werden richtig gezaehlt) | seg002 | offen |
-| 129 | Wachenwahl: ESC liest g_wildcamp_herbstatus[−1] | A | gering | BE | answer != -1 vor allen drei Abfragen | seg051 | offen |
-| 130 | Bei weniger als 3 Stunden Schlaf wechseln die Wachen nie | A | gering |  | mindestens 1 Stunde je Wache, sonst wechselt die Wache nie | seg051, seg052 | offen |
-| 132 | Hafenmeister schimpft auch beim Verlassen über fehlendes Geld | A | gering |  | Geld nur pruefen, wenn die Gruppe etwas wissen will (nicht beim Verlassen) | seg063 | offen |
-| 133 | Hunger-/Durst-Meldungssperre des NSC wird nicht zurückgesetzt | A | gering |  | auch den NSC | seg063 | offen |
+| 149 | replenish_stocks() bekommt die Heldenposition als Versuchszähler | W | mittel | BE | zweiter Parameter ist der Versuchszaehler, nicht die Heldenposition | seg109 | schon in BrightEyes behoben |
+| 150 | „UMKEHREN“ auf der Rückreise behält die Rückwärtsrichtung (9 Stellen) | W | mittel | BE | Umkehren kehrt die aktuelle Richtung um | seg109, seg113, seg114, seg115, seg116, seg118 | schon in BrightEyes behoben bis auf die Fähre (seg109), die jetzt auch |
+| 151 | Furt: GE-Probe gilt fast immer als bestanden | W | mittel | BE | gewoehnliche GE-Probe, jedes Ergebnis <= 0 ist misslungen | seg109 | erledigt (Branch bugfixes) |
+| 152 | Fährpreis wächst bei jedem Versuch weiter | W | mittel | BE | Preis bei jedem Versuch aus dem Grundpreis berechnen | seg109 | erledigt (Branch bugfixes) |
+| 153 | Gruppenproben zählen alle 7 Plätze ohne Gruppen- und Todesprüfung | W | mittel | BE | nur lebende Helden der aktiven Gruppe; nur lebende Helden der aktiven Gruppe (wie count_heroes_in_group()) | seg109, seg116 | erledigt (Branch bugfixes) |
+| 158 | Steilhang: Strickleiter macht den Sturz schlimmer | W | mittel | BE | schwerer Sturz nur ohne Seil und ohne Strickleiter | seg111 | erledigt (Branch bugfixes) |
+| 159 | Gorahs Hütte: Silentium-Auswahl wird nie wiederholt 💰 | W | mittel |  | Nicht-Magier oder misslungener Silentium fuehren zurueck in die Auswahl | seg111 | erledigt (Branch bugfixes) |
+| 161 | Kräuterbonus für Gegenstände über 127 greift nie | W | mittel |  | Kraeuternummern ueber 127 (int8_t) richtig vergleichen | seg051 | erledigt (Branch bugfixes) |
+| 162 | Wegzoll 15 Dukaten insgesamt statt pro Person 💰 | W | mittel |  | 15 Dukaten pro Person, wie im Text verlangt | seg112 | erledigt (Branch bugfixes) |
+| 165 | Sturz in die Klamm: hero_disappear() mit der Antwortzahl als Position | W | mittel |  | Position des Springers uebergeben | seg113 | erledigt (Branch bugfixes) |
+| 166 | Harpyien: Fluchtoption ist kein Versuch 💰 | W | mittel | BE | VERSUCHEN ZU FLIEHEN? fuehrt zur Kriegskunst-Probe (else gehoert zur Antwort) | seg113 | schon in BrightEyes behoben |
+| 167 | Nebeltal: Funktionsadresse als Held | W | mittel | BE | Funktion aufrufen statt ihre Adresse als Helden zu nehmen | seg113 | schon in BrightEyes behoben |
+| 170 | Firun-Opfer: Schlafbonus bleibt für spätere Lager stehen 💰 | W | mittel |  | Schlafbonus gilt nur fuer dieses Lager | seg114 | erledigt (Branch bugfixes) |
+| 177 | AT- und PA-Proben verkehrt herum (Höhlenbär, Krakenmolch) | W | mittel | BE | Attacke gelingt bei W20 <= AT; Schaden bei misslungener Parade (W20 > PA); Treffer bei W20 <= AT | seg117 | erledigt (Branch bugfixes) |
+| 178 | Kvillotter beißt nie | W | mittel | BE | das schlechteste misslungene Ergebnis merken, sein Held wird gebissen | seg117 | erledigt (Branch bugfixes) |
+| 179 | Krakenmolch: GE-Probe falsch ausgewertet | W | mittel | BE | misslungene GE-Probe = Wuergen, Patzer (-99) = Packen | seg117 | schon in BrightEyes behoben |
+| 181 | Zufallsbegegnungen: Vergleich verkehrt herum, fast alle unerreichbar | W | mittel |  | aufsteigende Schwellen: W100 <= Wert | seg117 | erledigt (Branch bugfixes) |
+| 185 | Kletterpartie: tödlicher Sturz bei knapp verfehlter Probe statt beim Patzer | W | mittel | BE | toedlich ist nur der Patzer (-99) | seg118 | schon in BrightEyes behoben |
+| 367 | Weiterreisen ohne Nachtlager über unsichtbares Symbol 💰 | W | mittel |  | Weiterreisen nur ueber das sichtbare 7. Symbol (guter Lagerplatz) | seg051 | erledigt (Branch bugfixes) |
+| 368 | Tavernenhinweis schaltet Reiseereignisse 66 und 75 ab | W | mittel |  | das Geruecht ueber das Raeuberlager setzt nicht den Erledigt-Merker von Reiseereignis 75 (Osterpatch NRS); Reiseereignis 75 bleibt moeglich (Osterpatch NRS); Hinweis auf den Nahrungsplatz setzt den Rastplatz-Merker, nicht den Erledigt-Merker der Spur (Kampf F066); Rastplatz-Merker statt Erledigt-Merker der Spur (Osterpatch NRS) | seg073 | erledigt (Branch bugfixes) |
+| 372 | Seereise: jeder Umweg-Wert führt ins Totenschiff 💰 | W | mittel |  | nur der Umweg ins Totenschiff fuehrt dorthin; bei 99 (Gruppe tot, Kampf verlassen); bei 99 ist eine andere Gruppe aktiv, ihr Ort bleibt (wie bei der Landreise, seg093) | seg063 | erledigt (Branch bugfixes) |
+| 128 | Sprung bis Mitternacht (Swafnild) überspringt feste Ereignisse und verbraucht 25 Stunden Licht | A | gering | BE | gewoehnlicher Zeitsprung bis Mitternacht (feste Uhrzeiten, Licht und Stunden werden richtig gezaehlt) | seg002 | erledigt (Branch bugfixes), Stufe alles |
+| 129 | Wachenwahl: ESC liest g_wildcamp_herbstatus[−1] | A | gering | BE | answer != -1 vor allen drei Abfragen | seg051 | erledigt (Branch bugfixes), immer an (nativ ungültiger Speicherzugriff) |
+| 130 | Bei weniger als 3 Stunden Schlaf wechseln die Wachen nie | A | gering |  | mindestens 1 Stunde je Wache, sonst wechselt die Wache nie | seg051, seg052 | erledigt (Branch bugfixes), Stufe alles |
+| 132 | Hafenmeister schimpft auch beim Verlassen über fehlendes Geld | A | gering |  | Geld nur pruefen, wenn die Gruppe etwas wissen will (nicht beim Verlassen) | seg063 | erledigt (Branch bugfixes), Stufe alles |
+| 133 | Hunger-/Durst-Meldungssperre des NSC wird nicht zurückgesetzt | A | gering |  | auch den NSC | seg063 | erledigt (Branch bugfixes), Stufe alles |
 | 135 | Schiffsnamen werden bei jedem Blick neu ausgewürfelt | A | gering | BE-Fix | Schiffsname fest aus dem Preisaufschlag der Passage (Bright-Eyes-Fix) | seg064 | schon in BrightEyes behoben |
 | 138 | Angezeigte Reisedauer nur in groben Stufen | A | gering | BE-Fix | erst multiplizieren, dann teilen (Bright-Eyes-Fix); Tempo 0 abfangen | seg064 | schon in BrightEyes behoben (Abfangen von Tempo 0 fehlt dort, Tempo ist aber immer ≥ 1: mit Nr. 137 begrenzt, ohne sie ≥ 24 oder negativ) |
-| 145 | Umweg-Linie wird um einen Punkt versetzt zurückgemalt | A | gering |  | erst zurueckschreiben, dann weitersetzen (wie beim Zeichnen) | seg094 | offen |
-| 148 | Rastplatz: Status nur für den Anführer gelöscht | A | gering | BE | Status aller Helden zuruecksetzen, replenish_stocks() fragt selbst nach dem Helden (Plaetze 0..6) | seg109 | offen |
-| 156 | „AM UFER DES DES BODIR“ | A | gering |  | fuehrendes "DES " des Flussnamens weglassen, der Furttext hat schon "AM UFER DES %s" | seg110 | offen |
-| 160 | Hütte bei Orvil: Frage passt nicht zu den Antworten | A | gering |  | die zur Antwort passende Frage (Text 91) | seg112 | offen |
-| 163 | Tatzelwurm-Spuren: Name aus einem Nullzeiger | A | gering |  | ohne Jaeger (hero == NULL) den ersten verfuegbaren Helden nennen | seg113 | offen |
-| 168 | Dialogbild fehlt nach einem Lagerkampf | A | gering | BE | Kopfbild nach dem Lager neu laden | seg113, seg118 | offen |
-| 171 | Olimone: get_hero(−1), wenn niemand das Rezept nehmen konnte | A | gering | BE | hat niemand das Rezept, den ersten verfuegbaren Helden nennen statt get_hero(-1) | seg114 | offen |
-| 182 | Krankheitsprobe mit uninitialisiertem Helden | A | gering | BE | KK des betroffenen Helden | seg117 | offen |
-| 183 | Waldweg: Erfolgstext beim ersten Versuch unerreichbar | A | gering |  | beim ersten Versuch (answer == 2) der Text fuer den schnellen Erfolg | seg118 | offen |
-| 369 | Nach Gorah dreht sich die Reiserichtung immer um | A | gering |  | nur umkehren, wenn die Gruppe nicht schon Richtung Orvil reist (Richtung Orvil = Ziel Orvil vorwaerts | seg111 | offen |
-| 371 | Grenz- und Straßentexte ohne Richtungsprüfung | A | gering |  | Strassenende/Orkland-Text 74 nur auf dem Weg nach Phexcaer (Ziel Phexcaer vorwaerts oder anderes Ziel nach Umkehr) | seg110 | offen |
-| 375 | Jagd: Einzelheld schafft immer den Blattschuss 💰 | A | gering |  | mindestens die Haelfte (aufgerundet), ein Einzelheld muss treffen | seg117 | offen |
+| 145 | Umweg-Linie wird um einen Punkt versetzt zurückgemalt | A | gering |  | erst zurueckschreiben, dann weitersetzen (wie beim Zeichnen) | seg094 | erledigt (Branch bugfixes), Stufe alles |
+| 148 | Rastplatz: Status nur für den Anführer gelöscht | A | gering | BE | Status aller Helden zuruecksetzen, replenish_stocks() fragt selbst nach dem Helden (Plaetze 0..6) | seg109 | schon in BrightEyes behoben (Schleife schrieb Index 7 hinter die Felder, jetzt < 7, immer an) |
+| 156 | „AM UFER DES DES BODIR“ | A | gering |  | fuehrendes "DES " des Flussnamens weglassen, der Furttext hat schon "AM UFER DES %s" | seg110 | erledigt (Branch bugfixes), Stufe alles |
+| 160 | Hütte bei Orvil: Frage passt nicht zu den Antworten | A | gering |  | die zur Antwort passende Frage (Text 91) | seg112 | erledigt (Branch bugfixes), Stufe alles |
+| 163 | Tatzelwurm-Spuren: Name aus einem Nullzeiger | A | gering |  | ohne Jaeger (hero == NULL) den ersten verfuegbaren Helden nennen | seg113 | erledigt (Branch bugfixes), immer an (nativ ungültiger Speicherzugriff) |
+| 168 | Dialogbild fehlt nach einem Lagerkampf | A | gering | BE | Kopfbild nach dem Lager neu laden | seg113, seg118 | schon in BrightEyes behoben |
+| 171 | Olimone: get_hero(−1), wenn niemand das Rezept nehmen konnte | A | gering | BE | hat niemand das Rezept, den ersten verfuegbaren Helden nennen statt get_hero(-1) | seg114 | erledigt (Branch bugfixes), immer an (nativ ungültiger Speicherzugriff) |
+| 182 | Krankheitsprobe mit uninitialisiertem Helden | A | gering | BE | KK des betroffenen Helden | seg117 | erledigt (Branch bugfixes), immer an (nativ ungültiger Speicherzugriff) |
+| 183 | Waldweg: Erfolgstext beim ersten Versuch unerreichbar | A | gering |  | beim ersten Versuch (answer == 2) der Text fuer den schnellen Erfolg | seg118 | erledigt (Branch bugfixes), Stufe alles |
+| 369 | Nach Gorah dreht sich die Reiserichtung immer um | A | gering |  | nur umkehren, wenn die Gruppe nicht schon Richtung Orvil reist (Richtung Orvil = Ziel Orvil vorwaerts | seg111 | erledigt (Branch bugfixes), Stufe alles |
+| 371 | Grenz- und Straßentexte ohne Richtungsprüfung | A | gering |  | Strassenende/Orkland-Text 74 nur auf dem Weg nach Phexcaer (Ziel Phexcaer vorwaerts oder anderes Ziel nach Umkehr) | seg110 | erledigt (Branch bugfixes), Stufe alles |
+| 375 | Jagd: Einzelheld schafft immer den Blattschuss 💰 | A | gering |  | mindestens die Haelfte (aufgerundet), ein Einzelheld muss treffen | seg117 | erledigt (Branch bugfixes), Stufe alles |
 
 ## Dungeons (54)
 
