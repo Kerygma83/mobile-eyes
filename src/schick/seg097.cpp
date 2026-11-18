@@ -277,7 +277,13 @@ signed int GUI_enter_string(char* dst, signed int x, const signed int y, const s
 
 	if (zero == 0) {
 		for (si = 0; si < num; si++) {
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 304): '>=' also printed the terminating 0 and put the
+			 * writing position behind the end of the old name; typed characters landed behind the 0 */
+			if ((g_gui_entering_savegame) && (BUGFIX_ALLES ? (length > si) : (length >= si))) {
+#else
 			if ((g_gui_entering_savegame) && (length >= si)) {
+#endif
 				GUI_print_char(' ', x_pos, y);
 				GUI_print_char(*dst, x_pos, y);
 				pos++;
