@@ -232,6 +232,12 @@ signed int DNG09_handler(void)
 		GUI_output(get_tx(11));
 
 		/* TODO: add missing gs_dng09_bolttrap4_flag--; */
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 114): count down like the traps 1 to 3 */
+		if (BUGFIX_WICHTIG) {
+			gs_dng09_bolttrap4_flag--;
+		}
+#endif
 
 		for (i = 0; i <= 6; i++, hero++)
 		{
