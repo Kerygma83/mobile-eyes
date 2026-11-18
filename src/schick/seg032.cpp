@@ -41,6 +41,9 @@
 #include "seg038.h"
 #include "seg039.h"
 #include "seg040.h"
+#ifdef M302de_ORIGINAL_BUGFIX
+#include "seg041.h"
+#endif
 #include "seg042.h"
 #include "seg043.h"
 #include "seg049.h"
@@ -1220,10 +1223,23 @@ signed int do_fight(const signed int fight_id)
 			/* the heroes won the fight => loot */
 
 			/* give automatically dropped items to the heroes */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 29): give back the thrown weapons as they were thrown
+			 * (Stufe alles, fix29_return_weapon()). With 30 thrown weapons the loop read behind the array;
+			 * the bound is always on (invalid memory access natively). */
+			i = 0;
+			while ((i < 30) && g_fig_dropped_weapons[i]) {
+				if (!fix29_return_weapon(i)) {
+					give_new_item_to_group(g_fig_dropped_weapons[i], 0, 1);
+				}
+				i++;
+			}
+#else
 			i = 0;
 			while (g_fig_dropped_weapons[i]) {
 				give_new_item_to_group(g_fig_dropped_weapons[i++], 0, 1);
 			}
+#endif
 
 			FIG_loot_enemies();
 

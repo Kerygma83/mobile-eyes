@@ -46,6 +46,76 @@ static const signed int g_knive_weapons[5] = {
 	-1
 }; // ds:0x616e, terminated with -1
 
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Schicksalsklinge-Bugfix Nr. 29: the whole inventory entry and the thrower of each dropped weapon */
+static struct inventory g_fig_dropped_inv[30];
+static signed char g_fig_dropped_owner[30];
+
+/**
+ * \brief   gives the thrown weapon number i back as it was thrown
+ *
+ *          Original-Bug (Schicksalsklinge-Bugfix Nr. 29): only the item ID of a thrown weapon was stored, after
+ *          the fight the group got a new one (a broken weapon came back unbroken, poison and magic_revealed were
+ *          lost). Give back the stored entry, to the thrower if possible. Stacks (Wurfstern) as before.
+ *
+ * \return  1 = given back, 0 = not possible (the caller gives a new item as before)
+ */
+signed int fix29_return_weapon(const signed int i)
+{
+	const struct inventory *inv = &g_fig_dropped_inv[i];
+	const struct item_stats *item_p;
+	struct struct_hero *hero;
+	signed int k;
+	signed int hero_pos;
+	signed int slot;
+
+	if (!BUGFIX_ALLES || (inv->item_id != g_fig_dropped_weapons[i])) {
+		return 0;
+	}
+
+	item_p = &g_itemsdat[inv->item_id];
+
+	if (item_p->flags.stackable) {
+		return 0;
+	}
+
+	for (k = -1; k <= 6; k++) {
+
+		/* first the thrower, then the others */
+		hero_pos = (k == -1) ? g_fig_dropped_owner[i] : k;
+
+		if ((hero_pos < 0) || (hero_pos > 6) || ((k != -1) && (k == g_fig_dropped_owner[i]))) {
+			continue;
+		}
+
+		hero = get_hero(hero_pos);
+
+		/* the same conditions as in give_new_item_to_hero() */
+		if (!hero->typus || (hero->group_id != gs_active_group_id) || hero->flags.dead ||
+			(hero->attrib[ATTRIB_KK].current * 100 <= hero->load) ||
+			(hero->num_filled_inv_slots >= NR_HERO_INVENTORY_SLOTS))
+		{
+			continue;
+		}
+
+		for (slot = HERO_INVENTORY_SLOT_KNAPSACK_1; slot < NR_HERO_INVENTORY_SLOTS; slot++) {
+			if (hero->inventory[slot].item_id == ITEM_NONE) {
+				break;
+			}
+		}
+
+		if (slot < NR_HERO_INVENTORY_SLOTS) {
+			hero->inventory[slot] = *inv;
+			hero->num_filled_inv_slots++;
+			hero->load += item_p->weight;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+#endif
+
 
 /**
  * \brief   check if a range attack can be done
@@ -81,6 +151,11 @@ signed int range_attack_check_ammo(struct struct_hero *hero, const signed int ar
 						 * For example, magic_revealed for the ITEM_WURFDOLCH__MAGIC might get lost.
 						 * Moreover, it would be nice to store the owner, to give it back the hero who used the ranged weapon. */
 						g_fig_dropped_weapons[g_fig_dropped_counter] = right_hand;
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 29: remember the whole entry and the thrower */
+						g_fig_dropped_inv[g_fig_dropped_counter] = hero->inventory[HERO_INVENTORY_SLOT_RIGHT_HAND];
+						g_fig_dropped_owner[g_fig_dropped_counter] = (signed char)get_hero_index(hero);
+#endif
 						g_fig_dropped_counter++;
 					}
 

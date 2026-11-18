@@ -1,5 +1,8 @@
 /* 0x20 */
 signed int range_attack_check_ammo(struct struct_hero*, const signed int);
+#ifdef M302de_ORIGINAL_BUGFIX
+signed int fix29_return_weapon(const signed int);	/* Schicksalsklinge-Bugfix Nr. 29 */
+#endif
 //0x25
 void FIG_output(char*);
 //0x2a
