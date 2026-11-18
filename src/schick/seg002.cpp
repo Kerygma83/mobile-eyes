@@ -5812,6 +5812,14 @@ signed int get_random_hero(void)
 {
 	signed int cur_hero;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 235): without a living hero in the group the loop
+	 * below never ends. */
+	if (BUGFIX_WICHTIG && !count_heroes_in_group()) {
+		return 0;
+	}
+#endif
+
 	do {
 		/* get number of current group */
 		cur_hero = random_schick(gs_group_member_counts[gs_active_group_id]) - 1;
