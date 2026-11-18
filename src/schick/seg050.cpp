@@ -552,6 +552,14 @@ void level_up(const signed int hero_pos)
 					get_ttx(416), get_ttx(417),
 					get_ttx(418)) - 1;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 248): ESC or the right mouse button gives l_si = -2; attrib[-2]
+			 * are the upper bytes of hero->money, which are incremented below (about 168000 ducats, exploit).
+			 * Cancelling repeats the question. */
+			if (BUGFIX_WICHTIG && (l_si < 0)) {
+				l_si = -2;
+			} else
+#endif
 			if (hero->attrib[l_si].normal >= 20) {
 
 				l_si = -2;
