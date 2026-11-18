@@ -192,6 +192,29 @@ void add_equip_boni(struct struct_hero *owner, struct struct_hero *equipper, con
  * \param   item        the item
  * \return              1 if the hero can use the item and 0 if not.
  */
+#ifdef M302de_ORIGINAL_BUGFIX
+/**
+ * \brief   checks if the hero type must not use the item
+ *
+ *          Original-Bug (Schicksalsklinge-Bugfix Nr. 391): the lists of witches and mages forbid all helmets,
+ *          but not the cursed helmet (ITEM_HELM__CURSED, a leather helmet). The list can not grow (data
+ *          segment), so it is checked here.
+ *
+ * \param   typus       the hero type (HERO_TYPE_...)
+ * \param   item_id     the item ID
+ * \return  1 = forbidden, 0 = allowed
+ */
+signed int fix391_forbidden(const signed int typus, const signed int item_id)
+{
+	if (is_in_int_array(item_id, g_forbidden_item_ids_table[typus - 1])) {
+		return 1;
+	}
+
+	return (BUGFIX_ALLES && (item_id == ITEM_HELM__CURSED) &&
+		((typus == HERO_TYPE_HEXE) || (typus == HERO_TYPE_MAGIER))) ? 1 : 0;
+}
+#endif
+
 signed int can_hero_use_item(const struct struct_hero *hero, const signed int item_id)
 {
 
@@ -203,7 +226,12 @@ signed int can_hero_use_item(const struct struct_hero *hero, const signed int it
 #endif
 
 	/* calculate the address of the class forbidden items array */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 391: the cursed helmet for witches and mages */
+	if (fix391_forbidden(hero->typus, item_id)) {
+#else
 	if (is_in_int_array(item_id, g_forbidden_item_ids_table[hero->typus - 1])) {
+#endif
 
 		return 0;
 	} else {

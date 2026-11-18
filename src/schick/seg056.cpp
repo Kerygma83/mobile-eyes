@@ -286,7 +286,12 @@ void buy_screen(void)
 
 					} else {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 391 */
+						if (!fix391_forbidden(hero1->typus, item_id)) {
+#else
 						if (!is_in_int_array(item_id, g_forbidden_item_ids_table[hero1->typus - 1])) {
+#endif
 
 							set_textcolor(201, 0);
 						}

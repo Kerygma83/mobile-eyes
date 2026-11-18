@@ -171,7 +171,12 @@ extern "C" EMSCRIPTEN_KEEPALIVE const char* web_heldenbogen(void)
 				"\"fest\":%d,\"art\":%d,\"verboten\":%d,\"ziel\":%d,\"magisch\":%d}",
 				s->flags.weapon, s->flags.armor, s->flags.usable, s->flags.nutrition, s->flags.herb_potion,
 				s->flags.stackable, s->flags.undropable, s->subtype,
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 391 */
+				fix391_forbidden(hero->typus, id),
+#else
 				is_in_int_array(id, g_forbidden_item_ids_table[hero->typus - 1]) ? 1 : 0,
+#endif
 				hb_ziel(id), (s->magic && hero->inventory[i].flags.magic_revealed) ? 1 : 0);
 			/* Kampfwerte: Waffe [W6, Zuschlag, KK-Zuschlag, AT, PA, Bruchfaktor des Stücks],
 			 * Rüstung [RS (abzüglich verlorenem RS), BE] */

@@ -178,8 +178,14 @@ void status_menu(signed int hero_pos)
 
 					sprintf(g_dtp2, g_extraspace_separated_strings,
 						(char*)GUI_name_singular(g_itemsname[hero1->inventory[g_statuspage_sel_inv_slot_3].item_id]),
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 391 */
+						!fix391_forbidden(hero2->typus, hero1->inventory[g_statuspage_sel_inv_slot_3].item_id) ?
+							g_empty_string8 : get_tx2(66));
+#else
 						!is_in_int_array(hero1->inventory[g_statuspage_sel_inv_slot_3].item_id,
 							g_forbidden_item_ids_table[hero2->typus - 1]) ? g_empty_string8 : get_tx2(66));
+#endif
 
 					if (g_itemsdat[hero1->inventory[g_statuspage_sel_inv_slot_3].item_id].flags.weapon) {
 						strcat(g_dtp2, get_ttx(48 + g_itemsdat[hero1->inventory[g_statuspage_sel_inv_slot_3].item_id].subtype));
@@ -371,9 +377,15 @@ void status_menu(signed int hero_pos)
 
 					sprintf(g_dtp2, g_extraspace_separated_strings2,
 						(char*)GUI_name_singular(g_itemsname[hero2->inventory[g_statuspage_sel_inv_slot_3].item_id]),
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 391 */
+						!fix391_forbidden(hero2->typus, hero2->inventory[g_statuspage_sel_inv_slot_3].item_id) ?
+							g_empty_string9 : get_tx2(66));
+#else
 						!is_in_int_array(
 						    hero2->inventory[g_statuspage_sel_inv_slot_3].item_id,
 						    g_forbidden_item_ids_table[hero2->typus - 1]) ? g_empty_string9 : get_tx2(66));
+#endif
 
 					if (g_itemsdat[hero1->inventory[g_statuspage_sel_inv_slot_3].item_id].flags.weapon) {
 

@@ -18,6 +18,10 @@ signed int can_hero_equip_item_at_slot(const signed int, const signed int);
 /* Schicksalsklinge-Bugfix Nr. 390 */
 signed int fix390_unbreakable(struct inventory*);
 #endif
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Schicksalsklinge-Bugfix Nr. 391 */
+signed int fix391_forbidden(const signed int, const signed int);
+#endif
 /* 0x48 */
 signed int where_has_hero_incomplete_stack_of_item(struct struct_hero*, const signed int);
 /* 0x4d */
