@@ -313,10 +313,23 @@ signed int DNG10_handler(void)
 		{
 			gs_dng10_mummy_lever ^= 1;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 218): Analues promises that the green ring protects from magic
+			 * fire; it protects from the burnt hands */
+			if (BUGFIX_WICHTIG && (get_first_hero_with_item(ITEM_RING__GREEN) != -1)) {
+				GUI_output(get_tx(15));
+			} else {
+				sprintf(g_dtp2, get_tx(26), hero->alias);
+				GUI_output(g_dtp2);
+
+				sub_hero_le(hero, 2);
+			}
+#else
 			sprintf(g_dtp2, get_tx(26), hero->alias);
 			GUI_output(g_dtp2);
 
 			sub_hero_le(hero, 2);
+#endif
 		}
 
 	} else if ((target_pos == DNG_POS(1,10,3) || target_pos == DNG_POS(1,7,3)) && target_pos != gs_dng_handled_pos && gs_dng10_mummy_lever)
