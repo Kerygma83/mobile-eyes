@@ -700,9 +700,10 @@
 		</section>
 		<section>
 			<h3>Fehlerkorrekturen</h3>
-			<p>Behebt Hänger und Abstürze des Originals (aus der Bugfix-Liste der Schicksalsklinge-Rekonstruktion). Wirkt sofort, Spielstände bleiben gleich.</p>
+			<p>Behebt Fehler des Originals (aus der Bugfix-Liste der Schicksalsklinge-Rekonstruktion): „An“ Hänger, Abstürze und wichtige Fehler, „Alle“ auch kleine Fehler. Wirkt sofort, Spielstände bleiben gleich.</p>
 			<div class="wahl" data-einstellung="bugfixes" aria-label="Fehlerkorrekturen">
 				<button type="button" data-wert="an">An</button>
+				<button type="button" data-wert="alle">Alle</button>
 				<button type="button" data-wert="aus">Aus (Original)</button>
 			</div>
 		</section>
@@ -1447,8 +1448,8 @@
 		// schnell: Autokampf ohne Animationen und Wartezeiten (seg005), Würfe stehen im Protokoll
 		autokampf: { lies: () => lies('autokampf') === 'schnell' ? 'schnell' : 'normal',
 			setze: (v) => { merke('autokampf', v); autokampfSetzen(); } },
-		// Fehlerkorrekturen aus docs/bugfixes.md (BrightEyes g_bugfixes; „an“ = Stufe wichtig)
-		bugfixes: { lies: () => lies('bugfixes') === 'aus' ? 'aus' : 'an',
+		// Fehlerkorrekturen aus docs/bugfixes.md (BrightEyes g_bugfixes: aus 0, an 1 = Stufe wichtig, alle 2)
+		bugfixes: { lies: () => ({ aus: 'aus', alle: 'alle' })[lies('bugfixes')] ?? 'an',
 			setze: (v) => { merke('bugfixes', v); bugfixesSetzen(); } },
 		// Wartezeit der Kampfanimation (g_delay_factor, „Rechner anpassen“ des Originals; 4 wie im Original)
 		kampftempo: { lies: () => ['2', '4', '6'].includes(lies('kampftempo')) ? lies('kampftempo') : '4',
@@ -1470,7 +1471,7 @@
 	};
 	aktionenZeigen();
 	function kampftempoSetzen() { Module._web_kampftempo?.(Number(einstellung.kampftempo.lies())); }
-	function bugfixesSetzen() { Module._web_bugfixes?.(einstellung.bugfixes.lies() === 'aus' ? 0 : 1); }
+	function bugfixesSetzen() { Module._web_bugfixes?.({ aus: 0, an: 1, alle: 2 }[einstellung.bugfixes.lies()]); }
 	function autokampfSetzen() { Module._web_fast_autofight?.(einstellung.autokampf.lies() === 'schnell' ? 1 : 0); }
 	// Protokoll läuft immer mit; die Einstellung blendet nur den Knopf aus
 	const wurflogKnopfZeigen = () => { document.getElementById('wurflog-knopf').hidden = einstellung.wurflog.lies() === 'aus'; };
