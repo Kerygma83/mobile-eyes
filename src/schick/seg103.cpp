@@ -521,8 +521,15 @@ signed int use_talent(const signed int hero_pos, signed char handicap, const sig
 								/* 35% chance: infected with Wundfieber disease */
 								sprintf(g_dtp2, get_ttx(699), hero->alias, patient->alias);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+								/* Original-Bug (Schicksalsklinge-Bugfix Nr. 258): a running disease or recovery starts again */
+								if (!BUGFIX_ALLES || (patient->disease[DISEASE_ID_WUNDFIEBER].status == DISEASE_STATUS_HEALTHY)) {
+#endif
 								patient->disease[DISEASE_ID_WUNDFIEBER].status = DISEASE_STATUS_DISEASED;
 								patient->disease[DISEASE_ID_WUNDFIEBER].time_counter = 0;
+#ifdef M302de_ORIGINAL_BUGFIX
+								}
+#endif
 
 							} else {
 								/* 65% chance: just failed, no infection */
