@@ -441,7 +441,12 @@ void do_harbor(void)
 
 				g_travel_herokeeping = 0;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 133: the NPC (slot 6) as well, as in do_tavern() */
+				for (i = 0; i < (BUGFIX_ALLES ? 7 : 6); i++) {
+#else
 				for (i = 0; i < 6; i++) {
+#endif
 					g_food_message_shown[i] = 0;
 				}
 
