@@ -408,10 +408,20 @@ void hero_disappear(struct struct_hero *hero, const signed int pos, const signed
 
 	if (pos == 6) {
 		/* NPC */
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 264): npc_id is 1..6, the file of the NPC is ARCHIVE_FILE_NPCS +
+		 * npc_id - 1 and his timer gs_npc_timers[npc_id] (as add_npc()/remove_npc()). The file of the next NPC was
+		 * overwritten (for Erwo: FINGER.NVF) and gs_npc_timers[7] written behind the array.
+		 * Invalid memory access natively, always on. */
+		save_npc(ARCHIVE_FILE_NPCS + get_hero(6)->npc_id - 1);
+
+		gs_npc_timers[get_hero(6)->npc_id] = -1;
+#else
 		save_npc(ARCHIVE_FILE_NPCS + get_hero(6)->npc_id);
 
 		/* reset NPC timer */
 		gs_npc_timers[get_hero(6)->npc_id + 1] = -1;
+#endif
 	} else {
 		/* Regular Hero */
 		write_chr_temp(pos);
