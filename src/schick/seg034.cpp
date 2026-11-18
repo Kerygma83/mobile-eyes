@@ -829,6 +829,14 @@ void FIG_move_hero(struct struct_hero *hero, const signed int hero_pos, signed i
 						FIG_set_cb_object(sel_y, sel_x, object_id_bak);
 					}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 13): in the escape case object_id_bak has not been
+					 * set in this pass, the checks below use the content of an earlier cursor position
+					 * ("ZIEL: BLOCKIERT" on an escape square). Use the content of the edge square just read. */
+					if (BUGFIX_ALLES && (escape_dir != 0)) {
+						object_id_bak = object_id_bak_escape;
+					}
+#endif
 					if (object_id_bak >= 50) {
 
 						problem = 3; /* target square blocked */
