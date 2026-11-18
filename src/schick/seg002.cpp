@@ -5315,7 +5315,10 @@ void sub_ae_splash(struct struct_hero *hero, signed int ae_cost)
 
 #ifdef M302de_ORIGINAL_BUGFIX
 		/* AE bar was not updated in pseudo 3D mode */
-		if (!g_in_fight && g_mouse1_doubleclick) {
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 280): this BrightEyes fix tested g_mouse1_doubleclick, which
+		 * has nothing to do with the screen; meant is the 3D screen (PLAYM_UK). Correction of a BrightEyes fix,
+		 * always on. */
+		if (!g_in_fight && (g_pp20_index == ARCHIVE_FILE_PLAYM_UK)) {
 			/* redraw AE bar */
 			draw_bar(1, get_hero_index(hero), hero->ae, hero->ae_max, 0);
 		}
