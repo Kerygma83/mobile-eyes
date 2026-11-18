@@ -616,6 +616,11 @@ void tevent_064(void)
 
 			GUI_output(get_tx2(70));
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 369): the direction is always reversed. Back to Umbrik in
+			 * Orvil only if the group is not already heading for Orvil. */
+			if (!BUGFIX_ALLES || ((gs_journey_destination_town_id == TOWN_ID_ORVIL) != (gs_journey_direction == JOURNEY_DIRECTION_FORWARD)))
+#endif
 			gs_journey_direction = (gs_journey_direction == JOURNEY_DIRECTION_FORWARD ? JOURNEY_DIRECTION_CHANGE_TO_BACKWARD : JOURNEY_DIRECTION_CHANGE_TO_FORWARD);
 		}
 
