@@ -247,6 +247,10 @@ signed int DNG02_handler(void)
 
 		if (weight_sum >= 4000)
 		{
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 101): the crunching is also reported if the wall is already open */
+			if (!BUGFIX_ALLES || (amap_ptr[MAP_POS(11,8)] != (DNG_TILE_CORRIDOR << 4)))
+#endif
 			GUI_output(get_tx(15));
 
 			amap_ptr[MAP_POS(11,8)] = DNG_TILE_CORRIDOR << 4;
