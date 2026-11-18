@@ -81,6 +81,21 @@ signed int DNG12_handler(void)
 		}
 	} else {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 357): the room of the water trap also includes the entrance
+		 * square (1,3,10), where the door (3,11) closes behind the group */
+		if (BUGFIX_WICHTIG ? ((gs_dungeon_level == 1) &&
+			(((gs_x_target >= 1) && (gs_x_target <= 6) && (gs_y_target >= 7) && (gs_y_target <= 9)) ||
+				((gs_x_target == 3) && (gs_y_target == 10))) &&
+			gs_dng12_watertrap_active) :
+		((	target_pos == DNG_POS(1,1,7) || target_pos == DNG_POS(1,2,7) || target_pos == DNG_POS(1,3,7) ||
+			target_pos == DNG_POS(1,4,7) || target_pos == DNG_POS(1,5,7) || target_pos == DNG_POS(1,6,7) ||
+			target_pos == DNG_POS(1,1,8) || target_pos == DNG_POS(1,2,8) || target_pos == DNG_POS(1,3,8) ||
+			target_pos == DNG_POS(1,4,8) || target_pos == DNG_POS(1,5,8) || target_pos == DNG_POS(1,6,8) ||
+			target_pos == DNG_POS(1,1,9) || target_pos == DNG_POS(1,2,9) || target_pos == DNG_POS(1,3,9) ||
+			target_pos == DNG_POS(1,4,9) || target_pos == DNG_POS(1,5,9) || target_pos == DNG_POS(1,6,9) )
+			&& gs_dng12_watertrap_active))
+#else
 		if ((	target_pos == DNG_POS(1,1,7) || target_pos == DNG_POS(1,2,7) || target_pos == DNG_POS(1,3,7) ||
 			target_pos == DNG_POS(1,4,7) || target_pos == DNG_POS(1,5,7) || target_pos == DNG_POS(1,6,7) ||
 			target_pos == DNG_POS(1,1,8) || target_pos == DNG_POS(1,2,8) || target_pos == DNG_POS(1,3,8) ||
@@ -88,9 +103,20 @@ signed int DNG12_handler(void)
 			target_pos == DNG_POS(1,1,9) || target_pos == DNG_POS(1,2,9) || target_pos == DNG_POS(1,3,9) ||
 			target_pos == DNG_POS(1,4,9) || target_pos == DNG_POS(1,5,9) || target_pos == DNG_POS(1,6,9) )
 			&& gs_dng12_watertrap_active)
+#endif
 		{
 			/* water trap room, activate */
 			gs_dng12_watertrap_water_runs = 1;
+
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 357: with the counter at 0 evaluate on every pass (message and drowning)
+			 * while heroes of the group can act, not only when the 5-minute stage changes (g_dng12_watertrap_bak is
+			 * not in the savegame; after loading, stage 0 never came) */
+			if (BUGFIX_WICHTIG && (gs_dng12_watertrap_timer == MINUTES(0)) && count_heroes_available_in_group())
+			{
+				g_dng12_watertrap_bak = -1;
+			}
+#endif
 
 			if (gs_dng12_watertrap_timer / MINUTES(5) != g_dng12_watertrap_bak)
 			{
@@ -110,6 +136,12 @@ signed int DNG12_handler(void)
 							(hero->group_id == gs_active_group_id) &&
 							!hero->flags.dead)
 						{
+#ifdef M302de_ORIGINAL_BUGFIX
+							/* Schicksalsklinge-Bugfix Nr. 357: the heroes drown (body and equipment stay) instead of being deleted */
+							if (BUGFIX_WICHTIG) {
+								sub_hero_le(hero, 5000);
+							} else
+#endif
 							hero_disappear(hero, i, -1);
 						}
 					}
