@@ -503,6 +503,12 @@ void trv_do_journey(const signed int land_route_id, const signed int reverse)
 			do_informer();
 			g_basepos_x = bak1;
 			g_basepos_y = bak2;
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 341): the meeting repeats; only once per journey */
+			if (BUGFIX_WICHTIG) {
+				gs_journey_olvir_treborn_flag = 0;
+			}
+#endif
 
 		}
 

@@ -22,6 +22,10 @@
 #include "seg103.h"
 #include "seg105.h"
 #include "seg113.h"
+#if !defined(__BORLANDC__)
+#include "seg026.h"
+#include "seg028.h"
+#endif
 
 signed char g_tmap_double1 = 0; // ds:0x7c9a, 1 = unicorn brought a piece you already have
 signed char g_tmap_double2 = 0; // ds:0x7c9b, 1 = you got a piece you already have from the unicorn
@@ -601,9 +605,24 @@ void INF_treborn_unicorn(const signed int informer, const signed int state)
 		enough_money = money >= 6000 ? 1 : 0;
 
 		if (!state) {
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 341): Treborn never appears after Algrid's hint, as "known" (1)
+			 * blocks him. He appears as long as he is not met (flag < 2). Old savegames keep "met" as 1: if the group
+			 * has his map piece or his date, he counts as met (no second first meeting with double AP). */
+			if (BUGFIX_WICHTIG) {
+				g_dialog_next_state = ((gs_informer_flags[INFORMER_ID_TREBORN] >= 2) ||
+					((gs_informer_flags[INFORMER_ID_TREBORN] == 1) && (gs_treasure_maps[7] || gs_treborn_date)) ? -1 : 1);
+			} else
+#endif
 			g_dialog_next_state = (gs_informer_flags[INFORMER_ID_TREBORN] != 0 ? -1 : 1);
 		} else if (state == 1) {
 			/* mark TREBORN KOLBERG as met */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 341: keep "met" as 2 (Osterpatch NRS) */
+			if (BUGFIX_WICHTIG) {
+				gs_informer_flags[INFORMER_ID_TREBORN] = 2;
+			} else
+#endif
 			if (!gs_informer_flags[INFORMER_ID_TREBORN]) gs_informer_flags[INFORMER_ID_TREBORN] = 1;
 		} else if (state == 5) {
 			g_dialog_next_state = (enough_money ? 7 : 8);
