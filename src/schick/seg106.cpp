@@ -203,6 +203,12 @@ void move_item(signed int inv_slot_1, signed int inv_slot_2, struct struct_hero 
 
 								GUI_output(g_dtp2);
 							} else {
+#ifdef M302de_ORIGINAL_BUGFIX
+								/* Original-Bug (Schicksalsklinge-Bugfix Nr. 398): an exchange between the hands cannot give a
+								 * two-hand collision (the other hand holds the moved item itself) */
+								if ((!BUGFIX_ALLES || !(((inv_slot_1 == HERO_INVENTORY_SLOT_RIGHT_HAND) || (inv_slot_1 == HERO_INVENTORY_SLOT_LEFT_HAND)) && ((inv_slot_2 == HERO_INVENTORY_SLOT_RIGHT_HAND) || (inv_slot_2 == HERO_INVENTORY_SLOT_LEFT_HAND)))) &&
+									two_hand_collision(hero, item_id_2, inv_slot_1)) {
+#else
 								if (two_hand_collision(hero, item_id_2, inv_slot_1)) {
 #endif
 
