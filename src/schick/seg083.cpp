@@ -293,6 +293,10 @@ signed int DNG08_handler(void)
 		for (i = tmp = 0; i < 6; i++)
 		{
 			if (gs_groups_x_target[i] == 11 && gs_groups_y_target[i] == 11 &&
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 110): the other group is only checked by x/y; it must stand in this dungeon on this level */
+				(!BUGFIX_WICHTIG || ((gs_groups_dungeon_id[i] == gs_dungeon_id) && (gs_groups_dng_level[i] == gs_dungeon_level))) &&
+#endif
 				gs_active_group_id != i)
 			{
 				tmp = 1;

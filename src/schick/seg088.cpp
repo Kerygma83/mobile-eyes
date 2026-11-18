@@ -204,12 +204,20 @@ void DNG15_riddle(void)
 	for (i = l_di = 0; i < 6; i++) {
 
 		if (pos == DNG_POS(1,8,1) && gs_groups_x_target[i] == 8 &&
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 110): the other group is only checked by x/y; it must stand in this dungeon on this level */
+			(!BUGFIX_WICHTIG || ((gs_groups_dungeon_id[i] == gs_dungeon_id) && (gs_groups_dng_level[i] == gs_dungeon_level))) &&
+#endif
 			gs_groups_y_target[i] == 5 && gs_active_group_id != i)
 		{
 			l_di = 1;
 		}
 
 		if (pos == DNG_POS(1,8,5) && gs_groups_x_target[i] == 8 &&
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 110): as above */
+			(!BUGFIX_WICHTIG || ((gs_groups_dungeon_id[i] == gs_dungeon_id) && (gs_groups_dng_level[i] == gs_dungeon_level))) &&
+#endif
 			gs_groups_y_target[i] == 1 && gs_active_group_id != i)
 		{
 			l_di = 1;
