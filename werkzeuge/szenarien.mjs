@@ -314,11 +314,13 @@ export const szenarien = [
 		// Behebungen aus der Bugfix-Liste (docs/bugfixes.md), in gezielt hergestellter Lage (web_test_fix),
 		// abschaltbar in den Einstellungen (g_bugfixes):
 		// 137 Schiffstempo 0 (Division durch 0), 221 Gegenstandsverlust ohne ablegbaren Gegenstand
-		// (Endlosschleife), 235 Zufallsheld ohne lebenden Helden (Endlosschleife)
+		// (Endlosschleife), 235 Zufallsheld ohne lebenden Helden (Endlosschleife), 333 Gerüchte in Serske
+		// (alte Zeiger), 340 Wohnort Tiomar, 391 verfluchter Helm für Hexen und Magier (340/391 prüfen Stufe
+		// alles und aus selbst)
 		name: 'Bugfixes: Hänger und Abstürze',
 		schritte: [
 			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen, ...ohneZufall,
-			...[137, 221, 235].flatMap((nr) => [
+			...[137, 221, 235, 333, 340, 391].flatMap((nr) => [
 				{ js: `Module._web_test_fix(${nr})` },
 				{ warteAuf: 'z.fix == 1', max: 3000, text: `Fix ${nr}` },
 			]),

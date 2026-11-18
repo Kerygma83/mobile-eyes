@@ -350,21 +350,21 @@ Aus `Werkzeuge/fix_schalter.tsv` des Projekts (Begründung gekürzt), dazu unser
 
 | Nr | Fehler | Schwere | Begründung dort | Status |
 |---:|---|---|---|---|
-| 2 | Wurfwaffe Schneidzahn hat keine Entfernungstabelle | mittel | braucht eine Fernkampftabelle im Datensegment | offen |
-| 139 | Hafen Hjalsingor: Route nach Overthorn fehlt in der Liste | mittel | die Hafenliste steht im Datensegment (Tabelle g_harbors_linked_sea_routes_10) | offen |
-| 140 | Hafen Leuchtturm Runin verweist auf eine Landweg-Liste | mittel | die Hafentabelle g_harbors steht im Datensegment | offen |
-| 146 | Axt-Liste für Reiseereignisse | mittel | die Axt-Liste liegt im Datensegment; welche Aexte gemeint sind, ist ausserdem nicht belegt | offen |
-| 345 | Kampf auf Spezialfeldern startet erst nach Drehen oder Menü | mittel | der Kampf startet beim ersten Drehen oder Menue; ihn schon beim Ankommen auszuloesen braucht einen eigenen Merker (Datensegment) fuer alle Wege (Treppe, … | offen |
-| 4 | Doppelgegner überschreibt beim Zug über eine Leiche deren Feldinhalt | gering | residentes Modul seg005 hat keinen Platz (die Behebung wuerde das Segment um 6 Byte verlaengern, dort gibt es keinen toten Code zum Ausgleich) | offen |
-| 29 | Geworfene Waffen werden nur als Gegenstandsnummer gemerkt | gering | braucht Platz fuer ganze Inventareintraege und Besitzer je Wurf - neue Daten im Datensegment | offen |
-| 175 | Landschaft 7 liest hinter die 7 Spalten der Begegnungstabelle | gering | Tabelle im Datensegment; welche Landschaft fuer Typ 7 gemeint war, ist nicht belegt (mit Fix 181 liest Typ 7 weiter die verschobene Spalte) | offen |
-| 204 | Hexenknoten: Grafikfehler beim zweiten Wirken | gering | Breite/Hoehe und das Zuruecksetzen bei Kampfende braeuchten neuen Speicher im Datensegment bzw. Zugriff auf eine statische Variable aus einem anderen Modul | offen |
-| 333 | Tavernengerüchte in Serske: Lesen hinter dem Dateiende | gering | Tabelle der Geruechte im Datensegment, Datenfehler | offen |
-| 340 | Informant Tiomar mit Manrin statt Brendhil eingetragen | gering | Datenfehler in der Tabelle g_informer_tab (Datensegment) | offen |
-| 374 | Berghütte: Jagd zweimal möglich | gering | do_wildcamp() setzt die Status selbst zurueck; sie zu uebernehmen braeuchte einen neuen Zustand (Datensegment) oder Eingriff in seg051 | offen |
-| 391 | Magier dürfen den verfluchten Lederhelm tragen | gering | Datenfehler (Sperrliste im Datensegment) | offen |
-| 409 | Namensbeugung: Eigennamen mit Artikel, Adjektive ungebeugt | gering | Grenze des Grammatiksystems; braucht neue Tabellen im Datensegment | offen |
-| 436 | STRASSE.LTX ist größer als der 10000-Byte-Textpuffer | gering | Puffergrenze; braucht eine andere Aufteilung der Textpuffer (Speicherplan) | offen |
+| 2 | Wurfwaffe Schneidzahn hat keine Entfernungstabelle | mittel | braucht eine Fernkampftabelle im Datensegment | erledigt (Branch bugfixes), Stufe wichtig (Entfernungstabelle von Wurfbeil/Wurfaxt) |
+| 139 | Hafen Hjalsingor: Route nach Overthorn fehlt in der Liste | mittel | die Hafenliste steht im Datensegment (Tabelle g_harbors_linked_sea_routes_10) | schon in BrightEyes behoben (Original-Bug 40, immer an) |
+| 140 | Hafen Leuchtturm Runin verweist auf eine Landweg-Liste | mittel | die Hafentabelle g_harbors steht im Datensegment | schon in BrightEyes behoben (Original-Bug 41, immer an) |
+| 146 | Axt-Liste für Reiseereignisse | mittel | die Axt-Liste liegt im Datensegment; welche Aexte gemeint sind, ist ausserdem nicht belegt | schon in BrightEyes behoben (Orknasen statt Wurfäxte, immer an) |
+| 345 | Kampf auf Spezialfeldern startet erst nach Drehen oder Menü | mittel | der Kampf startet beim ersten Drehen oder Menue; ihn schon beim Ankommen auszuloesen braucht einen eigenen Merker (Datensegment) fuer alle Wege (Treppe, … | erledigt (Branch bugfixes), Stufe wichtig (Merker in DNG_update_pos, Kampf beim nächsten DNG_step) |
+| 4 | Doppelgegner überschreibt beim Zug über eine Leiche deren Feldinhalt | gering | residentes Modul seg005 hat keinen Platz (die Behebung wuerde das Segment um 6 Byte verlaengern, dort gibt es keinen toten Code zum Ausgleich) | schon in BrightEyes behoben (Original-Bug 5, immer an) |
+| 29 | Geworfene Waffen werden nur als Gegenstandsnummer gemerkt | gering | braucht Platz fuer ganze Inventareintraege und Besitzer je Wurf - neue Daten im Datensegment | erledigt (Branch bugfixes), Stufe alles (Eintrag und Werfer gemerkt; Wurfsterne wie bisher); Grenze der Schleife immer an (nativ ungültiger Speicherzugriff bei 30 Würfen) |
+| 175 | Landschaft 7 liest hinter die 7 Spalten der Begegnungstabelle | gering | Tabelle im Datensegment; welche Landschaft fuer Typ 7 gemeint war, ist nicht belegt (mit Fix 181 liest Typ 7 weiter die verschobene Spalte) | offen (Absicht unklar: welche Landschaft gemeint war, ist nicht belegt) |
+| 204 | Hexenknoten: Grafikfehler beim zweiten Wirken | gering | Breite/Hoehe und das Zuruecksetzen bei Kampfende braeuchten neuen Speicher im Datensegment bzw. Zugriff auf eine statische Variable aus einem anderen Modul | erledigt (Branch bugfixes), immer an (nativ uninitialisierte Variable, alter Zeiger in den Kampfpuffer) |
+| 333 | Tavernengerüchte in Serske: Lesen hinter dem Dateiende | gering | Tabelle der Geruechte im Datensegment, Datenfehler | erledigt (Branch bugfixes), immer an (nativ alte Zeiger); in Serske die Gerüchte von Thorwal |
+| 340 | Informant Tiomar mit Manrin statt Brendhil eingetragen | gering | Datenfehler in der Tabelle g_informer_tab (Datensegment) | erledigt (Branch bugfixes), Stufe alles (auch im Questlog) |
+| 374 | Berghütte: Jagd zweimal möglich | gering | do_wildcamp() setzt die Status selbst zurueck; sie zu uebernehmen braeuchte einen neuen Zustand (Datensegment) oder Eingriff in seg051 | erledigt (Branch bugfixes), Stufe alles |
+| 391 | Magier dürfen den verfluchten Lederhelm tragen | gering | Datenfehler (Sperrliste im Datensegment) | erledigt (Branch bugfixes), Stufe alles, auch für Hexen (deren Liste sperrt ebenfalls alle Helme) |
+| 409 | Namensbeugung: Eigennamen mit Artikel, Adjektive ungebeugt | gering | Grenze des Grammatiksystems; braucht neue Tabellen im Datensegment | offen (Umbau des Grammatiksystems) |
+| 436 | STRASSE.LTX ist größer als der 10000-Byte-Textpuffer | gering | Puffergrenze; braucht eine andere Aufteilung der Textpuffer (Speicherplan) | erledigt (Branch bugfixes), immer an (Pufferüberlauf: eigener Puffer mit 64000 Byte) |
 
 ### Spielstand-Format (9)
 
