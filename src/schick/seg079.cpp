@@ -650,6 +650,11 @@ void DNG03_chest11_loot(struct struct_chest*)
 			} else
 #endif
 			g_game_state = GAME_STATE_DEAD;
+#ifdef M302de_ORIGINAL_BUGFIX
+		} else if (BUGFIX_ALLES && (test_failed_num == 0)) {
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 434): if nobody fell, nobody has to climb out of the pit for an hour */
+			GUI_output(get_tx(25));
+#endif
 		} else {
 			timewarp(HOURS(1));
 
