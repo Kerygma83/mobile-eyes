@@ -2228,6 +2228,44 @@ static void web_test_hooks(void)
 			get_random_hero();
 			for (int i = 0; i <= 6; i++) get_hero(i)->flags.dead = tot[i];
 			g_web_test_fix_ergebnis = 1;
+		} else if (nr == 333) {
+			/* Gerüchte in Serske (SERSKE.LTX hat keine): jedes Gerücht ist ein Text der geladenen Datei */
+			const signed int town = gs_town_id;
+			int ok = 1;
+			gs_town_id = TOWN_ID_SERSKE;
+			for (int i = 0; i < 40; i++) {
+				const char *p = load_current_town_gossip();
+				const char *anfang = (const char*)g_buffer9_ptr3 + 1000;
+				if ((p < anfang) || (p >= anfang + 64000) || !*p) ok = 0;
+			}
+			gs_town_id = town;
+			g_web_test_fix_ergebnis = ok;
+		} else if (nr == 340) {
+			/* Tiomar wohnt in Brendhil (Stufe alles) */
+			const signed int town = gs_town_id, stufe = g_bugfixes;
+			int ok;
+			g_bugfixes = 2;
+			gs_town_id = TOWN_ID_BRENDHIL;
+			ok = (informer_id_from_current_town() == INFORMER_ID_TIOMAR);
+			gs_town_id = TOWN_ID_MANRIN;
+			ok = ok && (informer_id_from_current_town() == 15);
+			g_bugfixes = 0;
+			ok = ok && (informer_id_from_current_town() == INFORMER_ID_TIOMAR);
+			gs_town_id = town; g_bugfixes = stufe;
+			g_web_test_fix_ergebnis = ok;
+		} else if (nr == 391) {
+			/* Hexen und Magier dürfen den verfluchten Helm nicht tragen (Stufe alles), andere schon */
+			struct struct_hero held = *get_hero(0);
+			const signed int stufe = g_bugfixes;
+			int ok = 1;
+			g_bugfixes = 2;
+			held.typus = HERO_TYPE_MAGIER; if (can_hero_use_item(&held, ITEM_HELM__CURSED)) ok = 0;
+			held.typus = HERO_TYPE_HEXE; if (can_hero_use_item(&held, ITEM_HELM__CURSED)) ok = 0;
+			held.typus = HERO_TYPE_KRIEGER; if (!can_hero_use_item(&held, ITEM_HELM__CURSED)) ok = 0;
+			g_bugfixes = 0;
+			held.typus = HERO_TYPE_MAGIER; if (!can_hero_use_item(&held, ITEM_HELM__CURSED)) ok = 0;
+			g_bugfixes = stufe;
+			g_web_test_fix_ergebnis = ok;
 		}
 	}
 }
