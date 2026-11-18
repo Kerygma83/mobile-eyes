@@ -436,6 +436,13 @@ void spell_eisenrost(void)
 #else
 			strcpy(g_dtp2, get_tx(89));
 #endif
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 205): full AE costs although nothing happens;
+			 * no costs, as with Bannbaladin */
+			if (BUGFIX_ALLES) {
+				g_spell_special_aecost = 0;
+			}
+#endif
 		} else {
 			/* check if weapon is already broken */
 			if (g_spelltarget_e->weapon_broken) {
