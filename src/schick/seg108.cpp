@@ -282,6 +282,13 @@ void consume(struct struct_hero *owner, struct struct_hero *consumer, const sign
 				case ITEM_TARNELE: {
 					/* Tarnelle */
 					consumer->ruhe_koerper = 1;
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 226): no text is prepared, an old text is shown;
+					 * partly, as there: an empty text opens no window */
+					if (BUGFIX_ALLES) {
+						*g_dtp2 = '\0';
+					}
+#endif
 					break;
 				}
 				}
