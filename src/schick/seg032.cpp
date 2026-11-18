@@ -983,6 +983,16 @@ signed int do_fight(const signed int fight_id)
 	}
 #endif
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 362): the curse of the gold coins counts every fight as won,
+	 * everywhere and forever. It only works in Hyggelik's ruin, where the fight is skipped without a win
+	 * (3 as with Visibili); elsewhere the group fights normally (Osterpatch NRS 2016). */
+	if (BUGFIX_WICHTIG) {
+		if (gs_dng15_took_cursed_money && (gs_dungeon_id == DUNGEON_ID_HYGGELIKS_RUINE)) {
+			return 3;
+		}
+	} else
+#endif
 	if (gs_dng15_took_cursed_money) {
 		return 0;
 	}
