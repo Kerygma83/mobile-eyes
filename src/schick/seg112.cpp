@@ -495,12 +495,21 @@ void tevent_074(void)
 
 				p_money = get_party_money();
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 162: "FUENFZEHN DUKATEN PRO PERSON" (text), not 15 D for the group */
+				if (p_money < (BUGFIX_WICHTIG ? 1500L * count_heroes_in_group() : 1500L)) {
+#else
 				if (p_money < 1500) {
+#endif
 					/* not enough money, so fight */
 					gs_tevent074_fight_flag = TRV_fight_event(FIGHTS_F074, 74);
 				} else {
 					/* pay 1500 */
+#ifdef M302de_ORIGINAL_BUGFIX
+					p_money -= (BUGFIX_WICHTIG ? 1500L * count_heroes_in_group() : 1500L);
+#else
 					p_money -= 1500;
+#endif
 					set_party_money(p_money);
 				}
 
@@ -722,12 +731,21 @@ void tevent_077(void)
 
 				p_money = get_party_money();
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 162: "FUENFZEHN DUKATEN PRO PERSON" (text), not 15 D for the group */
+				if (p_money < (BUGFIX_WICHTIG ? 1500L * count_heroes_in_group() : 1500L)) {
+#else
 				if (p_money < 1500) {
+#endif
 					/* not enough money, so fight */
 					gs_tevent077_fight_flag = TRV_fight_event(FIGHTS_F077, 77);
 				} else {
 					/* pay 1500 */
+#ifdef M302de_ORIGINAL_BUGFIX
+					p_money -= (BUGFIX_WICHTIG ? 1500L * count_heroes_in_group() : 1500L);
+#else
 					p_money -= 1500;
+#endif
 					set_party_money(p_money);
 				}
 
