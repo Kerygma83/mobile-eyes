@@ -730,6 +730,14 @@ void tevent_136(void)
 {
 	if (gs_met_unicorn_flag && gs_got_main_quest && gs_unicorn_get_map && !gs_unicorn_timer) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 414): gs_unicorn_hero_ptr is a memory address in the
+		 * savegame; after loading (a DOS savegame) it points to a wrong hero. Fix: set it again from the
+		 * saved hero position. */
+		if (BUGFIX_WICHTIG) {
+			gs_unicorn_hero_ptr = (uint8_t*)get_hero(gs_unicorn_hero_pos);
+		}
+#endif
 		do_talk(12, 1);
 		gs_met_unicorn_flag = 1;
 		gs_unicorn_get_map = 0;
