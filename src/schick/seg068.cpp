@@ -523,6 +523,36 @@ void academy_analues(void)
 	gs_in_academy = 0;
 }
 
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Original-Bug (Schicksalsklinge-Bugfix Nr. 339): the academy is paid with the first equal piece, even a broken one,
+ * not with the (intact) piece academy_get_equal_item() offered. This is the first intact piece of this kind,
+ * searched in the same order (slots 0..5 of the active group, alive). */
+static signed int fix_academy_pay_slot(const signed int item_id, struct struct_hero **p_hero)
+{
+	signed int i;
+	signed int inv_slot;
+	struct struct_hero *hero = get_hero(0);
+
+	for (i = 0; i < 6; i++, hero++) {
+
+		if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) && !hero->flags.dead)
+		{
+			for (inv_slot = 0; inv_slot < NR_HERO_INVENTORY_SLOTS; inv_slot++) {
+
+				if ((hero->inventory[inv_slot].item_id == item_id) && !hero->inventory[inv_slot].flags.broken) {
+					*p_hero = hero;
+					return inv_slot;
+				}
+			}
+		}
+	}
+
+	/* not found: as before */
+	*p_hero = get_hero(get_first_hero_with_item(item_id));
+	return inv_slot_of_item(*p_hero, item_id);
+}
+#endif
+
 void THO_academy(void)
 {
 	signed int answer;
@@ -599,8 +629,17 @@ void THO_academy(void)
 
 					} else {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 339: pay with the offered (intact) piece */
+						if (BUGFIX_WICHTIG) {
+							i = fix_academy_pay_slot(item_id, &hero);
+						} else {
+#endif
 						hero = get_hero(get_first_hero_with_item(item_id));
 						i = inv_slot_of_item(hero, item_id);
+#ifdef M302de_ORIGINAL_BUGFIX
+						}
+#endif
 
 						if (drop_item(hero, i, 1)) {
 
@@ -685,8 +724,17 @@ void THO_academy(void)
 
 					} else {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Schicksalsklinge-Bugfix Nr. 339: pay with the offered (intact) piece */
+						if (BUGFIX_WICHTIG) {
+							i = fix_academy_pay_slot(item_id, &hero);
+						} else {
+#endif
 						hero = get_hero(get_first_hero_with_item(item_id));
 						i = inv_slot_of_item(hero, item_id);
+#ifdef M302de_ORIGINAL_BUGFIX
+						}
+#endif
 
 						if (drop_item(hero, i, 1)) {
 
