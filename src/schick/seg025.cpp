@@ -320,7 +320,13 @@ void show_treasure_map(void)
 		}
 	}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 418): with only Hjore's map part 9 the group gets "no map parts
+	 * found"; part 9 counts as well (it is drawn, too) */
+	if ((count == 0) && (!BUGFIX_ALLES || !gs_treasure_maps[9])) {
+#else
 	if (count == 0) {
+#endif
 		/* no treasure map parts found */
 		GUI_output(get_ttx(609));
 	} else {
