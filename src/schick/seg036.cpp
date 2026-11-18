@@ -853,8 +853,15 @@ void AFIG_hero_turn(struct struct_hero *hero, const signed int hero_pos, signed 
 
 			FIG_search_obj_on_cb(hero_pos + 1, &hero_x, &hero_y);
 
-			if ((hero_x - 1 >= 0) && (hero_x + 1 <= 25) &&
+			if ((hero_x - 1 >= 0) &&
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 20): the board is 0..23, not 0..25 */
+				(hero_x + 1 <= (BUGFIX_ALLES ? 23 : 25)) &&
+				(hero_y -1 >= 0) && (hero_y + 1 <= (BUGFIX_ALLES ? 23 : 25)) &&
+#else
+				(hero_x + 1 <= 25) &&
 				(hero_y -1 >= 0) && (hero_y + 1 <= 25) &&
+#endif
 				(get_cb_val(hero_x, hero_y + 1) != 0) &&
 				(get_cb_val(hero_x, hero_y - 1) != 0) &&
 				(get_cb_val(hero_x + 1, hero_y) != 0) &&
