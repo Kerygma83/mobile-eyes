@@ -24,6 +24,10 @@
 #include "seg097.h"
 #include "seg103.h"
 #include "seg105.h"
+#if !defined(__BORLANDC__)
+#include "seg049.h"
+#include "seg113.h"
+#endif
 
 struct struct_chest g_dng03_specialchests[14] = {
 	{ DNG_POS(0,5,3),	0, NULL,			NULL,			DNG03_chest00_loot, 15, 0, 0 },
@@ -83,6 +87,11 @@ signed int DNG03_handler(void)
 			hero = get_hero(0);
 			for (i = 0; i <= 6; i++, hero++)
 			{
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 105): heroes of other groups (and dead ones) are hit as well */
+				if (BUGFIX_WICHTIG && ((hero->group_id != gs_active_group_id) || hero->flags.dead)) {
+				} else
+#endif
 				if ((hero->typus >= HERO_TYPE_HEXE) && hero->ae != 0) {
 
 					sub_ae_splash(hero, random_schick(6));
@@ -107,6 +116,11 @@ signed int DNG03_handler(void)
 		hero = get_hero(0);
 		for (i = 0; i <= 6; i++, hero++)
 		{
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 105): heroes of other groups (and dead ones) are hit as well */
+			if (BUGFIX_WICHTIG && ((hero->group_id != gs_active_group_id) || hero->flags.dead)) {
+			} else
+#endif
 			if ((hero->typus >= HERO_TYPE_HEXE) && hero->ae != 0) {
 
 				sub_ae_splash(hero, random_schick(6));
@@ -166,6 +180,11 @@ signed int DNG03_handler(void)
 			hero = get_hero(0);
 			for (i = 0; i <= 6; i++, hero++)
 			{
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 105): heroes of other groups (and dead ones) are hit as well */
+				if (BUGFIX_WICHTIG && ((hero->group_id != gs_active_group_id) || hero->flags.dead)) {
+				} else
+#endif
 				if ((hero->typus >= HERO_TYPE_HEXE) && hero->ae != 0) {
 
 					sub_ae_splash(hero, random_schick(6));
@@ -368,6 +387,11 @@ signed int DNG03_handler(void)
 		hero = get_hero(0);
 		for (i = 0; i <= 6; i++, hero++)
 		{
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 105): heroes of other groups (and dead ones) are hit as well */
+			if (BUGFIX_WICHTIG && ((hero->group_id != gs_active_group_id) || hero->flags.dead)) {
+			} else
+#endif
 			if ((hero->typus >= HERO_TYPE_HEXE) && hero->ae) {
 
 				sub_ae_splash(hero, random_schick(6));

@@ -386,6 +386,11 @@ void tevent_029(void)
 	hero = get_hero(0);
 	for (hero_pos = 0; hero_pos <= 6; hero_pos++, hero++)
 	{
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 105): no check of type, group and death; heroes of other groups,
+		 * dead heroes and empty slots are infected as well. Only living heroes of the active group. */
+		if (!BUGFIX_WICHTIG || ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) && !hero->flags.dead))
+#endif
 		hero_disease_test(hero, DISEASE_ID_DUMPFSCHAEDEL, 20 - (hero->attrib[ATTRIB_KK].current + hero->attrib[ATTRIB_KK].mod));
 	}
 
