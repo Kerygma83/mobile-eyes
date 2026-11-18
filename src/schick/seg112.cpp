@@ -107,7 +107,13 @@ void tevent_067(void)
 		GUI_output(get_tx2(90));
 
 		do {
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 160: text 82 ("DIE SPUR AUFNEHMEN?") belongs to tevent_066; the question
+			 * that matches the answers is text 91 */
+			answer = GUI_radio(get_tx2(BUGFIX_ALLES ? 91 : 82), 2, get_tx2(92), get_tx2(93));
+#else
 			answer = GUI_radio(get_tx2(82), 2, get_tx2(92), get_tx2(93));
+#endif
 
 		} while (answer == -1);
 
