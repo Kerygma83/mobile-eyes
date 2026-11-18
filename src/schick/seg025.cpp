@@ -198,7 +198,16 @@ void do_house(void)
 
 						hero = get_hero(i);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Original-Bug (Schicksalsklinge-Bugfix Nr. 40): the heroes of the active group are
+						 * counted too, although they are being arrested right now; unarrested is then almost
+						 * always 1, and if all other groups are in jail as well, GRP_switch_to_next() finds
+						 * no group that can act (hang).
+						 * Fix: count only heroes of other groups. */
+						if (check_hero(hero) && !hero->jail && (!BUGFIX_WICHTIG || (hero->group_id != gs_active_group_id))) {
+#else
 						if (check_hero(hero) && !hero->jail) {
+#endif
 							unarrested = 1;
 						}
 					}
