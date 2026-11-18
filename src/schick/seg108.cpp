@@ -20,6 +20,27 @@
 #include "seg097.h"
 #include "seg105.h"
 
+#ifdef M302de_ORIGINAL_BUGFIX
+/* Original-Bug (Schicksalsklinge-Bugfix Nr. 404): elixirs stack without limit (exploit). Find a running elixir
+ * effect (+5) on the same attribute of the hero, -1 if none. */
+static signed int fix404_elixir_slot(const struct struct_hero *hero, const uint8_t *ptr)
+{
+	signed int i;
+
+	if (hero->timer_id != 0) {
+		for (i = 0; i < 100; i++) {
+			if ((gs_modification_timers[i].time_left > 0) && (gs_modification_timers[i].target == hero->timer_id) &&
+				(gs_modification_timers[i].modifier == 5) &&
+				(gs_modification_timers[i].offset == (uint16_t)(ptr - (const uint8_t*)hero)))
+			{
+				return i;
+			}
+		}
+	}
+	return -1;
+}
+#endif
+
 /**
  * \brief   owner gives consumer an item from his inventory
  *
@@ -284,8 +305,17 @@ void consume(struct struct_hero *owner, struct struct_hero *consumer, const sign
 				give_new_item_to_hero(owner, ITEM_GLASFLASCHE, 2, 1);
 
 				/* Attribute +5 for 1h */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 404: if an elixir already works on this attribute, only renew its time */
+				if (BUGFIX_WICHTIG && ((tmp = fix404_elixir_slot(consumer, (uint8_t*)(&consumer->attrib[tmp2 - 1].current))) != -1)) {
+					gs_modification_timers[tmp].time_left = HOURS(1);
+				} else {
+#endif
 				tmp = get_free_mod_slot();
 				set_mod_slot(tmp, HOURS(1), (uint8_t*)(&consumer->attrib[tmp2 - 1].current), 5, (signed char)consumer_idx);
+#ifdef M302de_ORIGINAL_BUGFIX
+				}
+#endif
 
 				/* prepare output */
 				sprintf(g_dtp2, get_ttx(509), consumer->alias, get_ttx(411 + tmp2), 5);
