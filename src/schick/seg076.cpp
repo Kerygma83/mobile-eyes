@@ -623,6 +623,18 @@ signed int DNG_step(void)
 
 	} else if (g_action == ACTION_ID_DOWN)
 	{
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 90): unlike the step forward, a semipermeable wall is not
+		 * checked, so it can always be passed walking backwards. The flag of the reverse direction counts. */
+		if (BUGFIX_WICHTIG && ((dng_tile = div16(g_steptarget_back)) == DNG_TILE_SEMIPERMEABLE_WALL))
+		{
+			if (g_steptarget_back & (1 << ((gs_direction + 2) & 3)) & 0x0f)
+			{
+				DNG_timestep(-1);
+			}
+
+		} else
+#endif
 		if ((dng_tile = div16(g_steptarget_back)) != DNG_TILE_WALL &&
 				dng_tile != DNG_TILE_CLOSED_DOOR &&
 				dng_tile != DNG_TILE_REMOVABLE_WALL &&
