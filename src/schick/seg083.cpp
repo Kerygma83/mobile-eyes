@@ -322,8 +322,17 @@ signed int DNG08_handler(void)
 			}
 		}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 106): "&&" instead of "||", the group must enter the square and
+	 * turn west in the same step, so the secret door can practically not be found. Entering OR turning
+	 * (as at the secret doors in seg078). */
+	} else if (target_pos == DNG_POS(0,5,8) &&
+			(BUGFIX_WICHTIG ? (target_pos != gs_dng_handled_pos || gs_direction != gs_direction_bak) :
+				(target_pos != gs_dng_handled_pos && gs_direction != gs_direction_bak)) &&
+#else
 	} else if (target_pos == DNG_POS(0,5,8) && target_pos != gs_dng_handled_pos &&
 			gs_direction != gs_direction_bak &&
+#endif
 			gs_direction == WEST &&
 			gs_dng08_secret_door != 2)
 	{

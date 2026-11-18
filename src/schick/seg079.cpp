@@ -199,7 +199,14 @@ signed int DNG03_handler(void)
 		}
 
 	} else if (target_pos == DNG_POS(0,9,11) && (gs_direction == WEST) &&
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 106): entering AND turning in the same step is required;
+			 * entering OR turning (as at the lever (1,3,11)) */
+			(BUGFIX_WICHTIG ? (target_pos != gs_dng_handled_pos || gs_direction != gs_direction_bak) :
+				(target_pos != gs_dng_handled_pos && gs_direction != gs_direction_bak)))
+#else
 			target_pos != gs_dng_handled_pos && gs_direction != gs_direction_bak)
+#endif
 	{
 		/* LEVER: */
 		if (GUI_bool(get_tx(8)))
