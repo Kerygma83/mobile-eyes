@@ -204,6 +204,8 @@ Abhängigkeiten: 0 → 1 strikt (Tests zuerst). 2 und 3 nach 1, untereinander pa
 
 **Risiken:** Beide Projekte stammen von Bright-Eyes ab, sind aber unterschiedlich weit umbenannt → Übertragung von Hand, Eintrag für Eintrag.
 
+Liste zum Abhaken: [bugfixes.md](bugfixes.md) (284 Einträge, Stand 1.5d).
+
 **Stand (17.11.):** Geparkt. MeowMuhMuhCow hat inzwischen auch eine native SDL2-Fassung (`Nativ/`, C, Testversion, Fixes laut eigener Angabe im Spiel ungetestet). Ein Wechsel der Basis würde alle Web-Anpassungen in BrightEyes (rund 50 Commits) neu erfordern; sinnvoller ist, Korrekturen einzeln aus `s_fix.h` zu übernehmen, zuerst die kritischen (Hänger, Speicherfehler), je mit eigenem Szenario.
 
 ## Stufe 8 – Mobiles UI I: Dialoge
