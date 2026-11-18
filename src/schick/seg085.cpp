@@ -385,6 +385,11 @@ signed int DNG10_handler(void)
 					/* 2x HEALING POTION, MAGIC POTION, THROWING DAGGER and ...*/
 					give_new_item_to_group(ITEM_HEILTRANK, 1, 2);
 					give_new_item_to_group(ITEM_ZAUBERTRANK, 1, 1);
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 361): the magic throwing dagger is the reward of the dragon
+					 * for the platinum key, not of plundering the hoard (F129.DTX 35 of data patch 1.2 names no dagger) */
+					if (!BUGFIX_ALLES)
+#endif
 					give_new_item_to_group(ITEM_WURFDOLCH__MAGIC, 1, 1);
 
 					/* 200 Ducats */
