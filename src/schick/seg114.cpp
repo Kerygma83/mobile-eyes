@@ -424,7 +424,17 @@ void tevent_114(void)
 				give_new_item_to_group(ITEM_REZEPT_FUER_STARKEN_HEILTRANK, 1, 1);
 
 				/* TODO: ORIGINAL-BUG: this item could have been not taken => get_hero(-1) => SEGFAULT */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 171): if nobody could take the recipe, get_hero(-1).
+				 * Name the first available hero. Always on: natively an invalid memory access. */
+				if ((i = get_first_hero_with_item(ITEM_REZEPT_FUER_STARKEN_HEILTRANK)) != -1) {
+					hero = get_hero(i);
+				} else {
+					hero = get_first_hero_available_in_group();
+				}
+#else
 				hero = get_hero(get_first_hero_with_item(ITEM_REZEPT_FUER_STARKEN_HEILTRANK));
+#endif
 
 				sprintf(g_dtp2,	get_tx2(27), hero->alias);
 				GUI_output(g_dtp2);
