@@ -818,16 +818,13 @@ signed int use_spell(struct struct_hero* hero, const signed int selection_menu, 
 				if ((*(g_dng_map_ptr + MAP_POS(x,y)) & 0x02) == 0) {
 
 					/* flag 1 'unlocked' is not set -> door is locked  */
-					while (ptr_doors->pos != pos) {
-						/* ASSERT */
-						/*
-						if (ptr_doors->pos == -1) {
-						D1_INFO("In free call of Foramen spell: door not found. This should not happen.\n");
-						 */
-
+					/* Schicksalsklinge-Bugfix Nr. 191: the search ends at the end of the list (-1) */
+					while ((ptr_doors->pos != pos) && (ptr_doors->pos != -1)) {
 						ptr_doors++;
 					}
-					handicap += ptr_doors->foramen_handicap;
+					if (ptr_doors->pos == pos) {
+						handicap += ptr_doors->foramen_handicap;
+					}
 				}
 			}
 #endif
