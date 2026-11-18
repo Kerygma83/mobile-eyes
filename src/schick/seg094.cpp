@@ -961,6 +961,15 @@ void TM_draw_track(const signed int route_id, const signed int length, const sig
 			/* move the pointer */
 			ptr += (!direction ? 2 : -2);
 		} else {
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 145): the pointer is moved before restoring, point 0
+			 * keeps the line colour and point i+1 gets the pixel of point i. Restore first, then move. */
+			if (BUGFIX_ALLES) {
+				*(fb_start + ptr[1] * 320 + ptr[0]) = g_trv_detour_pixel_bak[i];
+				ptr += (!direction ? 2 : -2);
+				continue;
+			}
+#endif
 			/* move the pointer */
 			ptr += (!direction ? 2 : -2);
 
