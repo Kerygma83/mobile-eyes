@@ -952,9 +952,21 @@ signed int get_border_index(const unsigned char val)
 	signed int i;
 
 	i = 0;
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 299): for val >= 0xf0 the loop read behind g_mapval_to_loctype[].
+	 * In DOS the next bytes were 0x01, 0xff (g_seg066_0bad_unkn0), so the loop stopped at 13 and the result
+	 * was 12; keep that. Invalid memory access natively, always on. */
+	while ((i < 12) && (g_mapval_to_loctype[i] < val)) {
+		i++;
+	}
+	if (i == 12) {
+		i = 13;
+	}
+#else
 	while (g_mapval_to_loctype[i] < val) {
 		i++;
 	}
+#endif
 
 	g_entrance_angle = ((((val & 3) + 4) - gs_direction) & 3);
 
