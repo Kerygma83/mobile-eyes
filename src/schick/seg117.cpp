@@ -425,6 +425,19 @@ void hunt_viper(void)
 		/* hero is not dead */
 		/* check GE+0 */
 		/* Original-Bug: something was forgotten */
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 178): l_di is never changed, "if (l_di)" is always false,
+		 * the viper never bites. Remember the worst failed result, that hero is bitten. */
+		if (BUGFIX_WICHTIG) {
+			signed int result;
+			if ((hero_i->typus != HERO_TYPE_NONE) && (hero_i->group_id == gs_active_group_id) &&
+				(!hero_i->flags.dead) && ((result = test_attrib(hero_i, ATTRIB_GE, 0)) < l_di))
+			{
+				l_di = result;
+				choosen_hero = i;
+			}
+		} else
+#endif
 		if ((hero_i->typus != HERO_TYPE_NONE) && (hero_i->group_id == gs_active_group_id) &&
 			(!hero_i->flags.dead) && (test_attrib(hero_i, ATTRIB_GE, 0) < l_di))
 		{
