@@ -704,6 +704,13 @@ void TLK_old_woman(const signed int state)
 
 	} else if (state == 33) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 174): end the dialog instead of the endless loop
+		 * (probably never reached) */
+		if (BUGFIX_WICHTIG) {
+			g_dialog_done = 1;
+		} else
+#endif
 		/* Infinity-Loop */
 		do {
 		} while (1);
