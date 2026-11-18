@@ -407,7 +407,12 @@ signed int menu_enter_delete(char* ptr, const signed int entries, const signed i
 		if ((entries > 10) && (answer == i)) {
 			i_min += 10;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 46): with 20, 30, ... heroes the last page contains no hero */
+			if (BUGFIX_ALLES ? (i_min >= entries) : (i_min > entries)) {
+#else
 			if (i_min > entries) {
+#endif
 				i_min = 0;
 			}
 
