@@ -410,6 +410,22 @@ signed int FIG_select_mspell(struct enemy_sheet* enemy, const signed int enemy_n
 		available_spells++;
 	}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 22): if FIG_get_mspell() returns 0 for every spell of
+	 * the book (renegade enemy whose book has no spell for its new side, e.g. a priest with book 8),
+	 * neither done nor bp change below: endless loop. Fix: don't search at all then. */
+	if (BUGFIX_WICHTIG) {
+		for (i = cnt = 0; i < available_spells; i++) {
+			if (FIG_get_mspell(g_mon_spellbooks[enemy->spellbook_id][i], attack_foe) > 0) {
+				cnt++;
+			}
+		}
+		if (cnt == 0) {
+			return 0;
+		}
+	}
+#endif
+
 	done = 0;
 	while ((done == 0) && (enemy->bp > 0)) {
 
