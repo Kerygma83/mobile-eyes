@@ -260,6 +260,10 @@ void GRP_switch_to_next(const signed int mode)
 	signed int group;
 	signed int done = 0;
 	signed int dng_level;
+#ifdef M302de_ORIGINAL_BUGFIX
+	signed int tries = 0;
+	signed int jailed = 0;	/* 1: a group is in prison, 2: already waited until 6:00 */
+#endif
 
 	group = gs_active_group_id;
 
@@ -270,6 +274,31 @@ void GRP_switch_to_next(const signed int mode)
 		if (group == 6) {
 			group = 0;
 		}
+
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 244): if no group can act (all in prison or unable
+		 * to act), this loop never ends. Fix: after a full round, stay with the active group in the menu
+		 * (mode 0); after an event wait until 6:00 if a group is in prison (it is released then),
+		 * otherwise the game is lost. */
+		if (BUGFIX_WICHTIG && (++tries > 6)) {
+
+			tries = 0;
+
+			if ((mode != 0) && (jailed == 1)) {
+
+				timewarp_until_time_of_day(HOURS(6));
+				jailed = 2;
+
+			} else {
+				if ((mode != 0) && (jailed == 0)) {
+					g_game_state = GAME_STATE_DEAD;
+				}
+
+				group = gs_active_group_id;
+				break;
+			}
+		}
+#endif
 
 		if (gs_group_member_counts[group] != 0) {
 
@@ -282,6 +311,11 @@ void GRP_switch_to_next(const signed int mode)
 					if (get_hero(i)->jail) {
 						/* hero is in prison */
 						state = 2;
+#ifdef M302de_ORIGINAL_BUGFIX
+						if (!jailed) {
+							jailed = 1;
+						}
+#endif
 					} else {
 						/* hero is free */
 						state = 1;
