@@ -634,11 +634,27 @@ void pirates_attack(void)
 	g_max_enemies = random_interval(3, 8);
 	g_fig_discard = 1;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 327, dort teilweise): the result of do_fight() is ignored,
+	 * the equipment screen also comes after a lost fight or after VERLASSEN/LADEN */
+	if (BUGFIX_ALLES) {
+		const signed int fight_result = do_fight(FIGHTS_S001);
+
+		g_basepos_x = g_basepos_y = 0;
+
+		if (fight_result < 2) {
+			status_menu(get_hero_index(get_first_hero_available_in_group()));
+		}
+	} else {
+#endif
 	do_fight(FIGHTS_S001);
 
 	g_basepos_x = g_basepos_y = 0;
 
 	status_menu(get_hero_index(get_first_hero_available_in_group()));
+#ifdef M302de_ORIGINAL_BUGFIX
+	}
+#endif
 
 	resume_traveling();
 }
