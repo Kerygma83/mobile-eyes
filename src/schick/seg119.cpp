@@ -168,6 +168,12 @@ void disease_effect(void)
 					hero_gets_diseased(hero, DISEASE_ID_BLAUE_KEUCHE);
 				}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 266): after worsening to Blaue Keuche there is still Dumpfschaedel
+				 * damage on the same day */
+				if (BUGFIX_ALLES && (disease_ptr->status != DISEASE_STATUS_DISEASED)) {
+				} else
+#endif
 				if (disease_ptr->time_counter > dice_roll(1, 3, 4)) { /* number of days infected > D3 + 4 */
 					// Original-Bug? forgot? disease_ptr->time_counter = 0;
 					disease_ptr->status = DISEASE_STATUS_RECOVER;
