@@ -3480,6 +3480,13 @@ void sub_mod_timers(const int32_t val)
 			if (sp->target) {
 				/* target is a hero/npc */
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 229): h_index is set to -1 only once before the loop; if the
+				 * hero of a later timer is not found, the modifier is taken from the hero of an earlier timer */
+				if (BUGFIX_WICHTIG) {
+					h_index = -1;
+				}
+#endif
 				/* get the hero index from the target */
 				target = sp->target;
 				for (j = 0; j <= 6; j++) {
