@@ -204,11 +204,22 @@ void hero_gets_diseased(struct struct_hero *hero, const signed int disease_id)
 		wlog_note(WLOG_SONST, WLOG_SCHLECHT, "%s erkrankt an %s", wlog_spiel(hero->alias), wlog_spiel(get_ttx(disease_id + 0x193)));
 #endif
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 240): a new disease clears the log bytes of the suffered losses,
+		 * so recovering never gives them back (the losses become permanent); clear them only for a healthy hero */
+		if (BUGFIX_WICHTIG && (hero->disease[disease_id].status != DISEASE_STATUS_HEALTHY)) {
+			hero->disease[disease_id].status = DISEASE_STATUS_DISEASED;
+			hero->disease[disease_id].time_counter = 0;
+		} else {
+#endif
 		hero->disease[disease_id].status = DISEASE_STATUS_DISEASED;
 		hero->disease[disease_id].time_counter = 0;
 		hero->disease[disease_id].log_1 = 0;
 		hero->disease[disease_id].log_2 = 0;
 		hero->disease[disease_id].log_3 = 0;
+#ifdef M302de_ORIGINAL_BUGFIX
+		}
+#endif
 	}
 }
 
