@@ -3586,6 +3586,16 @@ signed int get_free_mod_slot(void)
 		/* set timer of slot 0 to 1 */
 		gs_modification_timers[0].time_left = 1;
 		/* subtract one from each mod timer -> timer in slot 0 will be freed. */
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 231): in a fight (g_timers_disabled) sub_mod_timers() returns at once,
+		 * slot 0 is not freed but given away again; its old modification is never taken back */
+		if (BUGFIX_ALLES) {
+			i = g_timers_disabled;
+			g_timers_disabled = 0;
+			sub_mod_timers(1);
+			g_timers_disabled = i;
+		} else
+#endif
 		sub_mod_timers(1);
 
 		/* now timer slot 0 can be used again. */
