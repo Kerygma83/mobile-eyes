@@ -1189,6 +1189,18 @@ signed int do_fight(const signed int fight_id)
 			FIG_split_ap();
 
 #ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 312): tied enemies of a won fight are written back by
+			 * write_fight_lst() and fight again on the next visit. They count as defeated. */
+			if (BUGFIX_ALLES) {
+				for (i = 0; i < 20; i++) {
+					if (g_enemy_sheets[i].flags.tied) {
+						g_enemy_sheets[i].flags.dead = 1;
+					}
+				}
+			}
+#endif
+
+#ifdef M302de_ORIGINAL_BUGFIX
 			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 9): never true, g_max_enemies has been reset to 0
 			 * after shortening the enemy list above. Check the remembered shortening. */
 			if (((BUGFIX_ALLES ? max_enemies_bak : g_max_enemies) != 0) && !g_fig_discard) {
