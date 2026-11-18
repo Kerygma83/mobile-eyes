@@ -618,6 +618,17 @@ void loot_multi_chest(uint8_t *content, char *msg)
 
 				len = strlen(temp_str);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 217): GUI_input() returns -1 on ESC, so the question cannot be
+				 * cancelled; ESC (or a negative input) takes nothing */
+				if (BUGFIX_ALLES) {
+					i = (quantity = content[pos + 1]) > 1 ? GUI_input(get_ttx(593), len) : quantity;
+
+					if (i < 0) {
+						i = 0;
+					}
+				} else
+#endif
 				do {
 					i = (quantity = content[pos + 1]) > 1 ? GUI_input(get_ttx(593), len) : quantity;
 
