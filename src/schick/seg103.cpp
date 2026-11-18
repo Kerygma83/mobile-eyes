@@ -127,7 +127,12 @@ struct struct_hero* get_proper_hero(const signed int talent_id)
 		if ((hero_i->typus != HERO_TYPE_NONE) &&
 			(hero_i->group_id == gs_active_group_id) &&
 			/* TODO: potential Original-Bug: What if petrified / unconscious etc.? */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 86): only heroes able to act */
+			(BUGFIX_ALLES ? check_hero(hero_i) : !hero_i->flags.dead)) {
+#else
 			!hero_i->flags.dead) {
+#endif
 
 			/* add current and maximum attibute values */
 			cur =	hero_i->attrib[g_talent_descriptions[talent_id].attrib1].current +

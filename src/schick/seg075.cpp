@@ -1236,7 +1236,13 @@ signed int DNG_check_climb_tools(void)
 
 		/* TODO: potential Original-Bug: What if petrified / unconscious etc.? Compare to is_staff_lvl2_in_group where check_hero is called */
 		if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) &&
-			!hero->flags.dead && (hero->typus == HERO_TYPE_MAGIER) && (hero->staff_level > 2))
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 86): only a mage able to act helps with the staff */
+			(BUGFIX_ALLES ? check_hero(hero) : !hero->flags.dead) &&
+#else
+			!hero->flags.dead &&
+#endif
+			(hero->typus == HERO_TYPE_MAGIER) && (hero->staff_level > 2))
 		{
 			return i + 1;
 		}

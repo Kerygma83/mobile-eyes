@@ -268,7 +268,12 @@ signed int DNG06_handler(void)
 			{
 				if ((hero->typus != HERO_TYPE_NONE) &&
 					(hero->group_id == gs_active_group_id) &&
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 86): only heroes able to act jump (the others are carried) */
+					(BUGFIX_ALLES ? check_hero(hero) : !hero->flags.dead) &&
+#else
 					!hero->flags.dead &&
+#endif
 					(test_talent(hero, TA_KOERPERBEHERRSCHUNG, hero->rs_bonus) <= 0))
 				{
 					sprintf(g_dtp2,	get_tx(20), hero->alias,
@@ -526,7 +531,12 @@ void DNG09_pitfall(void)
 		for (i = l3 = 0; i <= 6; i++, hero++)
 		{
 			if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) &&
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 86): only heroes able to act */
+				(BUGFIX_ALLES ? check_hero(hero) : !hero->flags.dead) && test_talent(hero, TA_GEFAHRENSINN, 4) > 0)
+#else
 				!hero->flags.dead && test_talent(hero, TA_GEFAHRENSINN, 4) > 0)
+#endif
 				/* TODO: potential Original-Bug: Why should 'petrified' or 'uncouscious' (or maybe other properties ) be o.k. here?? */
 			{
 				l3 = 1;

@@ -514,7 +514,12 @@ void octopus_attack(void)
 		for (i = 0; i <= 6; i++, hero++) {
 
 			if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) &&
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 86): petrified, unconscious ... heroes do not fight */
+				(BUGFIX_ALLES ? check_hero(hero) : !hero->flags.dead) && !overboard[i])
+#else
 				!hero->flags.dead && !overboard[i])
+#endif
 			{
 #ifdef M302de_ORIGINAL_BUGFIX
 				/* Original-Bug 22: see below */

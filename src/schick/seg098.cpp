@@ -695,7 +695,12 @@ signed int test_spell_group(const signed int spell_id, const signed char handica
 			/* Check in group */
 			(hero_i->group_id == gs_active_group_id) &&
 			/* Check if dead */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 86): only spellcasters able to act */
+			(BUGFIX_ALLES ? check_hero(hero_i) : !hero_i->flags.dead))
+#else
 			!hero_i->flags.dead)
+#endif
 			/* Original-Bug: what if petrified, sleeping, unconcious etc. */
 		{
 

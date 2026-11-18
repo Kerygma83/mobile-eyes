@@ -179,7 +179,12 @@ void do_house(void)
 		for (i = 0; i < 6; i++, hero++) {
 
 			if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) &&
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 86): only heroes able to act (not petrified, unconscious ...) */
+				(BUGFIX_ALLES ? check_hero(hero) : !hero->flags.dead) &&
+#else
 				!hero->flags.dead && /* Original-Bug: What if petrified, sleeping etc. */
+#endif
 				(test_talent(hero, TA_VERSTECKEN, -2) <= 0))
 			{
 				/* every hero must pass a sneak -2 test */
