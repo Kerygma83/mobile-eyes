@@ -626,6 +626,22 @@ void DNG03_chest11_loot(struct struct_chest*)
 			/* end of game */
 			GUI_output(get_tx(26));
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 351): the game ends also for groups outside. Only this
+			 * group is lost (as after a lost fight on a journey: hero_disappear(), then GRP_switch_to_next(2)). */
+			if (BUGFIX_WICHTIG) {
+				hero = get_hero(0);
+				for (i = 0; i <= 6; i++, hero++) {
+					if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id)) {
+						hero_disappear(hero, i, -2);
+					}
+				}
+
+				if (g_game_state == GAME_STATE_MAIN) {
+					GRP_switch_to_next(2);
+				}
+			} else
+#endif
 			g_game_state = GAME_STATE_DEAD;
 		} else {
 			timewarp(HOURS(1));
