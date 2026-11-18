@@ -302,7 +302,15 @@ void do_merchant(void)
 
 			set_audio_track(ARCHIVE_FILE_TERMS_XMI);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 338): Treborn Kolberg's shop (on a journey) shows an empty or
+			 * foreign location line; it is called "STRASSENHAENDLER" as well */
+			GUI_print_loc_line(gs_town_loc_type == LOCTYPE_MARKET ? get_ttx(679) :
+				((gs_town_typeindex == MERCHANT_TYPEINDEX_STREET_MERCHANT ||
+					(BUGFIX_ALLES && (gs_town_typeindex == MERCHANT_TYPEINDEX_TREBORN_KOLBERG))) ? get_ttx(46) : get_tx(gs_town_locdata)));
+#else
 			GUI_print_loc_line(gs_town_loc_type == LOCTYPE_MARKET ? get_ttx(679) : (gs_town_typeindex == MERCHANT_TYPEINDEX_STREET_MERCHANT ?  get_ttx(46) : get_tx(gs_town_locdata)));
+#endif
 			// typeindex MERCHANT_TYPEINDEX_STREET_MERCHANT == 93 is the street merchant from random city event 6.
 
 			g_request_refresh = refresh = 0;
@@ -391,11 +399,21 @@ void do_merchant(void)
 
 		} else if (g_action == ACTION_ID_ICON_3) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 338: at Treborn Kolberg "talk" leads back into his talk, no merchant
+			 * dialog inside the running dialog */
+			if (BUGFIX_ALLES && (gs_town_typeindex == MERCHANT_TYPEINDEX_TREBORN_KOLBERG)) {
+				done = 1;
+			} else {
+#endif
 			talk_merchant();
 
 			if (gs_merchant_kicked_flags[gs_town_typeindex]) {
 				done = 1;
 			}
+#ifdef M302de_ORIGINAL_BUGFIX
+			}
+#endif
 		}
 	}
 

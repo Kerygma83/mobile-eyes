@@ -637,6 +637,14 @@ void INF_treborn_unicorn(const signed int informer, const signed int state)
 			/* visit the shop of Treborn Kolberg */
 			gs_town_typeindex = MERCHANT_TYPEINDEX_TREBORN_KOLBERG;
 			do_merchant();
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 338): the shop overwrites text and head of the running talk;
+			 * load INFO6.TLK (as do_talk(11, 0)) and Treborn's head again */
+			if (BUGFIX_ALLES) {
+				load_informer_tlk(ARCHIVE_FILE_DIALOGS_TLK + 11);
+				load_in_head(gs_dialog_partners[0].head_id);
+			}
+#endif
 		} else if (state == 21) {
 			gs_treborn_date = 1;
 		} else if (state == 23) {
