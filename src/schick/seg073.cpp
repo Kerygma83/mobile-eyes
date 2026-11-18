@@ -611,6 +611,11 @@ char* get_drinkmate(void)
 signed int tavern_quest_infos(void)
 {
 	signed int relevant_info; /* TODO: should be initialized with 0 */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 77): relevant_info is only set if something happens, otherwise an
+	 * uninitialised value is returned. Uninitialised variable natively, always on. */
+	relevant_info = 0;
+#endif
 
 	if (!gs_heard_announce) {
 
