@@ -946,7 +946,12 @@ signed int get_full_waterskin_pos(const struct struct_hero *hero)
 	signed int i;
 
 	/* Original-BUG: should start from inventory pos 0 */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 223: also find the waterskin in the hand */
+	for (i = (BUGFIX_ALLES ? 0 : HERO_INVENTORY_SLOT_KNAPSACK_1); i < NR_HERO_INVENTORY_SLOTS; i++) {
+#else
 	for (i = HERO_INVENTORY_SLOT_KNAPSACK_1; i < NR_HERO_INVENTORY_SLOTS; i++) {
+#endif
 
 		/* look for a non-empty waterskin */
 		if ((hero->inventory[i].item_id == ITEM_WASSERSCHLAUCH) && !hero->inventory[i].flags.empty)
