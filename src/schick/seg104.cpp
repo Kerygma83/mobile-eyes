@@ -561,10 +561,21 @@ signed int talent_cure_disease(struct struct_hero *healer, struct struct_hero *p
 		}
 
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 263): this is inside 'if (is_hero_healable(patient))', so the text
+		 * file is not restored if the patient cannot be healed (dead or petrified); restore it below */
+		if (!BUGFIX_ALLES)
+#endif
 		if ((flag != 0) && (tx_file_bak != -1) && (tx_file_bak != ARCHIVE_FILE_SPELLTXT_LTX)) {
 			load_tx(tx_file_bak);
 		}
 	}
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 263 */
+	if (BUGFIX_ALLES && (flag != 0) && (tx_file_bak != -1) && (tx_file_bak != ARCHIVE_FILE_SPELLTXT_LTX)) {
+		load_tx(tx_file_bak);
+	}
+#endif
 
 	return retval;
 }
