@@ -548,6 +548,12 @@ signed int drop_item(struct struct_hero *hero, const signed int inv_slot, signed
 			/* this item is droppable */
 			if (p_item->flags.stackable) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 394): the quantity is asked also for a single piece */
+				if (BUGFIX_ALLES && (quantity == -1) && (hero->inventory[inv_slot].quantity == 1)) {
+					quantity = 1;
+				}
+#endif
 				if (quantity == -1) {
 					sprintf(g_dtp2,	get_ttx(219), (char*)GUI_names_grammar(6, item_id, 0));
 
