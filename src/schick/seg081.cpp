@@ -103,6 +103,15 @@ signed int DNG06_handler(void)
 
 	} else if (target_pos == DNG_POS(0,2,1) && target_pos != gs_dng_handled_pos)
 	{
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 109): only the slots 0 and 1 are counted. Hit the first two
+		 * heroes able to act of the group. */
+		if (BUGFIX_ALLES) {
+			hero_first = get_first_hero_available_in_group();
+			hero_second = (struct struct_hero*)get_second_hero_available_in_group();
+			l3 = (hero_second != NULL ? 2 : 1);
+		} else {
+#endif
 		hero = get_hero(0);
 		for (i = l3 = 0; i < 2; i++, hero++)
 		{
@@ -117,6 +126,14 @@ signed int DNG06_handler(void)
 		{
 			hero_second = (struct struct_hero*)get_second_hero_available_in_group();
 		}
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Schicksalsklinge-Bugfix Nr. 109: with l3 == 0 the text "%s UND %s WAREN" reads the uninitialised
+		 * pointer hero_second. Invalid memory access, always on: name only the first hero. */
+		if (l3 == 0) {
+			l3 = 1;
+		}
+		}
+#endif
 
 		sprintf(g_dtp2, (char*)(l3 == 1 ? g_str_s_war : g_str_s_und_s_waren),
 			hero_first->alias, hero_second->alias);
