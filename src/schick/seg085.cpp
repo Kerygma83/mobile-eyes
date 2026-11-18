@@ -238,6 +238,12 @@ signed int DNG10_handler(void)
 		{
 			answer = GUI_input(get_tx(18), 6) * 10;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 117): ESC (-1) gives -10, passes the money test and
+			 * adds 1 silver piece to the party money. Nothing is thrown in for answer <= 0. */
+			if (BUGFIX_WICHTIG && (answer <= 0)) {
+			} else
+#endif
 			if (get_party_money() < answer)
 			{
 				GUI_output(get_ttx(401));
