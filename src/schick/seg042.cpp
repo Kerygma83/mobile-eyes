@@ -514,6 +514,13 @@ void FIG_do_hero_action(struct struct_hero* hero, const signed int hero_pos)
 
 						if ((critical_failure_roll_2d6 >= 3) && (critical_failure_roll_2d6 <= 8)) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+							/* Original-Bug (Schicksalsklinge-Bugfix Nr. 32): the free attack is made by the attacker,
+							 * so animate him */
+							if (BUGFIX_ALLES) {
+								g_fig_critical_fail_backfire_2 = 1;
+							} else
+#endif
 							g_fig_critical_fail_backfire_1 = 1;
 							/* Maybe the intention was:
 							 * g_fig_critical_fail_backfire_2 = 1
