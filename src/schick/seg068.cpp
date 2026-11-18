@@ -534,7 +534,13 @@ void THO_academy(void)
 
 	/* find the position of the first cursed (=renegade) hero */
 	hero = get_hero(0);
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 68): 0 also means "nobody is cursed", so a cursed hero in slot 0
+	 * is not recognized; -1 = nobody */
+	for (i = 0, cursed_hero_pos = (BUGFIX_WICHTIG ? -1 : 0); i <= 6; i++, hero++) {
+#else
 	for (i = cursed_hero_pos = 0; i <= 6; i++, hero++) {
+#endif
 
 		if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) && hero->flags.renegade)
 		{
@@ -552,7 +558,12 @@ void THO_academy(void)
 
 		/* remove curse */
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Schicksalsklinge-Bugfix Nr. 68 */
+		if (cursed_hero_pos == (BUGFIX_WICHTIG ? -1 : 0)) {
+#else
 		if (cursed_hero_pos == 0) {
+#endif
 
 			GUI_input(get_tx2(67), 0);
 
