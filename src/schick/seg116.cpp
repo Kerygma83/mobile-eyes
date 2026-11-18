@@ -314,7 +314,18 @@ void tevent_135(void)
 					GUI_output(g_dtp2);
 				}
 
-				if (count_heroes_available_in_group()) { /* potential Original-Bug: Does this make sense if there is only the NPC left? (Can it happen?) */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 80): if only the NPC is left, he does not try
+				 * again; game_loop() checks the group (the NPC alone cannot act on his own). */
+				if (BUGFIX_WICHTIG) {
+					g_check_party = 1;
+				}
+				if (BUGFIX_WICHTIG ? (count_heroes_available_in_group() > is_hero_available_in_group(get_hero(6)))
+					: count_heroes_available_in_group())
+#else
+				if (count_heroes_available_in_group()) /* potential Original-Bug: Does this make sense if there is only the NPC left? (Can it happen?) */
+#endif
+				{
 
 					if (!GUI_bool(get_tx2(59))) {
 						done = 1;

@@ -375,6 +375,13 @@ void hero_disappear(struct struct_hero *hero, const signed int pos, const signed
 	if (!gs_total_hero_counter) {
 		g_game_state = GAME_STATE_DEAD;
 	}
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 80): if only the NPC is left, the game goes on with him
+	 * alone. Fix: let game_loop() check the groups (the NPC alone does not count there). */
+	if (BUGFIX_WICHTIG) {
+		g_check_party = 1;
+	}
+#endif
 
 	/* decrement group counter */
 	gs_group_member_counts[gs_active_group_id]--;
