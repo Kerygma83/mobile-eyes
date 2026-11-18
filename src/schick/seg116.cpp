@@ -618,7 +618,13 @@ void tevent_144(void)
 				grimring_hero_pos = get_first_hero_with_item(ITEM_GRIMRING);
 
 				if (grimring_hero_pos == -1) {
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 38): Grimring was put away, then hero 0 fights,
+					 * even if not in the group or unable to fight. Take the first available hero of the group. */
+					grimring_hero_pos = BUGFIX_WICHTIG ? get_hero_index(get_first_hero_available_in_group()) : 0;
+#else
 					grimring_hero_pos = 0;
+#endif
 				}
 
 				if (grimring_hero_pos == 6) {
