@@ -852,6 +852,22 @@ void FIG_menu(struct struct_hero *hero, const signed int hero_pos, signed int x,
 						hero->target_object_id = 0;
 						done = 0;
 					}
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 322): the repeated melee attack is not checked for
+					 * the target still standing next to the hero, so the hero hits from afar ("Schattenboxen").
+					 * Allowed only if the target (head or tail of a double-size enemy) is adjacent. */
+					else if (BUGFIX_WICHTIG && (hero->action_id == FIG_ACTION_MELEE_ATTACK) &&
+						!(FIG_search_obj_on_cb(hero->target_object_id, &target_x, &target_y) &&
+							(manhattan_distance(x, y, target_x, target_y) < 2)) &&
+						!((hero->target_object_id >= 10) && (hero->target_object_id < 30) &&
+							FIG_search_obj_on_cb(hero->target_object_id + 20, &target_x, &target_y) &&
+							(manhattan_distance(x, y, target_x, target_y) < 2)))
+					{
+						hero->action_id = FIG_ACTION_WAIT;
+						hero->target_object_id = 0;
+						done = 0;
+					}
+#endif
 				}
 			}
 		}
