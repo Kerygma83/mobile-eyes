@@ -212,7 +212,13 @@ signed int diary_print_entry(signed int line)
 	g_pic_copy.x1 = 0;
 	g_pic_copy.y1 = 0;
 	g_pic_copy.x2 = 319;
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 288): only the printed lines are copied, meant was
+	 * (line - startline) * 7 */
+	g_pic_copy.y2 = (BUGFIX_ALLES ? (line - startline) : line) * 7;
+#else
 	g_pic_copy.y2 = line * 7;
+#endif
 	g_pic_copy.src = (uint8_t*)g_buffer9_ptr;
 	g_pic_copy.dst = &g_renderbuf_ptr[(startline * 2240) + 9600];
 	do_pic_copy(2);
