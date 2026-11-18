@@ -348,6 +348,30 @@ char* load_current_town_gossip(void)
 {
 	signed int gossip_id;
 	char **ptr;
+#ifdef M302de_ORIGINAL_BUGFIX
+	signed int town_bak;
+#endif
+
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 333): the table expects 14 rumours from text 6 on, but
+	 * SERSKE.LTX has only 5 texts; the pointers behind them were left over from earlier contents of the
+	 * buffer. Invalid memory access natively, always on. In Serske people tell the rumours of Thorwal
+	 * (the list of Serske also names the informers of Thorwal). */
+	if (gs_town_id == TOWN_ID_SERSKE) {
+
+		town_bak = gs_town_id;
+		gs_town_id = TOWN_ID_THORWAL;
+
+		load_ltx(gs_town_id + ARCHIVE_FILE_CITY_LTX);
+		g_area_prepared = g_current_ani = -1;
+		ptr = (char**)g_buffer9_ptr3;
+		gossip_id = get_tavern_gossip();
+
+		gs_town_id = town_bak;
+
+		return ptr[gossip_id];
+	}
+#endif
 
 	/* load TOWN.LTX */
 	load_ltx(gs_town_id + ARCHIVE_FILE_CITY_LTX);
