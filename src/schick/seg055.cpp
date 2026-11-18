@@ -432,6 +432,11 @@ void TLK_khandel(const signed int state)
 	} else if (state == 8) {
 		g_dialog_next_state = (random_schick(20) <= 3 ? 9 : -1);
 	} else if (state == 11) {
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 53): the "especially good price" makes selling worse
+		 * (g_price_modificator = 3 gives only 75 % in sell_screen()) */
+		if (!BUGFIX_WICHTIG)
+#endif
 		g_price_modificator = 3;
 	} else if (state == 12) {
 		/* test CH+4 */
@@ -467,6 +472,10 @@ void TLK_whandel(const signed int state)
 		if (test_talent(get_first_hero_available_in_group(), TA_FEILSCHEN, 0) > 0) {
 
 			g_dialog_next_state = 23;
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 53: successful haggling does not make selling worse any more */
+			if (!BUGFIX_WICHTIG)
+#endif
 			g_price_modificator = 3;
 		} else {
 			g_dialog_next_state = 24;
