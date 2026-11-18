@@ -299,7 +299,12 @@ void DNG13_collapsing_ceiling(void)
 		}
 
 		/* if all items are available, it takes 6 hours instead of one day */
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 122): the opposite; with tools 6 hours, without one day */
+		timewarp((BUGFIX_WICHTIG ? has_items : (has_items == 0)) ? HOURS(6) : DAYS(1));
+#else
 		timewarp(has_items == 0 ? HOURS(6) : DAYS(1));
+#endif
 	}
 }
 

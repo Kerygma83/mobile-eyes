@@ -719,7 +719,12 @@ void DNG15_clear_way(uint8_t* ptr)
 	}
 
 	/* ... the group saves 30 minutes ingame time. */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 122): the opposite; with tools 30 minutes, without one hour */
+	timewarp((BUGFIX_WICHTIG ? i : !i) ? MINUTES(30) : HOURS(1));
+#else
 	timewarp(!i ? MINUTES(30) : HOURS(1));
+#endif
 
 	/* With aprobability of 60% the ceiling crashes down. */
 	if (random_schick(100) <= 60)
