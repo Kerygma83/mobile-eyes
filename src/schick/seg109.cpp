@@ -293,7 +293,8 @@ void TRV_found_replenish_place(const signed int a0)
 		 *		 To be prepared, clear these arrays for all heroes.
 		*/
 #ifdef M302de_ORIGINAL_BUGFIX
-		for (hero_pos = 0; hero_pos <= 7; hero_pos++) {
+		/* Schicksalsklinge-Bugfix Nr. 148: hero_pos <= 7 wrote index 7, the status arrays have 7 entries */
+		for (hero_pos = 0; hero_pos < 7; hero_pos++) {
 
 			g_wildcamp_replstatus[hero_pos] =
 				g_wildcamp_herbstatus[hero_pos] =
