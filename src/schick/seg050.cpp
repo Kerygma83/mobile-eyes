@@ -599,6 +599,13 @@ void level_up(const signed int hero_pos)
 					get_ttx(423), get_ttx(424),
 					get_ttx(425)) - 1;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 249): ESC or the right mouse button gives l_si = -2, i.e.
+			 * attrib[5] = IN, which the hero then tries to lower. Cancelling repeats the question. */
+			if (BUGFIX_WICHTIG && (l_si < 0)) {
+				l_si = -2;
+			} else
+#endif
 			if (hero->attrib[l_si + 7].normal <= 2) {
 
 				l_si = -2;
