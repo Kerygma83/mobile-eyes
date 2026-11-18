@@ -631,7 +631,13 @@ void GRP_move_hero(const signed int src_pos)
 		do_pic_copy(0);
 
 		dst_pos = 6;
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 298): for mouse x < 3 the loop read before g_hero_pic_posx[];
+		 * stop at 0 (the result was clamped to 0 below anyway). Invalid memory access natively, always on. */
+		while ((--dst_pos > 0) && (g_hero_pic_posx[dst_pos] > g_mouse_posx))
+#else
 		while (g_hero_pic_posx[--dst_pos] > g_mouse_posx)
+#endif
 		{
 			;
 		}
