@@ -109,7 +109,12 @@ void do_tavern(void)
 			talk_tavern();
 			p_money_after = get_party_money();
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 343): a gain is shown as a senseless expense; only show an expense */
+			if (BUGFIX_ALLES ? (p_money_before > p_money_after) : (p_money_before != p_money_after)) {
+#else
 			if (p_money_before != p_money_after) {
+#endif
 
 				make_valuta_str(g_text_output_buf, p_money_before - p_money_after);
 				sprintf(g_dtp2, get_ttx(825), g_text_output_buf);
