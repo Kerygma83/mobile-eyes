@@ -486,8 +486,19 @@ signed int TRV_ferry(char *msg, signed int price)
 	signed int answer;
 	const signed int heroes_num = count_heroes_in_group();
 	uint32_t p_money;
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 152 */
+	const signed int base_price = price;
+#endif
 
 	do {
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 152): the price is multiplied on every try without
+		 * enough money. Compute it from the base price each time. */
+		if (BUGFIX_WICHTIG) {
+			price = base_price;
+		}
+#endif
 
 		sprintf(g_dtp2, get_tx(28), (char*)msg, price, 5 * price);
 
