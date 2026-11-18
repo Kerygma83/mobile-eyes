@@ -703,7 +703,12 @@ void tevent_100(void)
 
 					tmp = get_free_mod_slot();
 
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 254): as in seg080 */
+					set_mod_slot(tmp, DAYS(1), (uint8_t*)&hero->attrib[ATTRIB_GE].current, -2, BUGFIX_WICHTIG ? (signed char)get_hero_index(hero) : 0);
+#else
 					set_mod_slot(tmp, DAYS(1), (uint8_t*)&hero->attrib[ATTRIB_GE].current, -2, 0);
+#endif
 
 					timewarp(MINUTES(15));
 

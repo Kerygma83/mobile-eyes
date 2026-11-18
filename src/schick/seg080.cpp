@@ -372,7 +372,13 @@ signed int DNG05_handler(void)
 			GUI_output(get_tx(16));
 
 			tmp = get_free_mod_slot();
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 254): who = 0, but hero is the first available hero; the modification
+			 * is stored relative to hero 0 and undone wrongly when the heroes are sorted. who = position of this hero. */
+			set_mod_slot(tmp, DAYS(1), (uint8_t*)&hero->attrib[ATTRIB_CH].current, -5, BUGFIX_WICHTIG ? (signed char)get_hero_index(hero) : 0);
+#else
 			set_mod_slot(tmp, DAYS(1), (uint8_t*)&hero->attrib[ATTRIB_CH].current, -5, 0);
+#endif
 
 			add_party_money(20L);
 		}
