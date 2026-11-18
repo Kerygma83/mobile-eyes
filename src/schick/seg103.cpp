@@ -725,7 +725,13 @@ signed int bargain(const struct struct_hero *hero, const signed int items, const
 	signed char handicap = handicap_init;
 
 	/* NPC Harika gets a bonus on bargain */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 78): Harika helps although she is not in the active group or unable to act */
+	if ((get_hero(6)->npc_id == NPC_HARIKA) &&
+		(!BUGFIX_ALLES || ((get_hero(6)->group_id == gs_active_group_id) && check_hero(get_hero(6))))) {
+#else
 	if (get_hero(6)->npc_id == NPC_HARIKA) {
+#endif
 		handicap -= 2;
 	}
 
