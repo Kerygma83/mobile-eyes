@@ -59,7 +59,18 @@ signed int DNG01_handler(void)
 	{
 		DNG_fallpit_test(6);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	} else if (BUGFIX_WICHTIG && ((target_pos == DNG_POS(1,2,9)) || (target_pos == DNG_POS(1,14,5))))
+	{
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 433): the trapdoors trigger beside the pit and push the group
+		 * one square on (at (1,14,5) into the wall). They trigger on the square of the pit, (1,2,9) and (1,14,5),
+		 * without moving the group; coordinates as in the Osterpatch of NRS, fitting SHIP.DNG of data patch 1.2. */
+		DNG_fallpit_test(6);
+
+	} else if (!BUGFIX_WICHTIG && (target_pos == DNG_POS(1,3,9)))
+#else
 	} else if (target_pos == DNG_POS(1,3,9))
+#endif
 	{
 		gs_x_target--;
 		DNG_fallpit_test(6);
