@@ -375,6 +375,11 @@ void tevent_029(void)
 
 	load_in_head(51);
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 371): end-of-road/Orkland text 74 without checking the direction;
+	 * only on the way to Phexcaer */
+	if (!BUGFIX_ALLES || ((gs_journey_destination_town_id == TOWN_ID_PHEXCAER) == (gs_journey_direction == JOURNEY_DIRECTION_FORWARD)))
+#endif
 	GUI_dialog_na(0, get_tx2(74));
 	GUI_dialog_na(0, get_tx2(75));
 
