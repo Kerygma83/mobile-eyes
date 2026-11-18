@@ -548,8 +548,15 @@ lab04:
 
 			if (hero1->inventory[pos1].quantity > 1) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 306): "WIE VIELE DER %d %s" needs the 2nd case
+				 * (5 = plural, 2nd case), not the 4th (6) */
+				sprintf(g_dtp2,	get_ttx(210), hero1->inventory[pos1].quantity,
+					(char*)GUI_names_grammar(BUGFIX_ALLES ? 5 : 6, item_id1, 0), hero2->alias);
+#else
 				sprintf(g_dtp2,	get_ttx(210), hero1->inventory[pos1].quantity,
 					(char*)GUI_names_grammar(6, item_id1, 0), hero2->alias);
+#endif
 
 
 				stackable_quant = GUI_input(g_dtp2, 2);
@@ -667,8 +674,15 @@ lab04:
 
 		if (hero1->inventory[pos1].quantity > 1) {
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 306): "WIE VIELE DER %d %s" needs the 2nd case
+			 * (5 = plural, 2nd case), not the 4th (6) */
+			sprintf(g_dtp2,	get_ttx(210), hero1->inventory[pos1].quantity,
+				(char*)GUI_names_grammar(BUGFIX_ALLES ? 5 : 6, item_id1, 0), hero2->alias);
+#else
 			sprintf(g_dtp2,	get_ttx(210), hero1->inventory[pos1].quantity,
 				(char*)GUI_names_grammar(6, item_id1, 0), hero2->alias);
+#endif
 
 
 			stackable_quant = GUI_input(g_dtp2, 2);
