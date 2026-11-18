@@ -464,6 +464,11 @@ void remove_npc(const signed int head_index, const signed char days,
 		GUI_dialogbox((uint8_t*)g_dtp2, name, text, 0);
 	}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 256): check_hero() is called after memset() below and always gives 0,
+	 * so the timer always becomes -1 and the NPC never comes back; remember the state before clearing */
+	const signed int npc_ok = check_hero(get_hero(6));
+#endif
 	/* clear the NPC from memory */
 	memset((void*)get_hero(6), 0, sizeof(struct struct_hero));
 
@@ -477,7 +482,12 @@ void remove_npc(const signed int head_index, const signed char days,
 
 	/* TODO:	check_hero() will now, after memset() return 0,
 			so the parameter days is useless */
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 256 */
+	if (BUGFIX_WICHTIG ? npc_ok : check_hero(get_hero(6)))
+#else
 	if (check_hero(get_hero(6)))
+#endif
 		gs_npc_timers[index - ARCHIVE_FILE_NPCS + 1] = days;
 	else
 		gs_npc_timers[index - ARCHIVE_FILE_NPCS + 1] = -1;
