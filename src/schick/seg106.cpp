@@ -149,6 +149,14 @@ void move_item(signed int inv_slot_1, signed int inv_slot_2, struct struct_hero 
 					if ((item_id_2 == item_id_1) && g_itemsdat[item_id_1].flags.stackable) {
 						/* merge them */
 
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Original-Bug (Schicksalsklinge-Bugfix Nr. 220): the stack may become bigger than STACK_SIZE_MAX;
+						 * at most 99, the rest stays in the other slot */
+						if (BUGFIX_WICHTIG && (hero->inventory[inv_slot_1].quantity + hero->inventory[inv_slot_2].quantity > STACK_SIZE_MAX)) {
+							hero->inventory[inv_slot_2].quantity -= STACK_SIZE_MAX - hero->inventory[inv_slot_1].quantity;
+							hero->inventory[inv_slot_1].quantity = STACK_SIZE_MAX;
+						} else {
+#endif
 						/* add quantity of item at inv_slot_2 to item at inv_slot_1 */
 						hero->inventory[inv_slot_1].quantity += hero->inventory[inv_slot_2].quantity;
 						/* Original-Bug: Might result in a stack size bigger than STACK_SIZE_MAX */
@@ -158,6 +166,7 @@ void move_item(signed int inv_slot_1, signed int inv_slot_2, struct struct_hero 
 #ifdef M302de_ORIGINAL_BUGFIX
 						/* Decrement the item counter */
 						hero->num_filled_inv_slots--;
+						}
 #endif
 					} else {
 						if (!can_hero_use_item(hero, item_id_2)) {
@@ -210,6 +219,13 @@ void move_item(signed int inv_slot_1, signed int inv_slot_2, struct struct_hero 
 			if ((item_id_2 == item_id_1) && g_itemsdat[item_id_1].flags.stackable) {
 				/* merge them */
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 220: at most 99 */
+				if (BUGFIX_WICHTIG && (hero->inventory[inv_slot_1].quantity + hero->inventory[inv_slot_2].quantity > STACK_SIZE_MAX)) {
+					hero->inventory[inv_slot_2].quantity -= STACK_SIZE_MAX - hero->inventory[inv_slot_1].quantity;
+					hero->inventory[inv_slot_1].quantity = STACK_SIZE_MAX;
+				} else {
+#endif
 				/* add quantity of item at inv_slot_2 to item at inv_slot_1 */
 				hero->inventory[inv_slot_1].quantity += hero->inventory[inv_slot_2].quantity;
 
@@ -218,6 +234,7 @@ void move_item(signed int inv_slot_1, signed int inv_slot_2, struct struct_hero 
 #ifdef M302de_ORIGINAL_BUGFIX
 				/* Decrement the item counter */
 				hero->num_filled_inv_slots--;
+				}
 #endif
 			} else {
 
@@ -553,8 +570,16 @@ lab04:
 				hero1->load += item_weight2;
 
 				/* item counter */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 220: this is an exchange, both heroes keep their number of filled slots */
+				if (!BUGFIX_WICHTIG) {
+					hero1->num_filled_inv_slots--;
+					hero2->num_filled_inv_slots++;
+				}
+#else
 				hero1->num_filled_inv_slots--;
 				hero2->num_filled_inv_slots++;
+#endif
 
 				/* special items */
 				if (item_id2 == ITEM_SICHEL__MAGIC) {
@@ -604,6 +629,12 @@ lab04:
 			hero2->load += item1_desc->weight * stackable_quant;
 			hero2->inventory[pos2].quantity = stackable_quant;
 			drop_item(hero1, pos1, stackable_quant);
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 220: the new stack of the receiver takes a slot */
+			if (BUGFIX_WICHTIG) {
+				hero2->num_filled_inv_slots++;
+			}
+#endif
 
 		} else {
 			sprintf(g_dtp2,	get_ttx(779), hero2->alias);
