@@ -139,7 +139,12 @@ void disease_effect(void)
 					}
 				}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 265): random_schick(100) < 5 is 4 %, not the intended 5 % */
+				if (BUGFIX_ALLES ? (random_schick(100) <= 5) : (random_schick(100) < 5)) {
+#else
 				if (random_schick(100) < 5) {
+#endif
 					/* 5% chance of worsening to Blaue Keuche */
 
                                         /* remove the effect of Dumpfschaedel */
