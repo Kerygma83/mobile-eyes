@@ -96,8 +96,21 @@ void use_item(const signed int inv_slot, const signed int hero_pos)
 				GUI_output(get_ttx(638));
 			} else {
 				/* usable item, but not poison, herb, or potion */
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Original-Bug (Schicksalsklinge-Bugfix Nr. 214): items with an index outside the use table (magic bastard
+				 * sword) are marked usable; the handler is read behind g_usable_items_table and called. They count as
+				 * not usable. Invalid memory access natively, always on. */
+				if ((g_used_item_desc->table_index < 0) || (g_used_item_desc->table_index >= 14)) {
+					sprintf(g_dtp2, get_ttx(571), GUI_names_grammar(0, g_used_item_id, 0));
+					GUI_output(g_dtp2);
+				} else {
+					func = g_use_item_handlers[g_usable_items_table[g_used_item_desc->table_index].handler_id];
+					func();
+				}
+#else
 				func = g_use_item_handlers[g_usable_items_table[g_used_item_desc->table_index].handler_id];
 				func();
+#endif
 			}
 	}
 }
