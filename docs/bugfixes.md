@@ -316,24 +316,24 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 |---:|---|:---:|---|---|---|---|---|
 | 309 | Fehlgeschlagener Start von GEN.EXE: Spiel läuft ohne Puffer weiter | W | krit. |  | nach dem Aufraeumen beenden statt ohne Puffer weiterzulaufen | seg120 | entfällt (Web: eigene Heldenerschaffung) |
 | 414 | ⚑ Einhorn: Held als Zeiger im Spielstand (dort teilweise) | W | mittel |  | Heldenzeiger aus der gespeicherten Heldenposition neu setzen, der Speicherzeiger im Spielstand gilt nach dem Laden nicht mehr | seg116 | erledigt (Branch bugfixes) |
-| 275 | Übertrag der Subtraktion fehlt im High-Word der Titellänge | A | gering |  | 32 Bit rechnen, der Uebertrag geht ins High-Word | seg001 | offen |
-| 280 | Bright-Eyes-Fix für die AE-Leiste prüft den falschen Merker | A | gering | BE | AE-Leiste ausserhalb des Kampfes im 3D-Bildschirm neu zeichnen | seg002 | offen |
-| 281 | Anschnitt oben vergrößert die Bildhöhe, statt sie zu verkleinern (3 Stellen) | A | gering |  | Anschnitt oben verkleinert die Hoehe | seg003, seg066, seg075 | offen |
+| 275 | Übertrag der Subtraktion fehlt im High-Word der Titellänge | A | gering |  | 32 Bit rechnen, der Uebertrag geht ins High-Word | seg001 | entfällt (CD-Treiber nur unter DOS; nativ spielt die Seite die Musik) |
+| 280 | Bright-Eyes-Fix für die AE-Leiste prüft den falschen Merker | A | gering | BE | AE-Leiste ausserhalb des Kampfes im 3D-Bildschirm neu zeichnen | seg002 | erledigt (Branch bugfixes), immer an (Korrektur eines BrightEyes-Fixes) |
+| 281 | Anschnitt oben vergrößert die Bildhöhe, statt sie zu verkleinern (3 Stellen) | A | gering |  | Anschnitt oben verkleinert die Hoehe | seg003, seg066, seg075 | erledigt (Branch bugfixes), Stufe alles |
 | 282 | Wanduhr: Position läuft bis 84, Tabelle hat nur 81 Werte | A | gering | BE | Teiler 810 = HOURS(12) / 80, die Positionen bleiben in 0..80 | seg004 | erledigt (BrightEyes 2b9735db) |
-| 284 | Zufallszahl kann 0 oder negativ werden | A | gering |  | ohne Vorzeichen rechnen (__abs__(-32768) bleibt negativ); Startwert wie bisher | seg007 | offen |
+| 284 | Zufallszahl kann 0 oder negativ werden | A | gering |  | ohne Vorzeichen rechnen (__abs__(-32768) bleibt negativ); Startwert wie bisher | seg007 | tritt nativ nicht auf (32 Bit: der Wert bleibt in 0..65535, das Ergebnis in 1..val) |
 | 287 | Leeres Tagebuch: Vergleich mit gs_diary_entries[−1] | A | gering |  | bei leerem Tagebuch nicht mit gs_diary_entries[-1] vergleichen | seg024 | erledigt (BrightEyes b5b343b3) |
-| 288 | Kopierhöhe line * 7 statt (line − startline) * 7 | A | gering |  | nur die gedruckten Zeilen kopieren | seg024 | offen |
-| 289 | Speichern: do-while ohne Prüfung von findfirst | A | gering |  | nur anhaengen, wenn findfirst() etwas gefunden hat | seg026 | offen |
-| 292 | Stadtdatei: liest 100 Byte mehr, als g_locations_tab fasst | A | gering |  | nur so viel lesen, wie g_locations_tab fasst | seg028 | offen |
+| 288 | Kopierhöhe line * 7 statt (line − startline) * 7 | A | gering |  | nur die gedruckten Zeilen kopieren | seg024 | erledigt (Branch bugfixes), Stufe alles |
+| 289 | Speichern: do-while ohne Prüfung von findfirst | A | gering |  | nur anhaengen, wenn findfirst() etwas gefunden hat | seg026 | tritt nativ nicht auf (eigener Zweig save_game_state_native mit readdir) |
+| 292 | Stadtdatei: liest 100 Byte mehr, als g_locations_tab fasst | A | gering |  | nur so viel lesen, wie g_locations_tab fasst | seg028 | schon in BrightEyes behoben (nativ liest der eigene Zweig nur 150 Einträge) |
 | 293 | Kein break nach dem Fund | A | gering | BE-Fix | nach dem Fund aufhoeren (Bright-Eyes-Fix) | seg031 | schon in BrightEyes behoben |
-| 294 | Bereichsprüfung clip_num > max statt >= max | A | gering |  | gueltig sind 0..clip_num_max-1; gueltig sind 0..ani_max_num-1 | seg036, seg037, seg044 | offen |
-| 296 | Dukaten-Anzeige läuft ab 32768 D über | A | gering | BE | ab 32768 Dukaten die Dukaten als long ausgeben (Format "%dD %dS %dH": ab Zeichen 2 folgt "D ...") | seg047 | offen |
-| 298 | Lesen vor g_hero_pic_posx bei Maus-x < 3 | A | gering |  | nicht vor die Tabelle lesen (Ergebnis wie bisher, hoechstens 0) | seg049 | offen |
-| 299 | Kartenwerte ab 0xf0 lesen hinter die Tabelle | A | gering |  | nicht hinter die Tabelle lesen (Ergebnis bleibt 12) | seg066 | offen |
-| 304 | Spielstandname bearbeiten: Schreibstelle hinter dem Namen | A | gering |  | nur die Zeichen des alten Namens ausgeben, Schreibstelle direkt dahinter | seg097 | offen |
-| 306 | Abfrage „WIE VIELE DER … SOLLEN …“ im falschen Fall | A | gering | BE | WIE VIELE DER ... verlangt den 2. Fall | seg106 | offen |
-| 308 | Speichermeldung nennt 5000 Byte zu wenig | A | gering |  | der wirkliche Fehlbetrag | seg120 | offen |
-| 410 | Kampfmusik läuft nach direkt gestarteten Dungeonkämpfen weiter | A | gering |  | im Dungeon nach jedem Kampf wieder die Dungeonmusik (bisher nur in DNG_fight()) | seg032 | offen |
+| 294 | Bereichsprüfung clip_num > max statt >= max | A | gering |  | gueltig sind 0..clip_num_max-1; gueltig sind 0..ani_max_num-1 | seg036, seg037, seg044 | erledigt (Branch bugfixes), immer an (nativ ungültiger Speicherzugriff: liest hinter die letzte Sequenz) |
+| 296 | Dukaten-Anzeige läuft ab 32768 D über | A | gering | BE | ab 32768 Dukaten die Dukaten als long ausgeben (Format "%dD %dS %dH": ab Zeichen 2 folgt "D ...") | seg047 | tritt nativ nicht auf (int hat 32 Bit) |
+| 298 | Lesen vor g_hero_pic_posx bei Maus-x < 3 | A | gering |  | nicht vor die Tabelle lesen (Ergebnis wie bisher, hoechstens 0) | seg049 | erledigt (Branch bugfixes), immer an (nativ ungültiger Speicherzugriff: liest vor g_hero_pic_posx) |
+| 299 | Kartenwerte ab 0xf0 lesen hinter die Tabelle | A | gering |  | nicht hinter die Tabelle lesen (Ergebnis bleibt 12) | seg066 | erledigt (Branch bugfixes), immer an (nativ ungültiger Speicherzugriff: liest hinter g_mapval_to_loctype) |
+| 304 | Spielstandname bearbeiten: Schreibstelle hinter dem Namen | A | gering |  | nur die Zeichen des alten Namens ausgeben, Schreibstelle direkt dahinter | seg097 | erledigt (Branch bugfixes), Stufe alles |
+| 306 | Abfrage „WIE VIELE DER … SOLLEN …“ im falschen Fall | A | gering | BE | WIE VIELE DER ... verlangt den 2. Fall | seg106 | erledigt (Branch bugfixes), Stufe alles |
+| 308 | Speichermeldung nennt 5000 Byte zu wenig | A | gering |  | der wirkliche Fehlbetrag | seg120 | entfällt (nativ steht der freie Speicher fest auf 357000 Byte, die Meldung erscheint nie) |
+| 410 | Kampfmusik läuft nach direkt gestarteten Dungeonkämpfen weiter | A | gering |  | im Dungeon nach jedem Kampf wieder die Dungeonmusik (bisher nur in DNG_fight()) | seg032 | erledigt (Branch bugfixes), Stufe alles |
 
 ## Dort bewusst nicht behoben (108)
 
