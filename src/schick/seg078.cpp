@@ -108,6 +108,14 @@ signed int DNG02_handler(void)
 				}
 			}
 
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Original-Bug 65 (Schicksalsklinge-Bugfix Nr. 98): the message "%s GELINGT ES, SICH LOSZUREISSEN!"
+			 * is only shown if the hero was released "out of grace" (LE dropped to 10), not after a passed KK test */
+			if (BUGFIX_ALLES && flag) {
+				sprintf(g_dtp2,	get_tx(11), hero->alias);
+				GUI_output(g_dtp2);
+			}
+#endif
 			if (!flag)
 			{
 				sprintf(g_dtp2,	get_tx(11), hero->alias);
