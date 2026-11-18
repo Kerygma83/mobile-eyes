@@ -259,6 +259,10 @@ signed int DNG04_handler(void)
 				/* Original-Bug: forgot to check if the hero is dead */
 				if ((random_schick(100) <= 10) &&
 					(hero->typus != HERO_TYPE_NONE) &&
+#ifdef M302de_ORIGINAL_BUGFIX
+					/* Original-Bug (Schicksalsklinge-Bugfix Nr. 108): rats also bite dead heroes */
+					(!BUGFIX_ALLES || !hero->flags.dead) &&
+#endif
 					(hero->group_id == gs_active_group_id))
 				{
 					sub_hero_le(hero, 2);
