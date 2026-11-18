@@ -474,6 +474,13 @@ signed int DNG_step(void)
 	{
 		g_can_merge_group = can_merge_group();
 		g_lockpick_try_counter = 0;
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 87): g_dng_level_changed is never reset, so after the
+		 * first level change the lockpick counter is reset on every call. Evaluate the change only once. */
+		if (BUGFIX_WICHTIG) {
+			g_dng_level_changed = 0;
+		}
+#endif
 	}
 
 	gs_x_target_bak = gs_x_target;
