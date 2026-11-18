@@ -221,6 +221,17 @@ void do_house(void)
 					{
 						i = 0;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+						/* Original-Bug (Schicksalsklinge-Bugfix Nr. 41): arrests from slot 0 only while the slots belong
+						 * to the active group; arrest all 7 slots of the active group (the NPC as well) */
+						if (BUGFIX_ALLES) {
+							for (i = 0; i <= 6; i++) {
+								if ((get_hero(i)->typus != HERO_TYPE_NONE) && (get_hero(i)->group_id == gs_active_group_id)) {
+									get_hero(i)->jail = 1;
+								}
+							}
+						} else
+#endif
 						while (get_hero(i)->group_id == gs_active_group_id)
 						{
 							/* imprison hero */
