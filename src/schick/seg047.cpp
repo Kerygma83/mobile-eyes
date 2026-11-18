@@ -142,11 +142,22 @@ void hero_gets_poisoned(struct struct_hero *hero, const signed int poison_id)
 	if (!hero->flags.dead) {
 		/* TODO: Original-Bug?: What if the hero is already poisoned? */
 
+#ifdef M302de_ORIGINAL_BUGFIX
+		/* Original-Bug (Schicksalsklinge-Bugfix Nr. 238): a new poisoning clears the log bytes of the suffered losses,
+		 * so the end of the poisoning never gives them back; clear them only for a healthy hero */
+		if (BUGFIX_WICHTIG && (hero->poison[poison_id].status != POISON_STATUS_HEALTHY)) {
+			hero->poison[poison_id].status = POISON_STATUS_POISONED;
+			hero->poison[poison_id].time_counter = 0;
+		} else {
+#endif
 		hero->poison[poison_id].status = POISON_STATUS_POISONED;
 		hero->poison[poison_id].time_counter = 0;
 		hero->poison[poison_id].log_1 = 0;
 		hero->poison[poison_id].log_2 = 0;
 		hero->poison[poison_id].log_3 = 0;
+#ifdef M302de_ORIGINAL_BUGFIX
+		}
+#endif
 	}
 }
 
