@@ -27,6 +27,13 @@
 /* comment this out to have the original, but buggy behaviour */
 #define M302de_ORIGINAL_BUGFIX
 
+/* Fixes taken from the Schicksalsklinge bugfix list (MeowMuhMuhCow, see docs/bugfixes.md of Mobile Eyes),
+ * switchable at runtime (seg002 g_bugfixes; in the browser a setting): 0 off, 1 "wichtig", 2 "alles".
+ * They are additionally guarded by M302de_ORIGINAL_BUGFIX. */
+extern signed int g_bugfixes;
+#define BUGFIX_WICHTIG	(g_bugfixes >= 1)	/* hangs, crashes, noticeable bugs */
+#define BUGFIX_ALLES	(g_bugfixes >= 2)	/* also minor bugs */
+
 /* BrightEyes implements a few (moderate) feature extensions/mods.
  * comment this out to avoid the new features */
 #define M302de_FEATURE_MOD

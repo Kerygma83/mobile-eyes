@@ -1968,6 +1968,11 @@ extern "C" EMSCRIPTEN_KEEPALIVE int web_party_state(void)
 		((gs_town_loc_type & 0xff) << 18);
 }
 
+#if defined(__EMSCRIPTEN__)
+/* Einstellung „Fehlerkorrekturen“ der Seite: 0 aus, 1 wichtig, 2 alles (g_bugfixes, vor get_random_hero) */
+extern "C" EMSCRIPTEN_KEEPALIVE void web_bugfixes(const int stufe) { g_bugfixes = (stufe < 0) ? 0 : ((stufe > 2) ? 2 : stufe); }
+#endif
+
 #if defined(WEB_TESTHOOKS)
 /* ---- Nur im Test-Build (TESTHOOKS=1): Abkürzungen und Zustand für Browser-Tests ---- */
 static int g_web_test_fight = 0;	/* Kampf-ID, wird in game_loop() gestartet */
@@ -5789,6 +5794,11 @@ signed int unused_cruft(void)
 
 	return hero_pos;
 }
+#endif
+
+#if !defined(__BORLANDC__)
+/* Fixes from the Schicksalsklinge bugfix list (v302de.h BUGFIX_WICHTIG/BUGFIX_ALLES): on by default */
+signed int g_bugfixes = 1;
 #endif
 
 /**
