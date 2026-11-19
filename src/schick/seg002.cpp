@@ -1975,6 +1975,8 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_bugfixes(const int stufe) { g_bugfixes 
 
 #if defined(WEB_TESTHOOKS)
 #include "seg064.h"	/* get_passage_travel_hours (web_test_fix 137) */
+#include "seg092.h"	/* loot_simple_chest (web_test_fix 440) */
+#include "seg099.h"	/* spell_analues (web_test_fix 200) */
 /* ---- Nur im Test-Build (TESTHOOKS=1): Abkürzungen und Zustand für Browser-Tests ---- */
 static int g_web_test_fight = 0;	/* Kampf-ID, wird in game_loop() gestartet */
 static int g_web_test_sign = 0;		/* Wegweiser-Typindex, wird in game_loop() gesetzt */
@@ -2278,6 +2280,41 @@ static void web_test_hooks(void)
 			 * Kampf 0 werden (Oger, 3 Orks, Harpyie) */
 			web_test_stapel_fuellen();
 			g_web_test_fix_ergebnis = (count_fight_enemies(FIGHTS_DCAMPFIGHT1) == 2);
+		} else if (nr == 440) {
+			/* leere Truhe mit Schloss +6 plündern (Meldung „leer“ schließt das Szenario): das Schloss in der
+			 * Truhentabelle bleibt, sonst wäre es nach dem Laden eines älteren Spielstands +0 */
+			static uint8_t inhalt[1] = { 0xff };
+			struct struct_chest truhe;
+			memset(&truhe, 0, sizeof(truhe));
+			truhe.mod = 6;
+			truhe.content = inhalt;
+			loot_simple_chest(&truhe);
+			g_web_test_fix_ergebnis = (truhe.mod == 6);
+		} else if (nr == 91) {
+			/* leeres Wasserfass, ein leerer Schlauch im Rucksack: das Szenario wählt „Vorräte auffrischen“ und
+			 * erwartet „DAS FASS IST NUN LEER.“ (Ergebnis 1, sobald das Fass zurückkehrt) */
+			struct struct_hero *held = get_hero(0);
+			const signed int platz = NR_HERO_INVENTORY_SLOTS - 1;
+			const struct inventory sicher = held->inventory[platz];
+			uint8_t fass = 0;
+			memset(&held->inventory[platz], 0, sizeof(struct inventory));
+			held->inventory[platz].item_id = ITEM_WASSERSCHLAUCH;
+			held->inventory[platz].quantity = 1;
+			held->inventory[platz].flags.empty = 1;
+			DNG_waterbarrel(&fass);
+			held->inventory[platz] = sicher;
+			g_web_test_fix_ergebnis = 1;
+		} else if (nr == 200) {
+			/* Analüs (Stufe alles), Gegenstandswahl abbrechen (Szenario): kein Text */
+			const signed int stufe = g_bugfixes, tx = g_tx_file_index;
+			g_bugfixes = 2;
+			g_spelluser = get_hero(0);
+			load_tx(ARCHIVE_FILE_SPELLTXT_LTX);
+			strcpy(g_dtp2, "X");
+			spell_analues();
+			g_web_test_fix_ergebnis = (*g_dtp2 == '\0');
+			if ((tx != -1) && (tx != 222)) load_tx(tx);
+			g_bugfixes = stufe;
 		}
 	}
 }
