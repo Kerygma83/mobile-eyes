@@ -75,6 +75,42 @@ signed int g_dng_refresh_direction;	// ds:0xe482
 signed int g_dng_refresh_y_target;	// ds:0xe484
 signed int g_dng_refresh_x_target;	// ds:0xe486
 #ifdef M302de_ORIGINAL_BUGFIX
+#if !defined(__BORLANDC__)
+/* Komfort (nicht im Original): wer gegen eine geschlossene Tür oder eine Truhe läuft, bekommt statt
+ * „In diese Richtung geht es nicht weiter“ deren Aktionen zur Wahl (wie die Icons 7-9). 1 an, 0 aus. */
+int g_dng_aktion_fragen = 1;
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+extern "C" EMSCRIPTEN_KEEPALIVE void web_dng_aktion_fragen(const int an) { g_dng_aktion_fragen = an ? 1 : 0; }
+#endif
+
+/* Wahl der Aktion vor einer Tür oder Truhe; Ergebnis: Icon-Aktion (ACTION_ID_ICON_7..9) oder 0 */
+static signed int dng_aktion_waehlen(void)
+{
+	const signed int tile = div16(g_steptarget_front);
+	signed int wahl = -2;
+
+	/* Menümodus wie nach einem Schritt (sonst erst am Ende von DNG_step()) */
+	DNG_see_door();
+	DNG_see_chest();
+
+	if (tile == DNG_TILE_CLOSED_DOOR && g_dng_extra_action == DNG_MENU_MODE_UNLOCK_DOOR) {
+		/* verschlossen: einschlagen, Schloss knacken, Foramen */
+		wahl = GUI_radio(NULL, 4, get_ttx(542), get_ttx(543), get_ttx(544), get_ttx(437)) - 1;
+		if (wahl > 2) wahl = -2;
+	} else if (tile == DNG_TILE_CLOSED_DOOR && g_dng_extra_action == DNG_MENU_MODE_OPEN_DOOR) {
+		wahl = GUI_radio(NULL, 2, get_ttx(540), get_ttx(437)) - 1;
+		if (wahl > 0) wahl = -2;
+	} else if (tile == DNG_TILE_CHEST && g_dng_extra_action == DNG_MENU_MODE_OPEN_CHEST) {
+		wahl = GUI_radio(NULL, 2, get_ttx(541), get_ttx(437)) - 1;
+		if (wahl > 0) wahl = -2;
+	} else {
+		return -1;	/* nichts anzubieten: Meldung wie im Original */
+	}
+	return (wahl >= 0) ? ACTION_ID_ICON_7 + wahl : 0;
+}
+#endif
+
 /* Schicksalsklinge-Bugfix Nr. 345: DNG_update_pos() ran without DNG_fight() */
 signed int g_dng_fight_pending = 0;
 #endif
@@ -558,6 +594,20 @@ signed int DNG_step(void)
 
 	l_di = 0;
 
+#if !defined(__BORLANDC__)
+	/* Komfort: gegen Tür oder Truhe gelaufen -> Aktion wählen statt der Meldung (g_dng_aktion_fragen) */
+	signed int aktion_gefragt = 0;
+
+	if ((g_action == ACTION_ID_UP) && g_dng_aktion_fragen) {
+		const signed int aktion = dng_aktion_waehlen();
+
+		if (aktion != -1) {
+			g_action = aktion;
+			aktion_gefragt = 1;
+		}
+	}
+#endif
+
 	if (g_action == ACTION_ID_ICON_1)
 	{
 		GRP_split();
@@ -705,6 +755,19 @@ signed int DNG_step(void)
 			DNG15_riddle();
 		}
 	}
+
+#if !defined(__BORLANDC__)
+	/* Komfort: „Tür öffnen“ gewählt, die Tür ist aber verschlossen -> gleich die drei Wege anbieten */
+	if (aktion_gefragt && (g_action == ACTION_ID_ICON_7) && (g_dng_extra_action == DNG_MENU_MODE_UNLOCK_DOOR) &&
+		(div16(g_steptarget_front) == DNG_TILE_CLOSED_DOOR))
+	{
+		const signed int aktion = dng_aktion_waehlen();
+
+		if (aktion > 0) {
+			DNG_door(aktion);
+		}
+	}
+#endif
 
 	if ((gs_dungeon_id != DUNGEON_ID_NONE) && (g_dng_loaded_dungeon_id != -1) && !l_di)
 	{
