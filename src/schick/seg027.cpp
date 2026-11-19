@@ -544,6 +544,11 @@ void load_scenario(signed int scenario_id)
 	handle = load_archive_file(ARCHIVE_FILE_SCENARIO_LST);
 
 	/* read the first two bytes == scenario_id of scenarios */
+#if !defined(__BORLANDC__)
+	/* scenarios_num is a native int (32 bit), but only 2 bytes are read from the file;
+	 * the upper half kept stack garbage (a negative count turned every scenario into scenario 1) */
+	scenarios_num = 0;
+#endif
 	read_archive_file(handle, (uint8_t*)&scenarios_num, 2);
 
 	/* check if scenario_id is valid */
@@ -584,6 +589,11 @@ signed int count_fight_enemies(signed int fight_id)
 	handle = load_archive_file(0x8000 | ARCHIVE_FILE_FIGHT_LST);
 
 	/* read the first 2 bytes (fight_count number of fights) */
+#if !defined(__BORLANDC__)
+	/* fight_count is a native int (32 bit), but only 2 bytes are read from the file;
+	 * the upper half kept stack garbage (a negative count turned every fight into fight 0, ZUFALL1_LAND) */
+	fight_count = 0;
+#endif
 	_read(handle, (void*)&fight_count, 2);
 
 	/* sanity check for parameter fight_id */
@@ -627,6 +637,11 @@ void read_fight_lst(signed int fight_id)
 	handle = load_archive_file(0x8000 | ARCHIVE_FILE_FIGHT_LST);
 
 	/* read the first 2 bytes (fight_count number of fights) */
+#if !defined(__BORLANDC__)
+	/* fight_count is a native int (32 bit), but only 2 bytes are read from the file;
+	 * the upper half kept stack garbage (a negative count turned every fight into fight 0, ZUFALL1_LAND) */
+	fight_count = 0;
+#endif
 	_read(handle, (void*)&fight_count, 2);
 
 	/* sanity check for parameter fight_id */

@@ -599,6 +599,11 @@ void load_informer_tlk(const signed int index)
 
 	/* read the header */
 	read_archive_file(handle, (uint8_t*)&off, 4);
+#if !defined(__BORLANDC__)
+	/* partners is a native int (32 bit), but only 2 bytes are read from the file;
+	 * the upper half kept stack garbage (the next read overflowed gs_dialog_partners) */
+	partners = 0;
+#endif
 	read_archive_file(handle, (uint8_t*)&partners, 2);
 
 	/* read the partner structures */
@@ -638,6 +643,11 @@ void load_tlk(const signed int index)
 
 	/* read the header */
 	read_archive_file(handle, (uint8_t*)&off, 4);
+#if !defined(__BORLANDC__)
+	/* partners is a native int (32 bit), but only 2 bytes are read from the file;
+	 * the upper half kept stack garbage (the next read overflowed gs_dialog_partners) */
+	partners = 0;
+#endif
 	read_archive_file(handle, (uint8_t*)&partners, 2);
 
 	/* read the partner structures */
