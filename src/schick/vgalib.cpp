@@ -442,6 +442,23 @@ uint32_t sdl_palette_rgba(const unsigned char i)
 }
 #endif
 
+/* Palettenindex, der einer Farbe (8 Bit je Kanal) am nächsten kommt (Kampf: Umriss verdeckter Figuren) */
+unsigned char sdl_palette_naechste(const int r, const int g, const int b)
+{
+	int i, beste = 0;
+	long abstand = -1;
+
+	for (i = 1; i < 256; i++) {
+		const int pr = palette[i] & 0xff, pg = (palette[i] >> 8) & 0xff, pb = (palette[i] >> 16) & 0xff;
+		const long d = (long)(pr - r) * (pr - r) + (long)(pg - g) * (pg - g) + (long)(pb - b) * (pb - b);
+		if (abstand < 0 || d < abstand) {
+			abstand = d;
+			beste = i;
+		}
+	}
+	return (unsigned char)beste;
+}
+
 void set_palette(const unsigned char *pointer, const unsigned char first_color, const unsigned short colors)
 {
 	signed int i;

@@ -18,6 +18,9 @@
 #include "seg006.h"
 #include "seg027.h"
 #include "seg096.h"
+#if !defined(__BORLANDC__)
+#include "kampf_durchsicht.h"
+#endif
 
 signed int g_fight_figs_index = -1; // ds:0x4b9e
 
@@ -79,6 +82,9 @@ void FIG_draw_figures(void)
 
 	list_i = g_fig_list_head;
 
+#if !defined(__BORLANDC__)
+	kd_beginn();
+#endif
 	do {
 		if (list_i->visible == 1) {
 
@@ -107,9 +113,17 @@ void FIG_draw_figures(void)
 			if (g_pic_copy_rect.x2 > (320 - 1)) g_pic_copy_rect.x2 = (320 - 1);
 
 			do_pic_copy(2);
+#if !defined(__BORLANDC__)
+			kd_merke(list_i);
+#endif
 		}
 
 	} while ((list_i = list_i->next));
+
+#if !defined(__BORLANDC__)
+	/* Figuren hinter Wänden sichtbar machen */
+	kd_zeichnen(g_renderbuf_ptr);
+#endif
 
 	/* restore two structures */
 	g_pic_copy_rect = rect_bak;

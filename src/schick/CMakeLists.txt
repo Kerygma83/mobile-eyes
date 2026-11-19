@@ -127,6 +127,7 @@ set(SCHICK_SOURCES
     seg122.cpp
     vgalib.cpp
     wurflog.cpp
+    kampf_durchsicht.cpp
     questlog.cpp
     datumzeile.cpp
     reisekarte.cpp
@@ -256,6 +257,7 @@ set(SCHICK_HEADERS
     v302de.h
     vgalib.h
     wurflog.h
+    kampf_durchsicht.h
     ./AIL/AIL.H
 )
 

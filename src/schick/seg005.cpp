@@ -38,6 +38,9 @@
 #endif
 #include "seg032.h"
 #include "seg096.h"
+#if !defined(__BORLANDC__)
+#include "kampf_durchsicht.h"
+#endif
 
 signed int g_delay_factor = 4; // ds:0x4b66
 #if defined(__BORLANDC__)
@@ -517,6 +520,9 @@ void draw_fight_screen(const signed int val)
 
 		p_fighter = (struct struct_fighter*)g_fig_list_head;
 
+#if !defined(__BORLANDC__)
+		kd_beginn();
+#endif
 		do {
 			p_weapon_gfx = 0;	/* NULL */
 
@@ -949,6 +955,9 @@ void draw_fight_screen(const signed int val)
 					g_pic_copy.src = p_figure_gfx;
 
 					do_pic_copy(2);	/* Critical */
+#if !defined(__BORLANDC__)
+					kd_merke(p_fighter);
+#endif
 				}
 
 
@@ -963,10 +972,24 @@ void draw_fight_screen(const signed int val)
 					g_pic_copy.src = p_weapon_gfx;
 
 					do_pic_copy(2);
+#if !defined(__BORLANDC__)
+					kd_merke(NULL);
+#endif
 				}
 			}
+#if !defined(__BORLANDC__)
+			else if (p_fighter->visible == 1) {
+				/* steht im gesicherten Hintergrund (g_buffer8): Lage wie in FIG_draw_figures() */
+				kd_merke_liste(p_fighter);
+			}
+#endif
 
 		} while ((p_fighter = p_fighter->next));
+
+#if !defined(__BORLANDC__)
+		/* Figuren hinter Wänden sichtbar machen */
+		kd_zeichnen(g_renderbuf_ptr);
+#endif
 
 		g_pic_copy_rect = rect_bak;
 		g_figobj_unkn_x2_bak = g_figobj_unkn_x2;
