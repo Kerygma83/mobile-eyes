@@ -990,6 +990,31 @@ export const szenarien = [
 		],
 	},
 	{
+		// Figuren hinter Wänden (BrightEyes kampf_durchsicht.cpp): in DTHO15 (Zwingfeste) steht ein Held hinter
+		// einer Wandecke; mit „Raster“ (Voreinstellung) scheinen Pixel durch, mit „Aus“ keine
+		name: 'Kampf: Figuren hinter Wänden',
+		aktionsknoepfe: true,
+		schritte: [
+			...spielBereit,
+			{ knopf: 'Held aufnehmen' }, { warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
+			...[1, 2, 3, 4, 5].flatMap((h) => [{ wahl: 1 }, { warteAuf: `z.helden == ${h} && z.ov == 1`, max: 3000 }, { warte: 300 }]),
+			{ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 },
+			{ knopf: 'Verlassen' },
+			{ warteAuf: `z.ort == 0 && z.stadt == ${THORWAL} && z.haupt == 1`, max: 5000 },
+			...ohneZufall,
+			{ erwarte: "einstellung.durchsicht.lies() === 'raster'", seite: true, text: 'Voreinstellung Raster' },
+			{ js: 'Module._web_test_fight(153)' },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: 'z.kampf == 1 && z.kb && z.kb.modus == "menue" && z.kb.held >= 0', max: 15000 },
+			{ warteAuf: 'Module._web_kampf_durchsicht_pixel() > 0', seite: true, max: 2000, text: 'Raster: Held hinter der Wand scheint durch' },
+			{ bild: 'durchsicht' },
+			{ js: "einstellung.durchsicht.setze('aus')", seite: true },
+			{ knopf: 'Abwarten' },
+			{ warteAuf: 'Module._web_kampf_durchsicht_pixel() == 0', seite: true, max: 15000, text: 'Aus: nichts scheint durch' },
+			{ js: "einstellung.durchsicht.setze('raster')", seite: true },
+		],
+	},
+	{
 		// Im Querformat reichte die Ansicht (volle Breite) unter die Leiste, Ortszeile und Gruppe fehlten
 		name: 'Querformat: Bild endet über der Leiste, Textbox so breit wie das Bild',
 		schritte: [
@@ -1400,6 +1425,34 @@ export const szenarien = [
 			{ knopf: 'Schließen' },
 		],
 	},
+	...[16, 153].flatMap((kampf) => [['raster', 1], ['umriss', 2], ['aus', 0]].map(([art, n]) => ({
+		// Bildschirmfotos: Figuren hinter Wänden im Kampf (nicht in ./pruefen.sh ohne Filter):
+		//   ./pruefen.sh 'durchsicht bilder'   → build/regression/durchsicht-bilder-*.png
+		name: `Durchsicht Bilder ${kampf} ${art}`,
+		nurAufWunsch: true,
+		aktionsknoepfe: true,
+		schritte: [
+			...spielBereit,
+			{ js: `localStorage.setItem('durchsicht', '${art}')`, seite: true },
+			{ knopf: 'Held aufnehmen' }, { warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
+			...[1, 2, 3, 4, 5].flatMap((h) => [{ wahl: 1 }, { warteAuf: `z.helden == ${h} && z.ov == 1`, max: 3000 }, { warte: 300 }]),
+			{ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 },
+			{ knopf: 'Verlassen' },
+			{ warteAuf: `z.ort == 0 && z.stadt == ${THORWAL} && z.haupt == 1`, max: 5000 },
+			{ warte: 500 },
+			...ohneZufall,
+			{ js: `Module._web_kampf_durchsicht(${n})` },
+			{ js: `Module._web_test_fight(${kampf})` },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: 'z.kampf == 1 && z.kb && z.kb.modus == "menue" && z.kb.held >= 0', max: 15000 },
+			{ warte: 1000 },
+			{ bild: art },
+			// ganzes Feld
+			{ js: "document.querySelector('#kampf button[data-zoom=ganz]').click()", seite: true },
+			{ warte: 500 },
+			{ bild: art + '-ganz' },
+		],
+	}))),
 	{
 		// Testpartie per Zufall (nicht in ./pruefen.sh ohne Filter):
 		//   ZUFALL_MIN=20 ZUFALL_SAAT=7 ASAN=1 SCHNELL=1 ./pruefen.sh zufall

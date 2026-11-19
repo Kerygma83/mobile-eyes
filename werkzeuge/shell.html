@@ -697,6 +697,12 @@
 				<button type="button" data-wert="normal">Normal</button>
 				<button type="button" data-wert="schnell">Schnell</button>
 			</div>
+			<p>Figuren hinter Wänden</p>
+			<div class="wahl" data-einstellung="durchsicht" aria-label="Figuren hinter Wänden">
+				<button type="button" data-wert="raster">Raster</button>
+				<button type="button" data-wert="umriss">Umriss</button>
+				<button type="button" data-wert="aus">Aus</button>
+			</div>
 		</section>
 		<section>
 			<h3>Fehlerkorrekturen</h3>
@@ -1005,6 +1011,7 @@
 			zeigerSetzen(false);   // läuft vor main()
 			zeigerGesetzt = true;
 			autokampfSetzen();
+			durchsichtSetzen();
 			bugfixesSetzen();
 			questLog.starten();
 			minimapStarten();   // erst jetzt: vorher gibt es web_screen_mode noch nicht
@@ -1448,6 +1455,9 @@
 		// schnell: Autokampf ohne Animationen und Wartezeiten (seg005), Würfe stehen im Protokoll
 		autokampf: { lies: () => lies('autokampf') === 'schnell' ? 'schnell' : 'normal',
 			setze: (v) => { merke('autokampf', v); autokampfSetzen(); } },
+		// Kampf: Figuren hinter Wänden (BrightEyes kampf_durchsicht.cpp: aus 0, Raster 1, Umriss 2)
+		durchsicht: { lies: () => ({ aus: 'aus', umriss: 'umriss' })[lies('durchsicht')] ?? 'raster',
+			setze: (v) => { merke('durchsicht', v); durchsichtSetzen(); } },
 		// Fehlerkorrekturen aus docs/bugfixes.md (BrightEyes g_bugfixes: aus 0, an 1 = Stufe wichtig, alle 2)
 		bugfixes: { lies: () => ({ aus: 'aus', alle: 'alle' })[lies('bugfixes')] ?? 'an',
 			setze: (v) => { merke('bugfixes', v); bugfixesSetzen(); } },
@@ -1472,6 +1482,7 @@
 	aktionenZeigen();
 	function kampftempoSetzen() { Module._web_kampftempo?.(Number(einstellung.kampftempo.lies())); }
 	function bugfixesSetzen() { Module._web_bugfixes?.({ aus: 0, an: 1, alle: 2 }[einstellung.bugfixes.lies()]); }
+	function durchsichtSetzen() { Module._web_kampf_durchsicht?.({ aus: 0, raster: 1, umriss: 2 }[einstellung.durchsicht.lies()]); }
 	function autokampfSetzen() { Module._web_fast_autofight?.(einstellung.autokampf.lies() === 'schnell' ? 1 : 0); }
 	// Protokoll läuft immer mit; die Einstellung blendet nur den Knopf aus
 	const wurflogKnopfZeigen = () => { document.getElementById('wurflog-knopf').hidden = einstellung.wurflog.lies() === 'aus'; };
