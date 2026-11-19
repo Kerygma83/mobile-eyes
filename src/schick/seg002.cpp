@@ -6009,7 +6009,7 @@ signed int unused_cruft(void)
 
 #if !defined(__BORLANDC__)
 /* Fixes from the Schicksalsklinge bugfix list (v302de.h BUGFIX_WICHTIG/BUGFIX_ALLES): on by default */
-signed int g_bugfixes = 1;
+signed int g_bugfixes = 2;
 #endif
 
 /**
