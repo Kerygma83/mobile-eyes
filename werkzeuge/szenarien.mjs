@@ -316,11 +316,12 @@ export const szenarien = [
 		// 137 Schiffstempo 0 (Division durch 0), 221 Gegenstandsverlust ohne ablegbaren Gegenstand
 		// (Endlosschleife), 235 Zufallsheld ohne lebenden Helden (Endlosschleife), 333 Gerüchte in Serske
 		// (alte Zeiger), 340 Wohnort Tiomar, 391 verfluchter Helm für Hexen und Magier (340/391 prüfen Stufe
-		// alles und aus selbst)
+		// alles und aus selbst); 1001 kein Listeneintrag: Anzahl der Kämpfe aus FIGHT.LST nativ mit Stapelmüll
+		// (2 Bytes in 32-Bit-int, jeder Kampf wurde zu Kampf 0: Oger, Orks, Harpyie)
 		name: 'Bugfixes: Hänger und Abstürze',
 		schritte: [
 			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen, ...ohneZufall,
-			...[137, 221, 235, 333, 340, 391].flatMap((nr) => [
+			...[137, 221, 235, 333, 340, 391, 1001].flatMap((nr) => [
 				{ js: `Module._web_test_fix(${nr})` },
 				{ warteAuf: 'z.fix == 1', max: 3000, text: `Fix ${nr}` },
 			]),
