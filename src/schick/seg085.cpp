@@ -49,6 +49,9 @@ signed int DNG10_handler(void)
 	struct struct_hero *hero;
 	uint8_t *amap_ptr;
 	int32_t p_money;
+#ifdef M302de_ORIGINAL_BUGFIX
+	signed int hole_removed;	/* Schicksalsklinge-Bugfix Nr. 115 */
+#endif
 
 	amap_ptr = g_dng_map;
 	tw_bak = g_textbox_width;
@@ -131,6 +134,7 @@ signed int DNG10_handler(void)
 			/* set hole found */
 #ifdef M302de_ORIGINAL_BUGFIX
 			/* Original-Bug (Schicksalsklinge-Bugfix Nr. 115): this overwrites the state 2 (stone removed) */
+			hole_removed = (gs_dng10_hole_state == 2);
 			if (!BUGFIX_ALLES || !gs_dng10_hole_state)
 #endif
 			gs_dng10_hole_state = 1;
@@ -139,7 +143,13 @@ signed int DNG10_handler(void)
 			{
 				gs_dng10_hole_state = 2;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+				/* Schicksalsklinge-Bugfix Nr. 115 (1.5e): when the stone was already removed, text 41 ("HERE IS A
+				 * HOLE IN THE WALL WHERE YOU REMOVED THE STONE") instead of the pain of removing it (text 11) */
+				sprintf(g_dtp2,	get_tx((BUGFIX_ALLES && hole_removed) ? 41 : 11), hero->alias);
+#else
 				sprintf(g_dtp2,	get_tx(11), hero->alias);
+#endif
 
 				if (GUI_bool(g_dtp2))
 				{
