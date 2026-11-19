@@ -664,6 +664,34 @@ void DNG_stub3(void)
 				(tmp == 11) ? g_dng_stub3_unkn0[i] :
 				(tmp != 15) ? -1 : g_dng_stub3_unkn0[i];
 	}
+
+#if !defined(__BORLANDC__)
+	/* Verbesserung (kein Eintrag der Bugfix-Liste, Stufe alles wie Nr. 439): Attic zeichnet die Seite eines
+	 * Treppenfelds am Gang wie eine Wand, man sieht nicht, dass es dort weitergeht. Dort die Grafik der offenen
+	 * Tür nehmen, deren Rahmen auf der Seite sichtbar ist: neben der Gruppe (Felder 0, 2), neben dem Feld voraus
+	 * (4, 6) sowie zwei (10, 12) und drei Felder voraus (17, 19). Die beiden letzten nur, wenn das Feld davor
+	 * (zur Gruppe hin) die Vorderseite verdeckt; sonst zeigt das Original dort schräg die Treppe selbst. */
+	if (BUGFIX_ALLES) {
+		static const signed char seite[8][2] = {
+			{ 0, -1 }, { 2, -1 }, { 4, -1 }, { 6, -1 }, { 10, 4 }, { 12, 6 }, { 17, 10 }, { 19, 12 }
+		};
+
+		for (i = 0; i < 8; i++) {
+
+			tmp = div16(g_visual_field_vals[seite[i][0]]);
+
+			if ((tmp == 3) || (tmp == 4)) {
+
+				const signed int davor = (seite[i][1] == -1) ? 15 : div16(g_visual_field_vals[seite[i][1]]);
+
+				/* Wand, Türen, Treppen und Wandarten haben eigene Seitenflächen; Gang und Gruben nicht */
+				if ((davor == 15) || ((davor >= 1) && (davor <= 4)) || ((davor >= 9) && (davor <= 12))) {
+					g_visual_fields_tex[seite[i][0]] = g_dng_stub3_unkn7[seite[i][0]];
+				}
+			}
+		}
+	}
+#endif
 }
 
 void DNG_draw_walls(signed int x, signed int y, signed int a3)
