@@ -44,7 +44,8 @@ function aktionenEinrichten(Module, { el, kartenEl, karteUnterMinimap = () => fa
 			const ctx = c.getContext('2d');
 			ctx.imageSmoothingEnabled = false;
 			const t = document.createElement('span');
-			t.textContent = AKTION_TEXTE[id] ?? `Aktion ${id}`;
+			// vor einer verschlossenen Tür steht im 9. Feld das Zauber-Icon (MENU_ICON_MAGIC) für Foramen
+			t.textContent = (id === 11 && i === 8) ? 'Foramen sprechen' : (AKTION_TEXTE[id] ?? `Aktion ${id}`);
 			b.append(c, t);
 			b.setAttribute('aria-label', t.textContent);
 			const x = 241 + 27 * (i % 3) + 12, y = 57 + 27 * Math.floor(i / 3) + 12;

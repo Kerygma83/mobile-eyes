@@ -990,6 +990,52 @@ export const szenarien = [
 		],
 	},
 	{
+		// Dungeon: gegen Tür oder Truhe laufen bietet deren Aktionen an (seg076 g_dng_aktion_fragen) statt
+		// „In diese Richtung geht es nicht weiter“; Zwingfeste: verschlossene Tür (1,9,5) von (10,5) nach Westen,
+		// Truhe (0,1,1) von (2,1) nach Westen; Einstellung „Meldung (Original)“ wieder wie früher
+		name: 'Dungeon: gegen Tür oder Truhe laufen',
+		aktionsknoepfe: true,
+		schritte: [
+			...spielBereit,
+			{ knopf: 'Held aufnehmen' }, { warteAuf: 'z.dialog == 1 && z.ov == 1', max: 3000 },
+			{ wahl: 1 }, { warteAuf: 'z.helden == 1 && z.ov == 1', max: 3000 }, { warte: 300 },
+			{ abbrechen: true }, { warteAuf: 'z.dialog == 0 && z.haupt == 1 && z.ov == 0', max: 3000 },
+			{ knopf: 'Verlassen' },
+			{ warteAuf: `z.ort == 0 && z.stadt == ${THORWAL} && z.haupt == 1`, max: 5000 },
+			{ erwarte: "einstellung.tuerfrage.lies() === 'fragen'", seite: true, text: 'Voreinstellung: Aktion anbieten' },
+			{ js: 'Module._web_test_dungeon(14)' },
+			{ warteAuf: 'z.dungeon == 14 && z.haupt == 1 && z.ov == 0', max: 10000 },
+			{ js: 'Module._web_test_dng_pos(1, 10, 5, 3)' },
+			{ warteAuf: 'z.x == 10 && z.y == 5 && z.richtung == 3', max: 5000 },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 2', max: 3000, text: 'Tür: öffnen oder abbrechen' },
+			{ wahl: 'TÜR ÖFFNEN' },
+			// verschlossen: gleich die drei Wege
+			{ warteAuf: 'z.ov == 1 && z.ovN == 4', max: 3000, text: 'verschlossen: einschlagen, knacken, Foramen' },
+			{ bild: 'tuer-verschlossen' },
+			{ wahl: 'ABBRECHEN' },
+			{ warteAuf: 'z.ov == 0 && z.haupt == 1', max: 3000 },
+			{ erwarte: "[...document.querySelectorAll('#aktionsknoepfe .aktion')].some((b) => b.textContent.includes('Foramen sprechen'))", seite: true, text: 'Knopf „Foramen sprechen“ statt zweimal „Zaubern“' },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 4', max: 3000, text: 'erneut: gleich die drei Wege' },
+			{ abbrechen: true },
+			{ warteAuf: 'z.ov == 0 && z.haupt == 1', max: 3000 },
+			// Truhe
+			{ js: 'Module._web_test_dng_pos(0, 2, 1, 3)' },
+			{ warteAuf: 'z.x == 2 && z.y == 1 && z.richtung == 3', max: 5000 },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: 'z.ov == 1 && z.ovN == 2', max: 3000, text: 'Truhe: öffnen oder abbrechen' },
+			{ wahl: 'ABBRECHEN' },
+			{ warteAuf: 'z.ov == 0 && z.haupt == 1', max: 3000 },
+			// Original: Meldung
+			{ js: "einstellung.tuerfrage.setze('meldung')", seite: true },
+			{ knopf: 'Vorwärts' },
+			{ warteAuf: 'z.ov == 1 && /RICHTUNG GEHT ES NICHT WEITER/.test(z.ovText)', max: 3000, text: 'Meldung wie im Original' },
+			{ weiter: true },
+			{ js: "einstellung.tuerfrage.setze('fragen')", seite: true },
+		],
+	},
+	{
 		// Figuren hinter Wänden (BrightEyes kampf_durchsicht.cpp): in DTHO15 (Zwingfeste) steht ein Held hinter
 		// einer Wandecke; mit „Raster“ (Voreinstellung) scheinen Pixel durch, mit „Aus“ keine
 		name: 'Kampf: Figuren hinter Wänden',
