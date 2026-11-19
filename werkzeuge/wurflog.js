@@ -3,7 +3,9 @@
 // Das Spiel (BrightEyes wurflog.cpp) meldet jeden Eintrag per Module.wurfLog({ art, erfolg, titel,
 // ergebnis, details }); die Texte sind Bytes in UTF-8, Spieltexte (Namen) stehen zwischen 0x01 und
 // 0x02 im DOS-Zeichensatz und laufen durch die Schreibung des Overlays.
-//   art:    1 Probe, 2 Zauber, 3 Kampf, 4 Kampfrunde (Trenner), 5 Sonstiges (AP, Krankheit)
+//   art:    1 Probe, 2 Zauber, 3 Kampf, 4 Kampfrunde (Trenner), 5 Sonstiges (AP, Krankheit),
+//           6 Ereignis (Lagerüberfall, Reisetag, Seereise, Ansteckung), 7 Stufenanstieg, 8 Kampfbeginn
+//   Filter: Kampf 3, 4, 8 · Proben & Zauber 1, 2, 7 · Ereignisse 5, 6, 8
 //   erfolg: -2 Patzer, -1 schlecht, 0 neutral, 1 gut, 2 glücklich – aus Sicht der Helden
 //   details: Zeilen mit \n, Einrückung (verschachtelte Probe) mit \t
 //
@@ -73,6 +75,7 @@ function wurfLogEinrichten(Module, optionen = {}) {
 			<button type="button" data-filter="alle" aria-pressed="true">Alles</button>
 			<button type="button" data-filter="kampf" aria-pressed="false">Kampf</button>
 			<button type="button" data-filter="proben" aria-pressed="false">Proben &amp; Zauber</button>
+			<button type="button" data-filter="ereignisse" aria-pressed="false">Ereignisse</button>
 		</div>
 		<div class="liste" aria-live="polite"></div>
 		<div class="fuss">
@@ -105,7 +108,8 @@ function wurfLogEinrichten(Module, optionen = {}) {
 
 	const eintraege = [];   // { art, erfolg, roh: { titel, ergebnis, details } }
 	let filter = 'alle';
-	const passt = (e) => filter === 'alle' || (filter === 'kampf' ? (e.art === 3 || e.art === 4) : (e.art === 1 || e.art === 2));
+	const ARTEN = { kampf: [3, 4, 8], proben: [1, 2, 7], ereignisse: [5, 6, 8] };
+	const passt = (e) => filter === 'alle' || ARTEN[filter].includes(e.art);
 
 	function knoten(e) {
 		const titel = text(e.roh.titel), ergebnis = text(e.roh.ergebnis), details = text(e.roh.details);
@@ -150,7 +154,7 @@ function wurfLogEinrichten(Module, optionen = {}) {
 		if (liste.querySelector('.leer')) return;
 		const p = document.createElement('p');
 		p.className = 'leer';
-		p.textContent = 'Noch keine Würfe. Proben, Zauber und Kampfwürfe erscheinen hier.';
+		p.textContent = 'Noch keine Würfe. Proben, Zauber, Kampfwürfe und Ereignisse erscheinen hier.';
 		liste.append(p);
 	}
 	function alleZeigen() {

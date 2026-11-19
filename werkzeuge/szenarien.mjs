@@ -274,6 +274,8 @@ export const szenarien = [
 			{ knopf: 'Vorwärts' },
 			{ warteAuf: 'z.kampf == 1 && z.menue == 1', max: 15000 },
 			{ warteAuf: 'z.ov == 1 && /WAS WILLST DU TUN/.test(z.ovText)', max: 3000 },
+			// Würfelprotokoll: Kampfbeginn mit Nummer, Name aus der Kampfliste und Gegnern
+			{ erwarte: `wurfLog.alsText().some(([t, r, d]) => t.startsWith('Kampf ${KAMPF_THOR8}: ') && /^\\d+ Gegner/.test(r) && d.length > 0)`, seite: true, text: 'Kampfbeginn im Protokoll' },
 			{ bild: 'kampfmenue' },
 			{ wahl: 'COMPUTERKAMPF' },
 			{ warteAuf: 'z.menue == 1 && z.ov == 1 && z.ovN == 2', max: 3000 },   // „Soll Magie angewendet werden?“
@@ -423,6 +425,8 @@ export const szenarien = [
 			{ warteAuf: "wurfLog.alsText().some(([t, r, d]) => /: Schusswaffen \\+0/.test(t) && /\\(KL\\+GE\\+KK\\)\\/4/.test(d))", seite: true, max: 3000 },
 			{ js: 'Module._web_test_probe(2, 6, -1)' },                // Eigenschaftsprobe KK -1
 			{ warteAuf: "wurfLog.alsText().some(([t, r, d]) => /: Probe auf KK -1$/.test(t) && /^W20 = \\d+ -1 = -?\\d+ gegen KK \\d+$|^W20 = 20$/.test(d))", seite: true, max: 3000 },
+			{ js: 'Module._web_test_probe(3, 1, -1)' },                // Ansteckung mit Wundfieber, Schwelle -1: nie
+			{ warteAuf: "wurfLog.alsText().some(([t, r, d]) => /: Ansteckung mit WUNDFIEBER\\?$/.test(t) && r == 'nicht angesteckt' && /^W100 = \\d+, angesteckt bis -1$/.test(d))", seite: true, max: 3000 },
 			// Panel: Namen in normaler Schreibung (beim Öffnen umgewandelt), Details aufklappbar
 			{ js: "localStorage.setItem('schreibung', 'normal')" },
 			// Würfelknopf farbig bei neuen Einträgen, beim Öffnen wieder normal
@@ -433,7 +437,10 @@ export const szenarien = [
 			{ warteAuf: "document.querySelector('#wurflog details.eintrag').open && /^[A-ZÄÖÜ][a-zäöüß]+: Klettern/.test(document.querySelector('#wurflog .titel').textContent)", seite: true, max: 2000 },
 			{ bild: 'proben' },
 			{ knopf: 'Proben & Zauber' },
-			{ warteAuf: "[...document.querySelectorAll('#wurflog .eintrag .titel')].length >= 3 && !document.querySelector('#wurflog .runde')", seite: true, max: 2000 },
+			{ warteAuf: "[...document.querySelectorAll('#wurflog .eintrag .titel')].length >= 3 && !document.querySelector('#wurflog .runde') && ![...document.querySelectorAll('#wurflog .titel')].some((t) => /Ansteckung/.test(t.textContent))", seite: true, max: 2000 },
+			// Ereignisse: die Ansteckung, keine Proben
+			{ knopf: 'Ereignisse' },
+			{ warteAuf: "(() => { const t = [...document.querySelectorAll('#wurflog .titel')].map((x) => x.textContent); return t.some((x) => /Ansteckung mit Wundfieber\\?$/.test(x)) && !t.some((x) => /Klettern|Probe auf/.test(x)); })()", seite: true, max: 2000 },
 			// geschlossen: der nächste Eintrag färbt den Knopf wieder
 			{ js: "document.querySelector('#wurflog .schliessen').click()" },
 			{ js: 'Module._web_test_probe(2, 6, 0)' },
