@@ -116,7 +116,7 @@
 	#mobil.vollbild ~ #leiste #icons-halter { display: none; }
 	body:not(.mobil) #icons-halter { display: none; }
 	#icons { border: 1px solid var(--rand); border-radius: 0.4rem; }
-	/* Aktionsknöpfe (aktionen.js) statt der Icons, nicht im flachen Querformat (dort die Icons):
+	/* Aktionsknöpfe (aktionen.js) statt der Icons (im flachen Querformat rechts neben dem Bild, siehe unten):
 	   - Knöpfe direkt unter dem Bild, Platz für drei Reihen (das Bild springt nicht beim Betreten eines Gebäudes)
 	   - darunter füllt die Leiste den Rest: Steuerkreuz mittig (größer, wenn Platz ist), ganz unten
 	     Protokoll, Aufträge und Einstellungen mit Text über die ganze Breite
@@ -125,7 +125,7 @@
 	   Das Bild richtet sich nach der Höhe, die mindestens für Knöpfe und Leiste bleiben muss. */
 	#aktionsknoepfe { display: none; }
 	.aktionen button .text { display: none; }
-	@media not all and (orientation: landscape) and (max-height: 600px) {
+	@media all {
 		body.mobil.aktionsknoepfe {
 			--leiste-min: calc(1.2rem + 2 * 3.3rem + 0.35rem + 2 * 0.5rem + 2.6rem);
 			--leiste-min-voll: calc(var(--leiste-min) + 2.3rem);   /* mit OK und Zurück */
@@ -218,6 +218,50 @@
 		body.mobil.aktionsknoepfe #mobil.kampf ~ #leiste #kampfbedien { display: flex; grid-column: 1 / -1; grid-row: 1 / 3; align-self: stretch; }
 		body.mobil.aktionsknoepfe .aktionen :is(.wuerfel, .quest, .menue) svg { flex: none; width: 1.15rem; height: 1.15rem; }
 		body.mobil.aktionsknoepfe .aktionen button .text { display: inline; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; }
+	}
+	/* Flaches Querformat (Handy quer) mit Aktionsknöpfen: das Bild links über die volle Höhe, rechts daneben
+	   die Bedienung (Aktionsknöpfe, Kreuz/Minimap, Heldenbogen, Kampf); --rechts: Mindestbreite der Spalte,
+	   --frei: was für das Bild bleibt. Die Aktionsknöpfe hängt die Seite dafür in die Leiste um. */
+	@media (orientation: landscape) and (max-height: 600px) {
+		body.mobil.aktionsknoepfe {
+			flex-direction: row;
+			--hoehe: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+			--rechts: 20rem;
+			--frei: calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - var(--rechts));
+		}
+		body.mobil.aktionsknoepfe:has(#mobil.heldenbogen) { --rechts: 25rem; }
+		body.mobil.aktionsknoepfe #mobil:not(.karte) { flex: none; height: 100%; justify-content: center; }
+		body.mobil.aktionsknoepfe #mobil:not(.vollbild) > :is(.teil, #aktionsknoepfe) {
+			width: min(var(--frei), calc((var(--hoehe) - 9px) / 0.97625));
+		}
+		body.mobil.aktionsknoepfe #mobil.vollbild:not(.karte) > .voll,
+		body.mobil.aktionsknoepfe #mobil.vollbild.heldenbogen:not(.karte) > .voll {
+			width: min(var(--frei), calc(var(--hoehe) / 0.75));
+		}
+		body.mobil.aktionsknoepfe #kampf { width: min(var(--frei), calc(var(--hoehe) * 4 / 3.3)); max-height: none; }
+		/* Reisekarte: links die Karte über die volle Höhe, rechts Datumszeile und Ziele; die Leiste (nur
+		   Protokoll, Aufträge, Menü) liegt rechts unten darüber */
+		body.mobil.aktionsknoepfe #mobil.karte { flex: 1; min-width: 0; height: 100%; }
+		body.mobil.aktionsknoepfe #mobil.karte #karte {
+			display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--rechts) - 0.8rem);
+			grid-template-rows: auto minmax(0, 1fr) 3.6rem; gap: 0.5rem 0.8rem; background: none;
+		}
+		body.mobil.aktionsknoepfe #mobil.karte #karte .flaeche { grid-column: 1; grid-row: 1 / -1; min-height: 0; }
+		body.mobil.aktionsknoepfe #mobil.karte #karte #datum { grid-column: 2; grid-row: 1; margin-top: 0.4rem; }
+		body.mobil.aktionsknoepfe #mobil.karte #karte .ziele { grid-column: 2; grid-row: 2; max-height: none; padding: 0; }
+		body.mobil.aktionsknoepfe #mobil.karte #karte .ziele .knoepfe { grid-template-columns: 1fr; }
+		body.mobil.aktionsknoepfe #mobil.karte ~ #leiste {
+			position: fixed; right: env(safe-area-inset-right); bottom: env(safe-area-inset-bottom);
+			width: var(--rechts); min-width: 0; height: auto; border-left: 0; background: none;
+		}
+		body.mobil.aktionsknoepfe #leiste,
+		body.mobil.aktionsknoepfe #mobil:is(.kampf, .heldenbogen) ~ #leiste {
+			flex: 1; min-width: var(--rechts); width: auto; height: 100%; align-self: stretch;
+			border-top: 0; border-left: 1px solid var(--rand); padding: 0.4rem 0.4rem;
+		}
+		/* Aktionsknöpfe oben in der Leiste (umgehängt), nicht in Vollbild-Ansichten */
+		body.mobil.aktionsknoepfe #leiste > #aktionsknoepfe { padding: 0 0 0.5rem; background: none; width: auto; }
+		body.mobil.aktionsknoepfe #mobil.vollbild ~ #leiste > #aktionsknoepfe { display: none; }
 	}
 	#minimap-spalte { display: none; }
 	#minimap { display: block; image-rendering: pixelated; border: 1px solid var(--rand); border-radius: 0.4rem; background: #000; }
@@ -556,6 +600,16 @@
 	#ende button { min-height: 3rem; padding: 0 1.6rem; font-size: 1.05rem; touch-action: manipulation; }
 	#update button { min-height: 2.4rem; padding: 0 0.9rem; touch-action: manipulation; }
 
+	/* Querformat mit Aktionsknöpfen: Textboxen über dem Bild (--dialog-mitte: Mitte des Bilds, setzt die Seite) */
+	@media (orientation: landscape) and (max-height: 600px) {
+		/* 100 %: Breite innerhalb der Safe Area (#dialog hat sie als Innenabstand); die Mitte liegt in
+		   Seitenkoordinaten, also um den linken Rand verschoben; nie über den rechten Rand hinaus */
+		body.mobil.aktionsknoepfe #dialog .karte {
+			--b: min(100% - 1rem, max(var(--dialog-breite, 100%) - 1rem, 22rem));
+			align-self: flex-start; width: var(--b);
+			margin-left: clamp(0.5rem, calc(var(--dialog-mitte, 50vw) - env(safe-area-inset-left) - var(--b) / 2), calc(100% - var(--b) - 0.5rem));
+		}
+	}
 	/* Querformat im Original-Layout: Leiste rechts */
 	@media (orientation: landscape) and (max-height: 600px) {
 		body:not(.mobil) { flex-direction: row; }
@@ -952,10 +1006,14 @@
 		const w = Math.max(0, ...[...mobilEl.querySelectorAll(':scope > .teil, :scope > .voll')].map((c) => c.offsetParent ? c.getBoundingClientRect().width : 0));
 		if (w > 0) document.documentElement.style.setProperty('--dialog-breite', `${Math.round(w)}px`);
 		else document.documentElement.style.removeProperty('--dialog-breite');
+		// Mitte des Bilds (Querformat: Textboxen über dem Bild, nicht über der Leiste rechts)
+		const r = mobilEl.getBoundingClientRect();
+		if (r.width > 0) document.documentElement.style.setProperty('--dialog-mitte', `${Math.round(r.left + r.width / 2)}px`);
 	};
 	const bildBeobachter = new ResizeObserver(bildBreiteSetzen);
 	for (const c of mobilEl.querySelectorAll('canvas.aus')) bildBeobachter.observe(c);
 	bildBeobachter.observe(datumEl);
+	bildBeobachter.observe(mobilEl);
 	bildBeobachter.observe(document.getElementById('karte'));
 
 	// vom Spiel nach jedem geänderten Bild aufgerufen (RGBA, Alpha 0)
@@ -1095,10 +1153,22 @@
 	const aktionen = aktionenEinrichten(Module, { el: document.getElementById('aktionsknoepfe'),
 		kartenEl: document.getElementById('karte-unter'), karteUnterMinimap: () => document.body.classList.contains('minimap') });
 	// Heldenbogen (heldenbogen.js): Gruppe, Gegenstandskarte und Kacheln statt des Steuerkreuzes
-	const hochformatKnoepfe = window.matchMedia('not all and (orientation: landscape) and (max-height: 600px)');
+	// flaches Querformat: Aktionsknöpfe rechts oben in der Leiste statt unter dem Bild
+	const querformat = window.matchMedia('(orientation: landscape) and (max-height: 600px)');
+	const aktionsknoepfeEl = document.getElementById('aktionsknoepfe');
+	const aktionenPlatz = () => {
+		const leisteEl = document.getElementById('leiste');
+		if (querformat.matches) {
+			if (aktionsknoepfeEl.parentNode !== leisteEl) leisteEl.insertBefore(aktionsknoepfeEl, leisteEl.firstChild);
+		} else if (aktionsknoepfeEl.parentNode !== mobilEl) {
+			mobilEl.insertBefore(aktionsknoepfeEl, document.getElementById('karte'));
+		}
+	};
+	aktionenPlatz();
+	querformat.addEventListener('change', aktionenPlatz);
 	const heldenbogen = heldenbogenEinrichten(Module, { el: document.getElementById('heldenbogen'), spielText: overlay.spielText,
 		dialogOffen: () => dialoge.length > 0,
-		layoutPasst: () => document.body.classList.contains('mobil') && document.body.classList.contains('aktionsknoepfe') && hochformatKnoepfe.matches });
+		layoutPasst: () => document.body.classList.contains('mobil') && document.body.classList.contains('aktionsknoepfe') });
 	window.heldenbogen = heldenbogen;
 	// Platz für die Ablage: reicht die geschätzte Höhe nicht (Schrift, Safari-Leisten), wird das Bild um den
 	// gemessenen Überlauf kleiner; nach einer Größenänderung neu messen
@@ -1118,7 +1188,7 @@
 		quelle: () => ganz, spielText: overlay.spielText, dialoge, wurfLog,
 		tempo: { lies: () => einstellung.kampftempo.lies(), setze: (v) => einstellung.kampftempo.setze(v) },
 		bild: (id) => heldenbogen.bildBekannt(id),
-		layoutPasst: () => document.body.classList.contains('mobil') && document.body.classList.contains('aktionsknoepfe') && hochformatKnoepfe.matches });
+		layoutPasst: () => document.body.classList.contains('mobil') && document.body.classList.contains('aktionsknoepfe') });
 	window.kampf = kampf;
 	// wie beim Heldenbogen: reicht der Platz nicht, wird das Feld um den gemessenen Überlauf niedriger
 	const kbEl = document.getElementById('kampfbedien');
