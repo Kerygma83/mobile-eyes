@@ -325,6 +325,22 @@ export const szenarien = [
 				{ js: `Module._web_test_fix(${nr})` },
 				{ warteAuf: 'z.fix == 1', max: 3000, text: `Fix ${nr}` },
 			]),
+			// mit Meldungen: 440 Truhenschloss bleibt nach dem Plündern (leere Truhe), 91 leeres Wasserfass meldet
+			// „Das Fass ist nun leer“ statt „Vorräte voll“, 200 Analüs: Abbruch der Gegenstandswahl ohne Text
+			{ js: 'Module._web_test_fix(440)' },
+			{ warteAuf: 'z.ov == 1 && /TRUHE IST LEER/.test(z.ovText)', max: 3000 },
+			{ weiter: true },
+			{ warteAuf: 'z.fix == 1', max: 3000, text: 'Fix 440' },
+			{ js: 'Module._web_test_fix(91)' },
+			{ warteAuf: 'z.ov == 1 && /FASS MIT 0/.test(z.ovText)', max: 3000 },
+			{ wahl: 2 },
+			{ warteAuf: 'z.ov == 1 && /FASS IST NUN LEER/.test(z.ovText)', max: 3000, text: 'Fix 91: leeres Fass' },
+			{ weiter: true },
+			{ warteAuf: 'z.fix == 1', max: 3000, text: 'Fix 91' },
+			{ js: 'Module._web_test_fix(200)' },
+			{ warteAuf: 'z.ov == 1 && z.ovN > 0', max: 3000 },
+			{ abbrechen: true },
+			{ warteAuf: 'z.fix == 1', max: 3000, text: 'Fix 200' },
 			// zentraler Schalter in den Einstellungen: aus → wieder das Verhalten des Originals (137 ohne
 			// Hänger prüfbar), an → behoben
 			{ knopf: 'Menü' }, { knopf: 'Einstellungen' }, { knopf: 'Aus (Original)' }, { knopf: 'Schließen' },

@@ -1,12 +1,12 @@
 # Bugfixes aus dem Decomp-Projekt (Tracking)
 
-Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuhMuhCow/schicksalsklinge/blob/main/BUGFIXES.md), Version 1.5d vom 12.11.2026, übernommen am 18.11.2026 (ohne Changelog und Prüfanleitungen). Die Nummern sind die des Projekts (Schalter `FIX_nnnn` in dessen `s_fix.h`); Beschreibung und „So prüfst du es“ stehen dort. Laut Projekt sind die Behebungen am Quelltext entworfen, aber im Spiel noch nicht ausgiebig getestet.
+Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuhMuhCow/schicksalsklinge/blob/main/BUGFIXES.md), Version 1.5d vom 12.11.2026, übernommen am 18.11.2026; abgeglichen mit 1.5e vom 18.11.2026 am 19.11.2026 (neu Nr. 440, ergänzt Nr. 34, 91, 115, 200; sonst unverändert) (ohne Changelog und Prüfanleitungen). Die Nummern sind die des Projekts (Schalter `FIX_nnnn` in dessen `s_fix.h`); Beschreibung und „So prüfst du es“ stehen dort. Laut Projekt sind die Behebungen am Quelltext entworfen, aber im Spiel noch nicht ausgiebig getestet.
 
 Übernahme bei uns (Stufe 7 im [Stufenplan](stufenplan.md)): je Korrektur ein Commit im BrightEyes-Branch `web` unter `#ifdef M302de_ORIGINAL_BUGFIX` und `if (BUGFIX_WICHTIG)` bzw. `if (BUGFIX_ALLES)` (Laufzeitschalter `g_bugfixes`, im Browser die Einstellung „Fehlerkorrekturen“: An = Stufe W, Voreinstellung; Alle = auch Stufe A; Aus), mit Szenario, wo es sich auslösen lässt (`web_test_fix`); Status hier nachtragen.
 
 **Spalten:** „Änderung dort“ und „Dateien“ (Modul in BrightEyes: `seg032` → `src/schick/seg032.cpp`) aus `Werkzeuge/fix_schalter.tsv` des Projekts; im Code dort steht jede Behebung als `#if FIX_nnnn` · Stufe W = „wichtig“, A = nur „alles“ · Schwere laut `s_fix.h` (kritisch: Hänger, Absturz, Speicherfehler) · 💰 Exploit (nützt dem Spieler) · Herkunft: BE = Fehler war in Bright-Eyes bekannt, BE-Fix = auch die Behebung stammt aus Bright-Eyes (bei uns ist `M302de_ORIGINAL_BUGFIX` nativ gesetzt, also vermutlich schon aktiv) · ⚑ = zuerst angehen.
 
-**Umfang:** 284 Einträge – 25 kritisch, 120 mittel, 139 gering; 38 Exploits; 32 mit Behebung aus Bright-Eyes; 15 dort nur teilweise behoben.
+**Umfang:** 285 Einträge – 25 kritisch, 121 mittel, 139 gering; 39 Exploits; 32 mit Behebung aus Bright-Eyes; 15 dort nur teilweise behoben.
 
 **Hinweis 16/32 Bit:** Einige Fehler sind Überläufe von 16-Bit-`int` (z. B. 117, 137, 296). Nativ ist `int` 32 Bit, Spielstandvariablen aber oft fest 16 Bit – solche Einträge vor der Übernahme nachstellen, sie können bei uns anders oder gar nicht auftreten.
 
@@ -22,7 +22,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 | 30 | ⚑ Angstgift: Schreiben über nicht gesetzten Zeiger bei Held gegen Held | W | krit. |  | Angstgift wirkt nur auf Gegner, beim Helden ist enemy_p nicht gesetzt | seg041 | erledigt (Branch bugfixes) |
 | 11 | Zauberziel: begehbare Objekte (Id ≥ 50) werden nicht abgewiesen | W | mittel |  | begehbare Objekte (Id >= 50) wie im Angriffszweig abweisen | seg033 | erledigt (Branch bugfixes) |
 | 18 | Computerkampf: Helden greifen auch übergelaufene Gegner an | W | mittel |  | uebergelaufene Gegner (Boeser Blick) kaempfen auf der Seite der Helden; uebergelaufene Gegner nicht angreifen; ein uebergelaufener Gegner steht in der Schusslinie wie ein Held | seg036 | erledigt (Branch bugfixes) |
-| 34 | Wurfwaffe wird vor der Schadensberechnung abgelegt 💰 | W | mittel | BE-Fix | Wurfwaffe erst nach der Schadensberechnung ablegen (Bright-Eyes-Fix, Original-Bug 32) | seg042 | schon in BrightEyes behoben |
+| 34 | Wurfwaffe wird vor der Schadensberechnung abgelegt (und Schneidzahn ohne Entfernungstabelle) 💰 | W | mittel | BE-Fix | Wurfwaffe erst nach der Schadensberechnung ablegen (Bright-Eyes-Fix, Original-Bug 32); 1.5e: Schneidzahn nutzt die Entfernungstabelle von Wurfbeil/Wurfaxt (Original-Bug 61) | seg042, seg041 | schon in BrightEyes behoben; Teil Schneidzahn (1.5e) bei uns schon über Nr. 2 erledigt |
 | 36 | Gegner-Balsam heilt über das Maximum oder gar nicht | W | mittel | BE-Fix | halben Verlust, mindestens 7, hoechstens bis zum Maximum heilen (Bright-Eyes-Fix) | seg102 | schon in BrightEyes behoben |
 | 38 | Endkampf: ohne Grimring kämpft Heldenplatz 0 | W | mittel |  | dann den ersten handlungsfaehigen Helden der Gruppe nehmen | seg116 | erledigt (Branch bugfixes) |
 | 313 | Lagerüberfall: nur Heldenplatz 0 ist wach, eingeteilte Wachen zählen nicht | W | mittel |  | beim Lagerueberfall ist die eingeteilte Wache wach (gs_camp_incident = Nummer der Wache,; erst nach dem Kampf loeschen, FIG_init_heroes() weckt die Wache; im Dungeon erst nach dem Kampf loeschen, FIG_init_heroes() weckt die Wache | seg039, seg051, seg052 | erledigt (Branch bugfixes); Wache über g_fig_camp_guard statt gs_camp_incident später zu löschen |
@@ -69,7 +69,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 | 188 | Meditation bei LE 6 oder 7 kostet LE und bringt keine AE | A | gering |  | ohne umwandelbare LE (ae <= 0) keine LE abziehen | seg098 | erledigt (Branch bugfixes), Stufe alles |
 | 193 | Spieltext „AUF %S RUHT …“ mit großem S | A | gering | BE | %S im geladenen Text zu %s machen | seg099 | schon in BrightEyes behoben |
 | 195 | Skelettarius: Leiche darunter verschwindet aus der Auswahl | A | gering | BE | object_id des Ziels sichern (darunterliegende Leiche bleibt waehlbar) | seg099 | schon in BrightEyes behoben |
-| 200 | Abbruch der Gegenstandswahl: inventory[−1] | A | gering | BE | Abbruch der Gegenstandswahl (-1) nicht als Inventarplatz benutzen; Abbruch der Gegenstandswahl (-1) nicht als Inventarplatz benutzen (g_dtp2 ist schon leer) | seg099, seg100 | schon in BrightEyes behoben |
+| 200 | Abbruch der Gegenstandswahl: inventory[−1] | A | gering | BE | Abbruch der Gegenstandswahl (-1) nicht als Inventarplatz benutzen; Abbruch der Gegenstandswahl (-1) nicht als Inventarplatz benutzen (g_dtp2 ist schon leer); 1.5e: Analüs schließt nach dem Abbruch ohne Textfenster | seg099, seg100 | schon in BrightEyes behoben; Ergänzung 1.5e (Analüs ohne Text, nicht in der Akademie) erledigt (Branch bugfixes), Stufe alles |
 | 201 | Analüs: volle AE-Kosten, wenn nur der Zuschlag die Probe kippt | A | gering | BE | am Zuschlag gescheitert -> halbe AE wie bei misslungenem Zauber | seg099 | erledigt (Branch bugfixes), Stufe alles |
 | 202 | „Eigenschaften seid gelesen“ zeigt 80 % des Nahkampfschadens | A | gering | BE | Nahkampfschaden ungekuerzt anzeigen | seg100 | erledigt (Branch bugfixes), Stufe alles |
 | 203 | Exposami vergleicht mit einem noch leeren Listeneintrag | A | gering |  | nur beschriebene Eintraege vergleichen | seg100 | erledigt (Branch bugfixes), Stufe alles |
@@ -132,7 +132,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 | 371 | Grenz- und Straßentexte ohne Richtungsprüfung | A | gering |  | Strassenende/Orkland-Text 74 nur auf dem Weg nach Phexcaer (Ziel Phexcaer vorwaerts oder anderes Ziel nach Umkehr) | seg110 | erledigt (Branch bugfixes), Stufe alles |
 | 375 | Jagd: Einzelheld schafft immer den Blattschuss 💰 | A | gering |  | mindestens die Haelfte (aufgerundet), ein Einzelheld muss treffen | seg117 | erledigt (Branch bugfixes), Stufe alles |
 
-## Dungeons (54)
+## Dungeons (55)
 
 | Nr | Fehler | Stufe | Schwere | Herkunft | Änderung dort | Dateien | Status |
 |---:|---|:---:|---|---|---|---|---|
@@ -144,7 +144,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 | 87 | Dietrich-Zähler wird nach dem ersten Ebenenwechsel ständig zurückgesetzt 💰 | W | mittel | BE | den Ebenenwechsel nur einmal auswerten | seg076 | erledigt (Branch bugfixes) |
 | 88 | Klammerfehler: Feld (1,8,5) zeigt in jedem Dungeon den Spiegeltext | W | mittel |  | beide Felder nur in Hyggeliks Ruine | seg076 | erledigt (Branch bugfixes) |
 | 90 | Rückwärtsschritt prüft halbdurchlässige Wände nicht 💰 | W | mittel |  | rueckwaerts gilt das Richtungsflag der Gegenrichtung (wie vorwaerts) | seg076 | erledigt (Branch bugfixes) |
-| 91 | Leeres Wasserfass füllt trotzdem alle Schläuche 💰 | W | mittel | BE | erst nachsehen, was im Fass ist: aus einem leeren Fass nichts fuellen, | seg076 | erledigt (Branch bugfixes) |
+| 91 | Leeres Wasserfass füllt trotzdem alle Schläuche 💰 | W | mittel | BE | erst nachsehen, was im Fass ist: aus einem leeren Fass nichts fuellen; 1.5e: beim leeren Fass „DAS FASS IST NUN LEER.“ statt „EURE VORRÄTE SIND NOCH ALLE VOLL.“ | seg076 | erledigt (Branch bugfixes), Ergänzung 1.5e erledigt |
 | 92 | Totenschiff-Spalt: nur Seil oder Strickleiter, kein Magierstab | W | mittel | BE | Seil, Strickleiter oder ein Magier mit Stabzauber ab Stufe 3 (Seil des Adepten), wie an den Gruben | seg077 | erledigt (Branch bugfixes) |
 | 94 | Totenschiff: Deckenloch und Grube mit Zeilenbreite 32 statt 16 gesetzt | W | mittel | BE | Dungeonkarten sind 16 Felder breit | seg077 | erledigt (Branch bugfixes) |
 | 97 | Rätseltruhe: 10 AP Zusatzbelohnung werden nie vergeben | W | mittel | BE-Fix | den Goldschluessel nur einmal (die Truhe gilt nach Fix 97 als offen); die Zusatzbelohnung (10 AP) freischalten (Bright-Eyes-Fix) | seg077 | schon in BrightEyes behoben |
@@ -166,6 +166,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 | 357 | Oberorken-Wasserfalle: Raum zu klein, Ertrinken nur an 5-Minuten-Marken | W | mittel |  | der Raum der Wasserfalle umfasst auch das Eingangsfeld (1,3,10), auf dem die Tuer (3,11) hinter der Gruppe zufaellt; steht der Zaehler auf 0, bei jedem Durchlauf auswerten (Meldung und Ertrinken), solange noch; die Helden ertrinken (Leiche und Ausruestung bleiben), statt geloescht zu werden | seg090 | erledigt (Branch bugfixes) |
 | 432 | Manrek-Schatzkammertür: Sperre und Eisenschlüssel auf falschem Feld (0,12,8) statt (0,12,7) 💰 | W | mittel |  | die Schatzkammertuer der Manrek-Piratenhoehle steht laut F131.DDT auf (0,12,7), nicht auf (0,12,8): Sperre bis Hebelstellung 4 und Eisenschluessel wirken erst damit; Eisenschluessel fuer die Tuer auf (0,12,7) | seg076 | erledigt (Branch bugfixes) |
 | 433 | Totenschiff-Falltüren lösen neben der Grube aus und schieben die Gruppe (bei (1,14,5) in die Wand) | W | mittel |  | die Falltueren loesen auf dem Feld aus, auf dem die Grube entsteht ((1,2,9) und (1,14,5)), | seg077 | erledigt (Branch bugfixes) |
+| 440 | Geöffnete Truhe setzt die Schloss-Erschwernis im Speicher auf 0 (bleibt nach Spielstand-Laden 0) 💰 | W | mittel |  | die Truhentabelle im Speicher nicht anfassen (loot_simple_chest/loot_chest setzten chest->lock = 0); ob eine Truhe offen ist, steht in der Dungeonkarte | seg092 | erledigt (Branch bugfixes), neu in 1.5e |
 | 81 | KK-Probe zählt Platz 0 ungeprüft | A | gering | BE | die ersten beiden handlungsfaehigen Helden der aktiven Gruppe | seg047 | erledigt (Branch bugfixes), Stufe alles |
 | 82 | Gelber Pfeil der aktiven Gruppe wird vom violetten verdeckt | A | gering | BE-Fix | gelben Pfeil zuletzt zeichnen (Bright-Eyes-Fix zu Original-Bug 31) | seg074 | schon in BrightEyes behoben |
 | 83 | Sichtprüfung <= 16 lässt eine 17. Spalte neben der Karte zu | A | gering |  | sichtbar sind die Spalten 0..15 | seg074 | erledigt (Branch bugfixes), Stufe alles |
@@ -181,7 +182,7 @@ Quelle: [MeowMuhMuhCow/schicksalsklinge, BUGFIXES.md](https://github.com/MeowMuh
 | 108 | Ratten beißen auch tote Helden | A | gering | BE | keine toten Helden | seg080 | erledigt (Branch bugfixes), Stufe alles |
 | 109 | Armbrustfalle zählt nur Platz 0 und 1 | A | gering |  | die ersten beiden handlungsfaehigen Helden der Gruppe treffen | seg081 | erledigt (Branch bugfixes), Stufe alles; der uninitialisierte Zeiger bei l3 == 0 immer an |
 | 113 | Hilferuf aus der Grube jede Minute statt alle 20 Minuten | A | gering |  | alle 20 Minuten | seg084 | erledigt (Branch bugfixes), Stufe alles |
-| 115 | Loser Stein: Zustand „entfernt“ wird überschrieben | A | gering |  | den Zustand "Stein entfernt" (2) nicht ueberschreiben | seg085 | erledigt (Branch bugfixes), Stufe alles |
+| 115 | Loser Stein: Zustand „entfernt“ wird überschrieben | A | gering |  | den Zustand "Stein entfernt" (2) nicht ueberschreiben; 1.5e: ab dem zweiten Besuch Text 41 („HIER IST EIN LOCH IN DER WAND …“) statt der Schmerzmeldung | seg085 | erledigt (Branch bugfixes), Stufe alles; Ergänzung 1.5e erledigt |
 | 116 | Trittplatte wirkt nur beim Entschärfen | A | gering | BE | gs_dng10_floorplate_found als Bits (0x01 entdeckt, 0x02 entschaerft; alter Wert 1 = entdeckt). | seg085 | erledigt (Branch bugfixes), Stufe alles |
 | 347 | Dungeonlicht: Lichtquellen anderer Gruppen zählen mit | A | gering |  | nur Lichtquellen der aktiven Gruppe zaehlen | seg106 | erledigt (Branch bugfixes), Stufe alles |
 | 352 | Giftdorn-Truhe nach sechs Ladungen ohne Text | A | gering |  | leere Giftdorn-Truhe meldet sich wie eine verschlossene Truhe (TEXT.LTX 519) | seg079 | erledigt (Branch bugfixes), Stufe alles |
