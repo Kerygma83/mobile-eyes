@@ -1537,8 +1537,9 @@
 		// Kampf: Figuren hinter Wänden (BrightEyes kampf_durchsicht.cpp: aus 0, Raster 1, Umriss 2)
 		durchsicht: { lies: () => ({ aus: 'aus', umriss: 'umriss' })[lies('durchsicht')] ?? 'raster',
 			setze: (v) => { merke('durchsicht', v); durchsichtSetzen(); } },
-		// Fehlerkorrekturen aus docs/bugfixes.md (BrightEyes g_bugfixes: aus 0, an 1 = Stufe wichtig, alle 2)
-		bugfixes: { lies: () => ({ aus: 'aus', alle: 'alle' })[lies('bugfixes')] ?? 'an',
+		// Fehlerkorrekturen aus docs/bugfixes.md (BrightEyes g_bugfixes: aus 0, an 1 = Stufe wichtig, alle 2;
+		// Voreinstellung alle)
+		bugfixes: { lies: () => ({ aus: 'aus', an: 'an' })[lies('bugfixes')] ?? 'alle',
 			setze: (v) => { merke('bugfixes', v); bugfixesSetzen(); } },
 		// Wartezeit der Kampfanimation (g_delay_factor, „Rechner anpassen“ des Originals; 4 wie im Original)
 		kampftempo: { lies: () => ['2', '4', '6'].includes(lies('kampftempo')) ? lies('kampftempo') : '4',

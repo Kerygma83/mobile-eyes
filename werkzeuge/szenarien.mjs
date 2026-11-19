@@ -323,6 +323,8 @@ export const szenarien = [
 		name: 'Bugfixes: Hänger und Abstürze',
 		schritte: [
 			...spielBereit, ...heldenAufnehmen(1), ...tempelVerlassen, ...ohneZufall,
+			{ erwarte: "einstellung.bugfixes.lies() === 'alle'", seite: true, text: 'Voreinstellung: Alle' },
+			{ erwarte: 'z.bugfixes == 2', text: 'Voreinstellung: Stufe alle im Spiel' },
 			...[137, 221, 235, 333, 340, 391, 1001].flatMap((nr) => [
 				{ js: `Module._web_test_fix(${nr})` },
 				{ warteAuf: 'z.fix == 1', max: 3000, text: `Fix ${nr}` },
