@@ -1,0 +1,1669 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<!-- 1: Spieldaten eingebaut (SPIELDATEN=1), 0: Import im Browser (daten.js); setzt web-bauen.sh -->
+<meta name="spieldaten" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#14110f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Schicksalsklinge">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Schicksalsklinge</title>
+<style>
+	:root {
+		--bg: #14110f;
+		--panel: #221d19;
+		--knopf: #3a312a;
+		--knopf-aktiv: #6b5636;
+		--rand: #5a4a3a;
+		--text: #e8dcc8;
+		--leise: #a39480;
+		--gold: #c9a45c;
+		--leiste: 13.5rem;
+		--aktionen-hoehe: calc(0.3rem + 2 * 2.7rem + 0.35rem);   /* zwei Reihen (aktionen.js) */
+	}
+	* { box-sizing: border-box; }
+	html, body {
+		margin: 0; height: 100%;
+		background: var(--bg); color: var(--text);
+		font: 16px/1.3 system-ui, sans-serif;
+		overscroll-behavior: none;
+		-webkit-user-select: none; user-select: none;
+		-webkit-touch-callout: none;
+	}
+	body {
+		display: flex; flex-direction: column;
+		height: 100dvh;
+		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+	}
+	canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; touch-action: none; outline: none; }
+	#status {
+		position: fixed; inset: 0; z-index: 5;
+		display: flex; align-items: center; justify-content: center;
+		color: var(--leise); font-size: 0.95rem; text-align: center; padding: 1rem;
+		pointer-events: none;
+	}
+
+	/* ---------- Layout „Original“: das ganze 320x200-Bild ---------- */
+	#buehne {
+		flex: 1; min-height: 0;
+		display: flex; align-items: center; justify-content: center;
+	}
+	#bild {
+		aspect-ratio: 4 / 3;
+		width: min(100%, calc((100dvh - var(--leiste) - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 4 / 3));
+		background: #000;
+	}
+	#canvas { width: 100%; height: 100%; }
+	body.mobil #buehne { display: none; }
+	/* SDL braucht die Canvas weiterhin, im mobilen Layout unsichtbar */
+	body.mobil #canvas { position: absolute; left: 0; top: 0; width: 1px; height: 1px; visibility: hidden; }
+	body.mobil #canvas-halter { position: absolute; }
+
+	/* ---------- Layout „Mobil“: Ausschnitte frei angeordnet ---------- */
+	#mobil { display: none; flex: 1; min-height: 0; flex-direction: column; align-items: center; gap: 3px; overflow: hidden; container-type: size; }
+	body.mobil #mobil { display: flex; }
+	/* DOS-Pixel sind 1,2-mal so hoch wie breit */
+	canvas.aus, #datum { width: 100%; height: auto; background: #000; }
+	/* Querformat: nicht höher als der Platz über der Leiste. Höhe je Breite (mit 1,2): Ansicht 240×136 → 0,68,
+	   Ortszeile und Datum 320×18 → 0,0675, Gruppe 320×43 → 0,16125, zusammen 0,97625 plus drei Abstände;
+	   ganzer Bildschirm 320×200 → 0,75 */
+	#mobil > .teil { width: min(100%, calc((100cqh - 9px) / 0.97625)); }
+	#mobil > .voll { width: min(100%, calc(100cqh / 0.75)); }
+	#mobil .voll { display: none; }
+	#mobil.vollbild .teil { display: none; }
+	#mobil.vollbild .voll { display: block; }
+	/* Reisekarte (karte.js): statt des ganzen Bildschirms zoom- und verschiebbar, darunter die Ziele */
+	#karte { display: none; flex: 1; min-height: 0; align-self: stretch; flex-direction: column; gap: 0.5rem; }
+	#mobil.karte .voll { display: none; }
+	#mobil.karte #karte { display: flex; }
+	#karte #datum { display: block; flex: none; }
+	#karte .flaeche { position: relative; flex: 1; min-height: 8rem; overflow: hidden; background: #000; touch-action: none; }
+	#karte .inhalt { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+	#karte .inhalt canvas { display: block; }
+	#karte .namen { position: absolute; inset: 0; pointer-events: none; }
+	#karte .namen div {
+		position: absolute; white-space: nowrap; transform: translateY(-50%);
+		font: 600 0.72rem/1 system-ui, sans-serif; color: #fff;
+		text-shadow: 0 0 2px #000, 0 0 2px #000, 0 0 3px #000;
+	}
+	#karte .namen .gebiet { transform: translate(-50%, -50%); font: italic 0.7rem/1 Georgia, serif; color: #f3e6c4; opacity: 0.85; }
+	#karte .namen .ort.ziel { color: var(--gold); font-size: 0.85rem; }
+	#karte .zoom { position: absolute; right: 0.5rem; top: 0.5rem; display: flex; flex-direction: column; gap: 0.35rem; }
+	#karte .zoom button { width: 2.4rem; height: 2.4rem; font-size: 1.3rem; background: rgb(36 28 21 / 0.85); touch-action: manipulation; }
+	#karte .ziele { flex: none; display: flex; flex-direction: column; gap: 0.4rem; padding: 0 0.5rem; max-height: 40%; overflow-y: auto; }
+	#karte .ziele:empty { display: none; }
+	#karte .ziele h3 { margin: 0; font-size: 0.9rem; font-weight: 600; color: var(--leise); }
+	#karte .ziele p { margin: 0; color: var(--leise); }
+	#karte .ziele .knoepfe { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+	#karte .ziele button { min-height: 2.6rem; padding: 0 0.6rem; font-size: 0.95rem; touch-action: manipulation; }
+	#karte .ziele button.zurueck { grid-column: 1 / -1; color: var(--leise); }
+
+	/* ---------- Steuerleiste ---------- */
+	#leiste {
+		display: flex; align-items: center; justify-content: center; gap: 1rem;
+		padding: 0.6rem 0.8rem;
+		background: var(--panel);
+		border-top: 1px solid var(--rand);
+	}
+	body:not(.mobil) #leiste { height: var(--leiste); }
+	#icons-halter { width: 9.5rem; flex: none; }
+	#mobil.vollbild ~ #leiste #icons-halter { display: none; }
+	body:not(.mobil) #icons-halter { display: none; }
+	#icons { border: 1px solid var(--rand); border-radius: 0.4rem; }
+	/* Aktionsknöpfe (aktionen.js) statt der Icons (im flachen Querformat rechts neben dem Bild, siehe unten):
+	   - Knöpfe direkt unter dem Bild, Platz für drei Reihen (das Bild springt nicht beim Betreten eines Gebäudes)
+	   - darunter füllt die Leiste den Rest: Steuerkreuz mittig (größer, wenn Platz ist), ganz unten
+	     Protokoll, Aufträge und Einstellungen mit Text über die ganze Breite
+	   - OK und Zurück nur in den Vollbild-Ansichten: auf dem Hauptbildschirm öffnete Zurück (Rechtsklick)
+	     nur das Menü mit denselben Aktionen, Enter wirkt dort nicht
+	   Das Bild richtet sich nach der Höhe, die mindestens für Knöpfe und Leiste bleiben muss. */
+	#aktionsknoepfe { display: none; }
+	.aktionen button .text { display: none; }
+	@media all {
+		body.mobil.aktionsknoepfe {
+			--leiste-min: calc(1.2rem + 2 * 3.3rem + 0.35rem + 2 * 0.5rem + 2.6rem);
+			--leiste-min-voll: calc(var(--leiste-min) + 2.3rem);   /* mit OK und Zurück */
+		}
+		body.mobil.aktionsknoepfe #aktionsknoepfe {
+			display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 2.7rem; align-content: start;
+			gap: 0.35rem; padding: 0.3rem 0.35rem 0; flex: none; background: var(--panel); height: var(--aktionen-hoehe);
+		}
+		/* mehr als sechs Aktionen (Herberge, Lager, verschlossene Tür): vier Spalten, weiter zwei Reihen */
+		body.mobil.aktionsknoepfe #aktionsknoepfe.vier { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+		#aktionsknoepfe.vier button { gap: 0.25rem; padding: 0 0.25rem; font-size: 0.72rem; }
+		#aktionsknoepfe.vier button canvas { width: 1.3rem; height: 1.56rem; }
+		/* Bild oben, die Leiste füllt den Rest; nicht auf der Reisekarte (braucht selbst den Platz) */
+		body.mobil.aktionsknoepfe #mobil:not(.karte) { flex: none; container-type: normal; }
+		body.mobil.aktionsknoepfe #mobil.vollbild:not(.karte) > .voll {
+			width: min(100%, calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--leiste-min-voll)) / 0.75));
+		}
+		body.mobil.aktionsknoepfe #mobil:not(.vollbild) > :is(.teil, #aktionsknoepfe) {
+			width: min(100%, calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 12px - var(--aktionen-hoehe) - var(--leiste-min)) / 0.97625));
+		}
+		#mobil.vollbild #aktionsknoepfe { display: none; }
+		body.mobil.aktionsknoepfe #mobil:not(.karte) ~ #leiste { flex: 1; min-height: 0; }
+		body.mobil.aktionsknoepfe #leiste { flex-direction: column; align-items: stretch; border-top: 0; padding: 0.5rem 0.35rem; }
+		/* nicht breiter als Bild und Aktionsknöpfe (breites Browserfenster); --dialog-breite: Bildbreite */
+		body.mobil.aktionsknoepfe #leiste { align-self: center; width: min(100%, var(--dialog-breite, 100%)); }
+		body.mobil.aktionsknoepfe #icons-halter { display: none; }
+		/* Kreuz, OK/Zurück und die drei Knöpfe in einem Raster; .aktionen löst sich darin auf */
+		body.mobil.aktionsknoepfe .rechts {
+			flex: 1; min-height: 0; container-type: size;
+			display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: 1fr auto auto; gap: 0.5rem 0.4rem;
+		}
+		body.mobil.aktionsknoepfe .aktionen { display: contents; }
+		body.mobil.aktionsknoepfe .kreuz {
+			grid-column: 1 / -1; grid-row: 1; place-self: center;
+			--k: clamp(3.3rem, min((100cqh - 2 * 2.6rem - 2rem) / 2.15, 100cqw / 3.6), 5rem);
+			grid-template-columns: repeat(3, var(--k)); grid-template-rows: repeat(2, var(--k));
+		}
+		/* Reisekarte: ohne Kreuz, OK und Zurück (die Karte hat ihren eigenen Zurück-Knopf, das Kreuz wirkt dort
+		   nicht); Ziele und Datumszeile auf dem Hintergrund der Leiste */
+		body.mobil.aktionsknoepfe #mobil.karte ~ #leiste .rechts { container-type: normal; }
+		body.mobil.aktionsknoepfe #mobil.karte ~ #leiste :is(.kreuz, button[data-key="enter"], button[data-key="rechtsklick"]) { display: none; }
+		body.mobil.aktionsknoepfe #mobil.karte #karte { background: var(--panel); }
+		/* Minimap (minimap.js) in Stadt und Dungeon: links, das Kreuz rückt nach rechts */
+		/* Karte quadratisch (halbe Breite), das Kreuz so groß wie möglich und mittig im Rest */
+		/* darunter der Aktionsknopf „Karte“ (Automap des Originals) in der Breite der Minimap */
+		body.mobil.aktionsknoepfe.minimap #mobil:not(.vollbild) ~ #leiste :is(#minimap-spalte, .kreuz) {
+			--unter: 0rem;
+			--m: min(50cqw - 0.4rem, 100cqh - 2.6rem - 1rem - var(--unter));
+			--rest: calc(100cqw - var(--m) - 0.4rem);
+		}
+		body.mobil.aktionsknoepfe.minimap #leiste .rechts:has(#karte-unter:not([hidden])) > :is(#minimap-spalte, .kreuz) { --unter: 3.05rem; }
+		body.mobil.aktionsknoepfe.minimap #mobil:not(.vollbild) ~ #leiste .kreuz {
+			grid-column: 1 / -1; justify-self: end;
+			--k: clamp(2.8rem, min((100cqh - 2.6rem - 1rem - 0.35rem) / 2, (var(--rest) - 0.7rem) / 3), 5.5rem);
+			margin-right: calc((var(--rest) - 3 * var(--k) - 0.7rem) / 2);
+		}
+		body.mobil.aktionsknoepfe.minimap #mobil:not(.vollbild) ~ #leiste #minimap-spalte {
+			display: flex; flex-direction: column; gap: 0.35rem; grid-column: 1 / -1; grid-row: 1; place-self: center start;
+			width: var(--m);
+		}
+		body.mobil.aktionsknoepfe.minimap #mobil:not(.vollbild) ~ #leiste #minimap { width: var(--m); height: var(--m); }
+		body.mobil.aktionsknoepfe.lager #mobil:not(.vollbild) ~ #leiste .kreuz { display: none; }
+		body.mobil.aktionsknoepfe .kreuz button { font-size: calc(var(--k) * 0.45); }
+		body.mobil.aktionsknoepfe .kreuz button svg { width: calc(var(--k) * 0.45); height: calc(var(--k) * 0.45); }
+		body.mobil.aktionsknoepfe .aktionen button[data-key="enter"] { grid-column: 1 / 4; grid-row: 2; }
+		body.mobil.aktionsknoepfe .aktionen button[data-key="rechtsklick"] { grid-column: 4 / 7; grid-row: 2; }
+		body.mobil.aktionsknoepfe #mobil:not(.vollbild) ~ #leiste button:is([data-key="enter"], [data-key="rechtsklick"]) { display: none; }
+		body.mobil.aktionsknoepfe .aktionen :is(.wuerfel, .quest, .menue) {
+			grid-row: 3; grid-column: span 2; width: auto; height: 2.6rem; gap: 0.3rem; padding: 0 0.25rem;
+		}
+		body.mobil.aktionsknoepfe .aktionen .wuerfel { grid-column: 1 / 3; }
+		body.mobil.aktionsknoepfe .aktionen .quest { grid-column: 3 / 5; }
+		body.mobil.aktionsknoepfe .aktionen .menue { grid-column: 5 / 7; }
+		/* Heldenbogen (heldenbogen.js): statt Kreuz, OK und Zurück Gruppe, Gegenstandskarte und Kacheln;
+		   das Bild lässt dafür mehr Platz (--leiste-hb) */
+		body.mobil.aktionsknoepfe { --leiste-hb: calc(18rem + 3 * (min(100vw, 36rem) - 2.5rem) / 8 + var(--hb-mehr, 0px)); }
+		/* Leiste nicht an die Bildbreite gebunden: die Ablage braucht ihre Breite (sonst wird sie höher, das Bild kleiner …) */
+		body.mobil.aktionsknoepfe #mobil.heldenbogen ~ #leiste { width: min(100%, 36rem); }
+		body.mobil.aktionsknoepfe #mobil.vollbild.heldenbogen:not(.karte) > .voll {
+			width: min(100%, calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--leiste-hb)) / 0.75));
+		}
+		body.mobil.aktionsknoepfe #mobil.heldenbogen ~ #leiste :is(.kreuz, button[data-key="enter"], button[data-key="rechtsklick"]) { display: none; }
+		body.mobil.aktionsknoepfe #mobil.heldenbogen ~ #leiste #heldenbogen { display: flex; grid-column: 1 / -1; grid-row: 1 / 3; align-self: stretch; }
+		/* Kampf (kampf.js): Feld 4 : 3,3 über der ganzen Breite, so hoch, wie das Bedienfeld es zulässt
+		   (--kampf-unten, um den gemessenen Überlauf erhöht); statt Kreuz, OK und Zurück das Bedienfeld */
+		body.mobil.aktionsknoepfe { --kampf-unten: calc(22.5rem + var(--kampf-mehr, 0px)); }
+		body.mobil.aktionsknoepfe #mobil.kampf ~ #leiste { width: min(100%, 40rem); }
+		body.mobil.aktionsknoepfe #mobil.kampf ~ #leiste .rechts { container-type: normal; }
+		body.mobil.aktionsknoepfe #mobil.kampf ~ #leiste :is(.kreuz, button[data-key="enter"], button[data-key="rechtsklick"]) { display: none; }
+		body.mobil.aktionsknoepfe #mobil.kampf ~ #leiste #kampfbedien { display: flex; grid-column: 1 / -1; grid-row: 1 / 3; align-self: stretch; }
+		body.mobil.aktionsknoepfe .aktionen :is(.wuerfel, .quest, .menue) svg { flex: none; width: 1.15rem; height: 1.15rem; }
+		body.mobil.aktionsknoepfe .aktionen button .text { display: inline; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; }
+	}
+	/* Flaches Querformat (Handy quer) mit Aktionsknöpfen: das Bild links über die volle Höhe, rechts daneben
+	   die Bedienung (Aktionsknöpfe, Kreuz/Minimap, Heldenbogen, Kampf); --rechts: Mindestbreite der Spalte,
+	   --frei: was für das Bild bleibt. Die Aktionsknöpfe hängt die Seite dafür in die Leiste um. */
+	@media (orientation: landscape) and (max-height: 600px) {
+		body.mobil.aktionsknoepfe {
+			flex-direction: row;
+			--hoehe: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+			--rechts: 20rem;
+			--frei: calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - var(--rechts));
+		}
+		body.mobil.aktionsknoepfe:has(#mobil.heldenbogen) { --rechts: 25rem; }
+		body.mobil.aktionsknoepfe #mobil:not(.karte) { flex: none; height: 100%; justify-content: center; }
+		body.mobil.aktionsknoepfe #mobil:not(.vollbild) > :is(.teil, #aktionsknoepfe) {
+			width: min(var(--frei), calc((var(--hoehe) - 9px) / 0.97625));
+		}
+		body.mobil.aktionsknoepfe #mobil.vollbild:not(.karte) > .voll,
+		body.mobil.aktionsknoepfe #mobil.vollbild.heldenbogen:not(.karte) > .voll {
+			width: min(var(--frei), calc(var(--hoehe) / 0.75));
+		}
+		body.mobil.aktionsknoepfe #kampf { width: min(var(--frei), calc(var(--hoehe) * 4 / 3.3)); max-height: none; }
+		/* Reisekarte: links die Karte über die volle Höhe, rechts Datumszeile und Ziele; die Leiste (nur
+		   Protokoll, Aufträge, Menü) liegt rechts unten darüber */
+		body.mobil.aktionsknoepfe #mobil.karte { flex: 1; min-width: 0; height: 100%; }
+		body.mobil.aktionsknoepfe #mobil.karte #karte {
+			display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--rechts) - 0.8rem);
+			grid-template-rows: auto minmax(0, 1fr) 3.6rem; gap: 0.5rem 0.8rem; background: none;
+		}
+		body.mobil.aktionsknoepfe #mobil.karte #karte .flaeche { grid-column: 1; grid-row: 1 / -1; min-height: 0; }
+		body.mobil.aktionsknoepfe #mobil.karte #karte #datum { grid-column: 2; grid-row: 1; margin-top: 0.4rem; }
+		body.mobil.aktionsknoepfe #mobil.karte #karte .ziele { grid-column: 2; grid-row: 2; max-height: none; padding: 0; }
+		body.mobil.aktionsknoepfe #mobil.karte #karte .ziele .knoepfe { grid-template-columns: 1fr; }
+		body.mobil.aktionsknoepfe #mobil.karte ~ #leiste {
+			position: fixed; right: env(safe-area-inset-right); bottom: env(safe-area-inset-bottom);
+			width: var(--rechts); min-width: 0; height: auto; border-left: 0; background: none;
+		}
+		body.mobil.aktionsknoepfe #leiste,
+		body.mobil.aktionsknoepfe #mobil:is(.kampf, .heldenbogen) ~ #leiste {
+			flex: 1; min-width: var(--rechts); width: auto; height: 100%; align-self: stretch;
+			border-top: 0; border-left: 1px solid var(--rand); padding: 0.4rem 0.4rem;
+		}
+		/* Aktionsknöpfe oben in der Leiste (umgehängt), nicht in Vollbild-Ansichten */
+		body.mobil.aktionsknoepfe #leiste > #aktionsknoepfe { padding: 0 0 0.5rem; background: none; width: auto; }
+		body.mobil.aktionsknoepfe #mobil.vollbild ~ #leiste > #aktionsknoepfe { display: none; }
+	}
+	#minimap-spalte { display: none; }
+	#minimap { display: block; image-rendering: pixelated; border: 1px solid var(--rand); border-radius: 0.4rem; background: #000; }
+	#karte-unter { display: flex; }
+	#karte-unter[hidden] { display: none; }
+	#karte-unter button { flex: 1; height: 2.7rem; }
+	:is(#aktionsknoepfe, #karte-unter) button {
+		justify-content: flex-start; gap: 0.4rem; padding: 0 0.4rem; min-width: 0;
+		font-size: 0.8rem; line-height: 1.1; text-align: left; touch-action: manipulation;
+	}
+	:is(#aktionsknoepfe, #karte-unter) button canvas { flex: none; width: 1.6rem; height: 1.92rem; border-radius: 0.2rem; }
+	:is(#aktionsknoepfe, #karte-unter) button span { overflow: hidden; hyphens: manual; }
+	#aktionsknoepfe button.grau { opacity: 0.5; }
+	.rechts { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+	.kreuz {
+		display: grid; gap: 0.35rem;
+		grid-template-columns: repeat(3, 3.3rem);
+		grid-template-rows: repeat(2, 3.3rem);
+	}
+	.aktionen { display: flex; flex-wrap: wrap; gap: 0.35rem; justify-content: center; max-width: 11rem; }
+	button {
+		font: inherit; color: var(--text);
+		background: var(--knopf);
+		border: 1px solid var(--rand); border-radius: 0.6rem;
+		touch-action: none;
+		-webkit-tap-highlight-color: transparent;
+		display: flex; align-items: center; justify-content: center;
+		padding: 0;
+	}
+	button.aktiv { background: var(--knopf-aktiv); border-color: var(--gold); }
+	.kreuz button { font-size: 1.5rem; }
+	.kreuz .leer { visibility: hidden; }
+	/* Kampf (kampf.js), nur im Hochformat mit Aktionsknöpfen: Feld statt des ganzen Bildschirms */
+	#kampf { display: none; position: relative; flex: none; width: min(100%, 40rem); aspect-ratio: 4 / 3.3;
+		max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--kampf-unten, 22.5rem)); }
+	body.mobil #mobil.kampf > .voll { display: none; }
+	#mobil.kampf #kampf { display: block; }
+	#kampf .flaeche { position: absolute; inset: 0; overflow: hidden; background: #000; touch-action: none; }
+	#kampf .inhalt { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+	#kampf .inhalt canvas { display: block; }
+	#kampf .zoom { position: absolute; right: 0.4rem; top: 0.4rem; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+	#kampf .zoom button { width: 2.1rem; height: 2.1rem; font-size: 1.1rem; background: rgb(36 28 21 / 0.6); border-color: rgb(90 74 58 / 0.7); touch-action: manipulation; }
+	#kampf .stufe { font-size: 0.7rem; color: var(--leise); text-shadow: 0 0 3px #000; }
+	#kampfbedien { display: none; flex-direction: column; gap: 0.3rem; min-height: 0; overflow-y: auto; font-size: 0.85rem; }
+	#kampfbedien.gesendet { opacity: 0.6; }
+	#kampfbedien button { font: inherit; color: var(--text); background: var(--knopf); border: 1px solid var(--rand); border-radius: 0.5rem;
+		touch-action: manipulation; -webkit-tap-highlight-color: transparent; min-height: 2.4rem; padding: 0.1rem 0.15rem;
+		display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; min-width: 0; line-height: 1.1; }
+	#kampfbedien button > span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	#kampfbedien button small { font-size: 0.66rem; color: var(--leise); }
+	#kampfbedien button:disabled { opacity: 0.4; }
+	#kampfbedien button.gross { min-height: 2.9rem; font-size: 1rem; font-weight: 600; }
+	#kampfbedien button.gross small { font-weight: 400; }
+	#kampfbedien button.haupt { background: var(--knopf-aktiv); border-color: var(--gold); }
+	#kampfbedien button.warn::after { content: ""; position: absolute; top: 0.25rem; right: 0.3rem; width: 0.42rem; height: 0.42rem; border-radius: 50%; background: #d8463a; }
+	#kampfbedien button.an { background: var(--knopf-aktiv); border-color: var(--gold); color: var(--gold); }
+	.kb-gruppe { display: flex; gap: 0.3rem; }
+	#kampfbedien .kb-held { flex: 1; min-height: 0; padding: 0.2rem 0.3rem; align-items: stretch; gap: 0.12rem; font-size: 0.75rem; }
+	#kampfbedien .kb-held.an { background: var(--gold); border-color: var(--gold); color: #1c1610; font-weight: 600; }
+	#kampfbedien .kb-held.weg { opacity: 0.45; }
+	.kb-balken { height: 0.2rem; background: #000; border-radius: 0.1rem; overflow: hidden; }
+	.kb-balken b { display: block; height: 100%; background: #5fae5a; }
+	.kb-balken.ae b { background: #5b8fd8; }
+	.kb-zug { display: flex; align-items: center; gap: 0.4rem; min-height: 1.3rem; }
+	.kb-zug b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.kb-bp { display: flex; align-items: center; gap: 0.15rem; margin-left: auto; flex: none; }
+	.kb-bp i { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--gold); }
+	.kb-bp i.weg { background: transparent; border: 1px solid var(--rand); }
+	.kb-bp i.kostet { background: transparent; border: 1px solid var(--gold); }
+	.kb-bp small { margin-left: 0.3rem; color: var(--leise); font-size: 0.75rem; }
+	.kb-unten { margin-top: auto; display: flex; flex-direction: column; gap: 0.3rem; }
+	.kb-titel { color: var(--leise); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0 0.15rem; }
+	.kb-reihe { display: grid; gap: 0.3rem; }
+	.kb-reihe.eins { grid-template-columns: minmax(0, 1fr); }
+	.kb-reihe.zwei { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.kb-reihe.drei { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+	.kb-reihe.vier { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+	#kampfbedien .kb-mehr { color: var(--leise); font-size: 1.1rem; }
+	.kb-banner { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.5rem; background: #2d2518; border: 1px solid var(--gold); border-radius: 0.6rem; }
+	.kb-banner-text { flex: 1; min-width: 0; }
+	.kb-banner-text b { display: block; font-weight: 600; }
+	.kb-banner-text small { display: block; color: var(--leise); font-size: 0.75rem; }
+	#kampfbedien .kb-banner button { flex: none; padding: 0 0.8rem; }
+	.kb-diagonal { margin: auto auto 0; width: min(100%, 15rem); aspect-ratio: 3.4 / 3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 0.35rem; }
+	#kampfbedien .kb-pfeil { font-size: 1.5rem; }
+	#kampfbedien .kb-ok { background: var(--knopf-aktiv); border-color: var(--gold); font-weight: 600; font-size: 0.85rem; }
+	.kb-hinweis, .kb-leise { color: var(--leise); font-size: 0.72rem; text-align: center; }
+	.kb-liste { display: flex; flex-direction: column; gap: 0.3rem; margin-top: auto; min-height: 0; overflow-y: auto; }
+	#kampfbedien .kb-eintrag { flex-direction: row; justify-content: flex-start; gap: 0.5rem; padding: 0.25rem 0.5rem; text-align: left; flex: none; }
+	.kb-eintrag canvas { flex: none; width: 1.8rem; height: 1.8rem; background: #000; border-radius: 0.25rem; image-rendering: pixelated; }
+	.kb-eintrag canvas.leer { visibility: hidden; }
+	.kb-eintrag span { display: flex; flex-direction: column; min-width: 0; }
+	.kb-eintrag b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	/* Kampfverlauf füllt den freien Platz, neueste Einträge unten (ältere laufen oben heraus) */
+	.kb-verlauf { flex: 1 1 0; min-height: 2rem; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; gap: 0.2rem; padding: 0.4rem 0.5rem; background: var(--bg); border: 1px solid var(--rand); border-radius: 0.6rem; font-size: 0.8rem; }
+	.kb-verlauf > * { flex: none; }
+	.kb-verlauf-zeile.eigen { color: var(--gold); }
+	.kb-verlauf-zeile.neu { font-weight: 600; }
+	.kb-mehr-liste { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: end; gap: 0.3rem; }
+	.kb-verlauf-zeile { display: flex; justify-content: space-between; gap: 0.5rem; }
+	.kb-verlauf-zeile span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+	.kb-verlauf-zeile span:last-child { color: var(--leise); white-space: nowrap; }
+	.kb-verlauf-zeile.treffer span:last-child { color: #e58a6e; }
+	.kb-wahl3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.3rem; }
+	/* Heldenbogen (heldenbogen.js), nur im Hochformat mit Aktionsknöpfen sichtbar: oben Gruppe und Reiter,
+	   unten (Daumenbereich) Karte, Ausrüstung und Rucksack */
+	#heldenbogen { display: none; flex-direction: column; justify-content: space-between; gap: 0.35rem; min-height: 0; overflow-y: auto; font-size: 0.85rem; }
+	#heldenbogen button { font: inherit; color: var(--text); background: var(--knopf); border: 1px solid var(--rand); border-radius: 0.5rem; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+	#heldenbogen button:disabled { opacity: 0.55; }
+	.hb-oben, .hb-unten { display: flex; flex-direction: column; gap: 0.35rem; }
+	/* Karte füllt den Platz zwischen Reitern und Kacheln, die Aktionen unten in der Karte */
+	.hb-unten { flex: 1; }
+	.hb-karte { flex: 1; }
+	.hb-aktionen { margin-top: auto; }
+	.hb-kopf { display: flex; gap: 0.3rem; }
+	.hb-helden { position: relative; flex: 1; display: flex; gap: 0.3rem; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+	.hb-helden::-webkit-scrollbar { display: none; }
+	.hb-helden button { flex: none; min-width: 5rem; height: 1.95rem; padding: 0 0.7rem; white-space: nowrap; }
+	#heldenbogen .hb-helden button.an { background: var(--gold); border-color: var(--gold); color: #1c1610; font-weight: 600; }
+	#heldenbogen .hb-helden button.ziel { border: 1px dashed var(--gold); background: #2d2518; }
+	.hb-kopf > button { flex: none; height: 1.95rem; padding: 0 0.7rem; }
+	#heldenbogen .hb-zu { background: #5c2a22; border-color: #8f4a3a; }
+	#heldenbogen .hb-mehr { color: var(--leise); min-width: 2.6rem; font-size: 1.1rem; line-height: 1; }
+	.hb-mehr-liste { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; }
+	.hb-mehr-liste[hidden] { display: none; }
+	.hb-mehr-liste button { height: 1.95rem; }
+	.hb-reiter { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.3rem; }
+	.hb-reiter button { height: 1.85rem; padding: 0 0.2rem; font-size: 0.8rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	#heldenbogen .hb-reiter button.an { background: var(--panel); border-color: var(--gold); color: var(--gold); }
+	.hb-karte { display: flex; flex-direction: column; gap: 0.35rem; min-height: 5.9rem; padding: 0.4rem 0.45rem; background: var(--bg); border: 1px solid var(--rand); border-radius: 0.6rem; }
+	.hb-karte-kopf b { display: block; font-size: 1rem; }
+	.hb-karte-kopf small { display: block; color: var(--leise); font-size: 0.75rem; }
+	.hb-karte-kopf small.warn { color: #e58a6e; }
+	.hb-aktionen { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.25rem; }
+	#heldenbogen .hb-aktionen button { min-height: 2.3rem; padding: 0.1rem 0.1rem; line-height: 1.1; font-size: 0.74rem; display: flex; flex-direction: column; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden; }
+	.hb-aktionen button small { display: block; font-size: 0.62rem; color: var(--leise); }
+	#heldenbogen .hb-aktionen button.haupt { background: var(--knopf-aktiv); border-color: var(--gold); }
+	.hb-banner { display: flex; align-items: center; gap: 0.5rem; flex: 1; }
+	.hb-banner span { flex: 1; }
+	.hb-banner button { min-height: 2.3rem; padding: 0 0.8rem; }
+	.hb-fach { display: flex; flex-direction: column; gap: 0.2rem; }
+	.hb-titel { display: flex; justify-content: space-between; color: var(--leise); font-size: 0.72rem; padding: 0 0.15rem; }
+	.hb-kacheln { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0.25rem; }
+	#heldenbogen .hb-kachel { position: relative; aspect-ratio: 1; padding: 0; display: flex; align-items: center; justify-content: center; background: #000; border-color: var(--rand); border-radius: 0.35rem; overflow: hidden; }
+	/* Breite und Höhe aus der Breite (aspect-ratio): Safari staucht sonst Prozent-Höhen im Knopf */
+	.hb-kachel canvas { display: block; width: 84%; height: auto; aspect-ratio: 1 / 1; image-rendering: pixelated; pointer-events: none; }
+	.hb-kachel small { display: none; font-size: 0.6rem; color: var(--leise); line-height: 1; text-align: center; pointer-events: none; }
+	.hb-kachel b { position: absolute; right: 0.15rem; bottom: 0.05rem; font-size: 0.75rem; color: #fff; text-shadow: 0 0 2px #000, 0 0 2px #000, 0 0 3px #000; pointer-events: none; }
+	#heldenbogen .hb-kachel.leer { border-color: #2e2721; }
+	.hb-kachel.leer canvas { display: none; }
+	.hb-kachel.leer small { display: block; }
+	.hb-kachel.verboten::after { content: ""; position: absolute; top: 0.2rem; right: 0.2rem; width: 0.45rem; height: 0.45rem; border-radius: 50%; background: #d8463a; }
+	.hb-kachel.sel { outline: 2px solid #e02a1a; outline-offset: -1px; }
+	.hb-kachel.von { outline: 2px solid var(--gold); outline-offset: -1px; }
+	.hb-kachel.ziel { outline: 1.5px dashed #fff2a8; outline-offset: -3px; }
+	#heldenbogen .hb-kachel:disabled { opacity: 1; }
+	.aktionen button { font-size: 0.85rem; height: 2.3rem; padding: 0 0.7rem; }
+	button svg { width: 1.5rem; height: 1.5rem; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+	/* Textboxen als Overlay (dialog.js) nur im mobilen Layout */
+	body:not(.mobil) #dialog { display: none; }
+
+	/* ---------- Spielstände ---------- */
+	#verwaltung {
+		position: fixed; inset: 0; z-index: 11;
+		display: flex; flex-direction: column; justify-content: flex-end;
+		background: rgb(0 0 0 / 0.55);
+		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+	}
+	#verwaltung[hidden] { display: none; }
+	#verwaltung .karte {
+		display: flex; flex-direction: column; gap: 0.7rem;
+		max-height: 85dvh; overflow-y: auto;
+		margin: 0 0.5rem 0.5rem; padding: 1.1rem;
+		background: var(--panel); border: 1px solid var(--rand); border-radius: 0.9rem;
+	}
+	#verwaltung h2 { margin: 0; font: bold 1.2rem Georgia, serif; color: var(--gold); }
+	#verwaltung p { margin: 0; font-size: 0.9rem; }
+	#verwaltung .leise { color: var(--leise); }
+	#verwaltung .plaetze { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+	#verwaltung .plaetze li { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.7rem; background: var(--bg); border: 1px solid var(--rand); border-radius: 0.6rem; }
+	#verwaltung .plaetze .name { flex: 1; font: 1.05rem Georgia, serif; letter-spacing: 0.03em; }
+	#verwaltung .plaetze .name.frei { color: var(--leise); font-style: italic; }
+	#verwaltung .plaetze button, #verwaltung .fuss button { min-height: 2.5rem; padding: 0 0.8rem; font-size: 0.9rem; touch-action: manipulation; }
+	#verwaltung .fuss { display: flex; justify-content: flex-end; }
+	#verwaltung .meldung:empty { display: none; }
+
+	/* ---------- Menü (menue.js) und Einstellungen ---------- */
+	#menue, #einstellungen {
+		position: fixed; inset: 0; z-index: 11;
+		display: flex; flex-direction: column; justify-content: flex-end;
+		background: rgb(0 0 0 / 0.55);
+		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+	}
+	#menue[hidden], #einstellungen[hidden] { display: none; }
+	#menue .karte, #einstellungen .karte {
+		display: flex; flex-direction: column; gap: 1rem;
+		max-height: 85dvh; overflow-y: auto;
+		margin: 0 0.5rem 0.5rem; padding: 1.1rem;
+		background: var(--panel); border: 1px solid var(--rand); border-radius: 0.9rem;
+	}
+	:is(#menue, #einstellungen) h2 { margin: 0; font: bold 1.2rem Georgia, serif; color: var(--gold); }
+	:is(#menue, #einstellungen) .karte { width: min(100% - 1rem, 32rem); align-self: center; margin-left: 0; margin-right: 0; }
+	#menue .karte { gap: 0.8rem; }
+	#menue .eintraege { display: flex; flex-direction: column; gap: 0.4rem; }
+	#menue .eintraege button {
+		justify-content: flex-start; gap: 0.75rem; min-height: 3rem; padding: 0.35rem 0.9rem;
+		font-size: 1rem; text-align: left; touch-action: manipulation;
+	}
+	#menue .eintraege button svg { flex: none; width: 1.3rem; height: 1.3rem; stroke-width: 1.9; }
+	#menue .eintraege button span { display: flex; flex-direction: column; }
+	#menue .eintraege button small { color: var(--leise); font-size: 0.78rem; }
+	#menue .eintraege button small:empty { display: none; }
+	#menue .eintraege button .pfeil { margin-left: auto; color: var(--leise); font-size: 1.3rem; }
+	#menue .eintraege button:disabled { opacity: 0.45; }
+	#menue .hinweis-ort { margin: 0; color: var(--leise); font-size: 0.85rem; }
+	#menue .hinweis-ort:empty { display: none; }
+	#menue hr { width: 100%; margin: 0.2rem 0; border: 0; border-top: 1px solid var(--rand); }
+	#menue .fuss { display: flex; justify-content: space-between; align-items: center; }
+	#menue .version { color: var(--leise); font-size: 0.85rem; }
+	#menue .fuss button { min-height: 2.6rem; padding: 0 0.8rem; font-size: 0.95rem; }
+	#einstellungen .kopf { display: flex; align-items: center; gap: 0.6rem; }
+	#einstellungen .kopf .zurueck { min-height: 2.2rem; padding: 0 0.6rem; font-size: 0.9rem; }
+	#einstellungen:not(.vom-menue) .kopf .zurueck { display: none; }
+	#einstellungen:not(.vom-start) #spielstaende-teil { display: none; }
+	#einstellungen .ton { display: grid; grid-template-columns: 4.5rem auto 1fr; align-items: center; gap: 0.6rem; }
+	#einstellungen .ton .name { font-size: 0.95rem; }
+	#einstellungen .ton .wahl button { flex: none; width: 3.2rem; }
+	#einstellungen .ton input { width: 100%; accent-color: var(--gold); }
+	#einstellungen .ton.aus input { opacity: 0.4; }
+	#einstellungen section > p { margin: 0.2rem 0 0; }
+	#einstellungen section { display: flex; flex-direction: column; gap: 0.45rem; }
+	#einstellungen section[hidden] { display: none; }
+	#einstellungen p { margin: 0; color: var(--leise); font-size: 0.9rem; }
+	#einstellungen h3 { margin: 0; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--leise); }
+	#einstellungen .wahl { display: flex; gap: 0.35rem; }
+	#einstellungen button { min-height: 2.6rem; padding: 0 0.8rem; font-size: 0.95rem; touch-action: manipulation; }
+	#einstellungen .wahl button { flex: 1; padding: 0 0.3rem; }
+	#einstellungen .wahl button[aria-pressed="true"] { background: var(--knopf-aktiv); border-color: var(--gold); }
+	#einstellungen .probe {
+		padding: 0.6rem 0.8rem; background: var(--bg); border: 1px solid var(--rand); border-radius: 0.6rem;
+		font: calc(1.12rem * var(--schrift, 1))/1.45 Georgia, 'Times New Roman', serif; letter-spacing: 0.02em;
+	}
+	#einstellungen .fuss { display: flex; justify-content: space-between; align-items: center; }
+	#einstellungen .version { color: var(--leise); font-size: 0.85rem; }
+	.aktionen button.menue, .aktionen button.wuerfel, .aktionen button.quest { width: 2.3rem; padding: 0; }
+	/* J/N wirken nur in Ja/Nein-Menüs (GUI_bool); die kommen im mobilen Layout als Overlay, das die Leiste verdeckt */
+	body.mobil .aktionen button[data-key="j"], body.mobil .aktionen button[data-key="n"] { display: none; }
+	/* mobil: OK und Zurück je halb so breit wie das Steuerkreuz in einer Zeile, darunter Log, Quests, Einstellungen */
+	body.mobil .aktionen { width: calc(3 * 3.3rem + 2 * 0.35rem); max-width: none; }
+	body.mobil .aktionen button[data-key="enter"], body.mobil .aktionen button[data-key="rechtsklick"] { flex: 1 1 calc(50% - 0.35rem); }
+	.aktionen button.menue svg, .aktionen button.wuerfel svg, .aktionen button.quest svg { width: 1.3rem; height: 1.3rem; stroke-width: 2; }
+	.aktionen button.wuerfel[hidden], .aktionen button.quest[hidden] { display: none; }
+	/* neue Einträge seit dem letzten Öffnen des Protokolls bzw. des Questlogs */
+	.aktionen button.wuerfel.neu, .aktionen button.quest.neu { color: var(--gold); border-color: var(--gold); }
+	.aktionen button.wuerfel.neu svg, .aktionen button.quest.neu svg { fill: rgb(201 164 92 / 0.25); }
+
+	/* ---------- Heldenerschaffung / Intro ---------- */
+	#gen { position: fixed; inset: 0; z-index: 20; background: #000; }
+	#gen[hidden] { display: none; }
+	#gen iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+	/* ---------- Startmenü (startmenue.js) ---------- */
+	#start {
+		position: fixed; inset: 0; z-index: 9; background: #000; overflow-y: auto;
+		display: flex; flex-direction: column; align-items: center; gap: 1.2rem;
+		padding: calc(env(safe-area-inset-top) + 1rem) calc(env(safe-area-inset-right) + 1rem) calc(env(safe-area-inset-bottom) + 1rem) calc(env(safe-area-inset-left) + 1rem);
+	}
+	#start[hidden] { display: none; }
+	/* Spiel und Leiste darunter: nicht sichtbar und nicht bedienbar (auch nicht für Tests) */
+	body.startmenue #mobil, body.startmenue #leiste, body.startmenue #buehne { visibility: hidden; }
+	#start .titel { width: min(100%, 36rem); margin-top: auto; aspect-ratio: 320 / 240; display: flex; align-items: center; justify-content: center; }
+	#start .titel img { width: 100%; height: 100%; image-rendering: pixelated; animation: einblenden 1.2s ease-out; }
+	#start .titel img[hidden], #start .titel .text[hidden] { display: none; }
+	#start .titel .text { font: bold 2.2rem Georgia, serif; color: #c0201a; text-align: center; line-height: 1.1; }
+	#start .titel .text small { display: block; font-size: 1rem; color: var(--leise); font-weight: normal; margin-bottom: 0.4rem; }
+	@keyframes einblenden { from { opacity: 0; } to { opacity: 1; } }
+	#start .wahlen { width: min(100%, 22rem); display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: auto; }
+	#start button { min-height: 3rem; font-size: 1.05rem; touch-action: manipulation; }
+	#start button[data-start="0"] { border-color: var(--gold); font-weight: 600; }
+	#start h3 { margin: 0.6rem 0 0; font-size: 0.85rem; font-weight: 600; color: var(--leise); }
+	#start .modus { display: flex; gap: 0.35rem; }
+	#start .modus button { flex: 1; min-height: 2.6rem; font-size: 0.95rem; }
+	#start .modus button[aria-pressed="true"] { background: var(--knopf-aktiv); border-color: var(--gold); }
+	#start .einstellungen { margin-top: 0.6rem; min-height: 2.6rem; font-size: 0.95rem; gap: 0.5rem; }
+	#start .einstellungen svg { width: 1.2rem; height: 1.2rem; stroke-width: 2; }
+	#start .version { color: var(--leise); font-size: 0.8rem; text-align: center; }
+	@media (orientation: landscape) and (max-height: 600px) {
+		#start { flex-direction: row; justify-content: center; }
+		#start .titel { width: min(55%, calc((100dvh - 2rem) * 4 / 3)); margin: auto 0; }
+		#start .wahlen { width: min(40%, 20rem); margin: auto 0; }
+	}
+
+	/* ---------- Original-Intro (INTRO_E.OVL in intro.js) ---------- */
+	#intro {
+		position: fixed; inset: 0; z-index: 20; background: #000;
+		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+	}
+	#intro[hidden] { display: none; }
+	/* 320×200 mit DOS-Pixeln (1,2-mal so hoch wie breit), Platz für den Knopf darunter */
+	#intro canvas { width: min(100vw, calc((100dvh - 5rem) * 4 / 3)); aspect-ratio: 4 / 3; }
+	#intro button { min-height: 2.8rem; padding: 0 1.4rem; font-size: 1rem; touch-action: manipulation; }
+
+	/* ---------- Hinweis „Einmal tippen für Ton“ (Browser erlauben Ton erst nach einer Berührung) ---------- */
+	#tonhinweis {
+		position: fixed; z-index: 35; left: 50%; transform: translateX(-50%);
+		top: calc(env(safe-area-inset-top) + 0.6rem);
+		display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.9rem;
+		background: var(--panel); color: var(--text); border: 1px solid var(--rand); border-radius: 0.8rem;
+		box-shadow: 0 0.3rem 1rem rgb(0 0 0 / 0.5); font-size: 0.9rem; white-space: nowrap;
+		pointer-events: none; transition: opacity 0.4s;
+	}
+	#tonhinweis[hidden] { display: none; }
+	#tonhinweis.weg { opacity: 0; }
+	#tonhinweis svg { width: 1.2rem; height: 1.2rem; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+	/* ---------- Update-Hinweis (PWA) ---------- */
+	#update {
+		position: fixed; z-index: 30; left: 50%; transform: translateX(-50%);
+		top: calc(env(safe-area-inset-top) + 0.5rem);
+		display: flex; align-items: center; gap: 0.8rem;
+		padding: 0.5rem 0.6rem 0.5rem 1rem;
+		background: var(--panel); border: 1px solid var(--gold); border-radius: 0.8rem;
+		box-shadow: 0 0.3rem 1rem rgb(0 0 0 / 0.5); font-size: 0.95rem;
+	}
+	#update[hidden] { display: none; }
+
+	/* ---------- Spielende (main() zurückgekehrt oder exit) ---------- */
+	#ende {
+		position: fixed; z-index: 40; inset: 0;
+		display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2rem;
+		background: rgb(0 0 0 / 0.85); color: var(--text); font-size: 1.1rem;
+	}
+	#ende[hidden] { display: none; }
+	#ende button { min-height: 3rem; padding: 0 1.6rem; font-size: 1.05rem; touch-action: manipulation; }
+	#update button { min-height: 2.4rem; padding: 0 0.9rem; touch-action: manipulation; }
+
+	/* Querformat mit Aktionsknöpfen: Textboxen über dem Bild (--dialog-mitte: Mitte des Bilds, setzt die Seite) */
+	@media (orientation: landscape) and (max-height: 600px) {
+		/* 100 %: Breite innerhalb der Safe Area (#dialog hat sie als Innenabstand); die Mitte liegt in
+		   Seitenkoordinaten, also um den linken Rand verschoben; nie über den rechten Rand hinaus */
+		body.mobil.aktionsknoepfe #dialog .karte {
+			--b: min(100% - 1rem, max(var(--dialog-breite, 100%) - 1rem, 22rem));
+			align-self: flex-start; width: var(--b);
+			margin-left: clamp(0.5rem, calc(var(--dialog-mitte, 50vw) - env(safe-area-inset-left) - var(--b) / 2), calc(100% - var(--b) - 0.5rem));
+		}
+	}
+	/* Querformat im Original-Layout: Leiste rechts */
+	@media (orientation: landscape) and (max-height: 600px) {
+		body:not(.mobil) { flex-direction: row; }
+		body:not(.mobil) #bild { width: min(100%, calc(100dvh * 4 / 3)); }
+		body:not(.mobil) #leiste { height: auto; width: 15rem; flex-direction: column; border-top: 0; border-left: 1px solid var(--rand); }
+	}
+</style>
+</head>
+<body class="mobil">
+<div id="status">Lade …</div>
+
+<!-- Original: SDL zeichnet hierhin -->
+<div id="buehne">
+	<div id="bild">
+		<canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
+	</div>
+</div>
+
+<!-- Mobil: Ausschnitte aus dem 320x200-Bild (x, y, Breite, Höhe) -->
+<div id="mobil">
+	<canvas class="aus teil" data-aus="0,0,240,136" aria-label="Ansicht"></canvas>
+	<!-- ab y 139: Zeilen 136–138 sind Übergang (Bildende, rechts Muster unter den Icons) -->
+	<canvas class="aus teil" data-aus="0,139,320,18" aria-label="Ortszeile"></canvas>
+	<canvas class="aus teil" data-aus="0,157,320,43" aria-label="Gruppe"></canvas>
+	<!-- Datum und Uhrzeit (im Original per Klick oben rechts über den Icons), vom Spiel gezeichnet -->
+	<canvas id="datum" class="teil" width="320" height="18" aria-label="Datum und Uhrzeit"></canvas>
+	<canvas class="aus voll" data-aus="0,0,320,200" aria-label="Bildschirm"></canvas>
+	<!-- Aktionsknöpfe (aktionen.js) statt der Icons; hinter .voll, weil die Datumszeile davor zurückkehrt -->
+	<div id="aktionsknoepfe" aria-label="Aktionsknöpfe"></div>
+	<!-- Reisekarte (karte.js) -->
+	<div id="karte" aria-label="Reisekarte">
+		<div class="flaeche">
+			<div class="inhalt"><canvas width="320" height="200"></canvas><div class="namen"></div></div>
+			<div class="zoom"><button type="button" data-zoom="+" aria-label="Karte vergrößern">+</button><button type="button" data-zoom="-" aria-label="Karte verkleinern">−</button></div>
+		</div>
+		<div class="ziele"></div>
+	</div>
+	<!-- Kampffeld (kampf.js): zoom- und verschiebbar -->
+	<div id="kampf" aria-label="Kampffeld">
+		<div class="flaeche">
+			<div class="inhalt"><canvas width="320" height="200"></canvas></div>
+			<div class="zoom">
+				<button type="button" data-zoom="+" aria-label="Kampffeld vergrößern">+</button>
+				<button type="button" data-zoom="-" aria-label="Kampffeld verkleinern">−</button>
+				<button type="button" data-zoom="ganz" aria-label="Ganzes Kampffeld">⤢</button>
+				<button type="button" data-zoom="held" aria-label="Zum Kämpfer am Zug">◎</button>
+				<span class="stufe"></span>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Spielstände sichern: Export/Import der .GAM-Dateien (liegen sonst nur im Browser) -->
+<div id="verwaltung" hidden role="dialog" aria-modal="true" aria-label="Spielstände">
+	<div class="karte">
+		<h2>Spielstände</h2>
+		<p class="leise">Spielstände liegen im Speicher dieses Browsers. Exportierte Dateien sind eine Sicherung, etwa vor dem Löschen der Browserdaten oder für ein anderes Gerät.</p>
+		<ol class="plaetze"></ol>
+		<p class="meldung" role="status"></p>
+		<div class="fuss"><button type="button" class="schliessen">Schließen</button></div>
+	</div>
+	<input type="file" accept=".gam,.GAM" hidden>
+</div>
+
+<!-- Menü (menue.js): Speichern, Laden, Tagebuch, Hyggeliks Karte, Spielstände, Einstellungen, Startmenü -->
+<div id="menue" hidden role="dialog" aria-modal="true" aria-label="Menü">
+	<div class="karte">
+		<h2>Menü</h2>
+		<div class="eintraege">
+			<button type="button" data-menue="speichern" aria-label="Spiel speichern">
+				<svg viewBox="0 0 24 24"><path d="M5 3.5h11l3.5 3.5v12a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V5A1.5 1.5 0 0 1 5 3.5z"/><path d="M7.5 3.5v5h8v-5M7.5 20.5v-6h9v6"/></svg>
+				<span>Spiel speichern</span>
+			</button>
+			<button type="button" data-menue="laden" aria-label="Spiel laden">
+				<svg viewBox="0 0 24 24"><path d="M3.5 7V5.5A1.5 1.5 0 0 1 5 4h4.5l2 2.5H19a1.5 1.5 0 0 1 1.5 1.5v10.5A1.5 1.5 0 0 1 19 20H5a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M12 10v6.5M9 13.5l3 3 3-3"/></svg>
+				<span>Spiel laden</span>
+			</button>
+			<button type="button" data-menue="tagebuch" aria-label="Tagebuch">
+				<svg viewBox="0 0 24 24"><path d="M5.5 4h12a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-12A1.5 1.5 0 0 1 4 18.5v-13A1.5 1.5 0 0 1 5.5 4z"/><path d="M8 4v16M11 8.5h4.5M11 12h4.5"/></svg>
+				<span>Tagebuch</span>
+			</button>
+			<button type="button" data-menue="karte" aria-label="Hyggeliks Karte">
+				<svg viewBox="0 0 24 24"><path d="M3.5 6.5 9 4l6 2.5 5.5-2.5v13.5L15 20l-6-2.5-5.5 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>
+				<span>Hyggeliks Karte</span>
+			</button>
+			<p class="hinweis-ort"></p>
+			<hr>
+			<button type="button" data-menue="spielstaende" aria-label="Spielstände sichern und einlesen">
+				<svg viewBox="0 0 24 24"><path d="M8 4v12M4.5 12.5 8 16l3.5-3.5M16 20V8M12.5 11.5 16 8l3.5 3.5"/></svg>
+				<span>Spielstände sichern und einlesen</span>
+			</button>
+			<button type="button" data-menue="einstellungen" aria-label="Einstellungen">
+				<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>
+				<span>Einstellungen</span><span class="pfeil">›</span>
+			</button>
+			<hr>
+			<button type="button" data-menue="start" aria-label="Zurück zum Startmenü">
+				<svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+				<span>Zurück zum Startmenü</span>
+			</button>
+		</div>
+		<div class="fuss"><span class="version" title="Version von Mobile Eyes">Mobile Eyes v0.9.1</span><button type="button" class="schliessen">Schließen</button></div>
+	</div>
+</div>
+
+<!-- Einstellungen: aus dem Menü (mit „‹ Menü“ zurück) oder aus dem Startmenü (dort mit den Spielständen) -->
+<div id="einstellungen" hidden role="dialog" aria-modal="true" aria-label="Einstellungen">
+	<div class="karte">
+		<div class="kopf"><button type="button" class="zurueck" aria-label="Zurück zum Menü">‹ Menü</button><h2>Einstellungen</h2></div>
+		<section>
+			<h3>Ton</h3>
+			<div class="ton" data-ton="musik">
+				<span class="name">Musik</span>
+				<div class="wahl" aria-label="Musik">
+					<button type="button" data-wert="an" aria-label="Musik an">An</button>
+					<button type="button" data-wert="aus" aria-label="Musik aus">Aus</button>
+				</div>
+				<input type="range" min="0" max="100" step="5" aria-label="Lautstärke der Musik">
+			</div>
+			<div class="ton" data-ton="effekte">
+				<span class="name">Effekte</span>
+				<div class="wahl" aria-label="Effekte">
+					<button type="button" data-wert="an" aria-label="Effekte an">An</button>
+					<button type="button" data-wert="aus" aria-label="Effekte aus">Aus</button>
+				</div>
+				<input type="range" min="0" max="100" step="5" aria-label="Lautstärke der Effekte">
+			</div>
+		</section>
+		<section>
+			<h3>Kampf</h3>
+			<p>Tempo der Kampfanimation („Rechner anpassen“ im Original)</p>
+			<div class="wahl" data-einstellung="kampftempo" aria-label="Kampftempo">
+				<button type="button" data-wert="6" aria-label="Kampftempo langsam">Langsam</button>
+				<button type="button" data-wert="4" aria-label="Kampftempo normal">Normal</button>
+				<button type="button" data-wert="2" aria-label="Kampftempo schnell">Schnell</button>
+			</div>
+			<p>Autokampf</p>
+			<div class="wahl" data-einstellung="autokampf" aria-label="Autokampf">
+				<button type="button" data-wert="normal">Normal</button>
+				<button type="button" data-wert="schnell">Schnell</button>
+			</div>
+			<p>Gegen Tür oder Truhe laufen</p>
+			<div class="wahl" data-einstellung="tuerfrage" aria-label="Gegen Tür oder Truhe laufen">
+				<button type="button" data-wert="fragen">Aktion anbieten</button>
+				<button type="button" data-wert="meldung">Meldung (Original)</button>
+			</div>
+			<p>Figuren hinter Wänden</p>
+			<div class="wahl" data-einstellung="durchsicht" aria-label="Figuren hinter Wänden">
+				<button type="button" data-wert="raster">Raster</button>
+				<button type="button" data-wert="umriss">Umriss</button>
+				<button type="button" data-wert="aus">Aus</button>
+			</div>
+		</section>
+		<section>
+			<h3>Fehlerkorrekturen</h3>
+			<p>Behebt Fehler des Originals (aus der Bugfix-Liste der Schicksalsklinge-Rekonstruktion): „An“ Hänger, Abstürze und wichtige Fehler, „Alle“ auch kleine Fehler. Wirkt sofort, Spielstände bleiben gleich.</p>
+			<div class="wahl" data-einstellung="bugfixes" aria-label="Fehlerkorrekturen">
+				<button type="button" data-wert="an">An</button>
+				<button type="button" data-wert="alle">Alle</button>
+				<button type="button" data-wert="aus">Aus (Original)</button>
+			</div>
+		</section>
+		<section>
+			<h3>Textboxen</h3>
+			<div class="probe">Ihr betretet die Taverne. Der Wirt nickt Euch zu.</div>
+			<div class="wahl" data-einstellung="schreibung" aria-label="Schreibung">
+				<button type="button" data-wert="normal">Normal</button>
+				<button type="button" data-wert="original">GROSS (Original)</button>
+			</div>
+			<div class="wahl" data-einstellung="schrift" aria-label="Schriftgröße">
+				<button type="button" data-wert="0.9" aria-label="Schrift klein">Klein</button>
+				<button type="button" data-wert="1" aria-label="Schrift normal">Normal</button>
+				<button type="button" data-wert="1.15" aria-label="Schrift groß">Groß</button>
+				<button type="button" data-wert="1.3" aria-label="Schrift sehr groß">Sehr groß</button>
+			</div>
+		</section>
+		<section>
+			<h3>Anzeige</h3>
+			<p>Layout</p>
+			<div class="wahl" data-einstellung="layout">
+				<button type="button" data-wert="mobil">Mobil</button>
+				<button type="button" data-wert="original">Original</button>
+			</div>
+			<p>Aktionen</p>
+			<div class="wahl" data-einstellung="aktionen" aria-label="Aktionen">
+				<button type="button" data-wert="knoepfe">Knöpfe mit Text</button>
+				<button type="button" data-wert="icons">Icons (Original)</button>
+			</div>
+			<p>Minimap</p>
+			<div class="wahl" data-einstellung="minimap" aria-label="Minimap">
+				<button type="button" data-wert="an">Neben dem Steuerkreuz</button>
+				<button type="button" data-wert="aus">Aus</button>
+			</div>
+			<button type="button" id="vollbild" hidden>Vollbild</button>
+		</section>
+		<section>
+			<h3>Leiste</h3>
+			<p>Würfelprotokoll</p>
+			<div class="wahl" data-einstellung="wurflog" aria-label="Würfelprotokoll">
+				<button type="button" data-wert="an">Knopf zeigen</button>
+				<button type="button" data-wert="aus">Aus</button>
+			</div>
+			<p>Aufträge (Questlog)</p>
+			<div class="wahl" data-einstellung="questlog" aria-label="Questlog">
+				<button type="button" data-wert="an">Knopf zeigen</button>
+				<button type="button" data-wert="aus">Aus</button>
+			</div>
+		</section>
+		<section id="spielstaende-teil">
+			<h3>Spielstände</h3>
+			<button type="button" id="spielstaende-knopf">Spielstände sichern und einlesen …</button>
+		</section>
+		<section id="spieldaten-teil" hidden>
+			<h3>Spieldaten</h3>
+			<p class="spieldaten-info"></p>
+			<button type="button" id="spieldaten-loeschen">Spieldaten aus dem Browser entfernen …</button>
+		</section>
+		<div class="fuss"><span class="version" title="Version von Mobile Eyes">Mobile Eyes v0.9.1</span><button type="button" class="schliessen">Schließen</button></div>
+	</div>
+</div>
+
+<!-- Heldenerschaffung und Intro (gen.html, eigenes Programm wie GEN.EXE) -->
+<div id="gen" hidden><iframe title="Heldenerschaffung"></iframe></div>
+<!-- Startmenü nach dem Intro (startmenue.js): statt der Textmenüs Schwierigkeitsgrad und Hauptprogramm/Generierung -->
+<div id="start" hidden aria-label="Startmenü">
+	<div class="titel">
+		<img hidden alt="Die Schicksalsklinge">
+		<div class="text"><small>Das Schwarze Auge</small>Die Schicksalsklinge</div>
+	</div>
+	<div class="wahlen">
+		<button type="button" data-start="0">Spiel starten</button>
+		<button type="button" data-start="1">Generierung</button>
+		<h3>Modus</h3>
+		<div class="modus" aria-label="Modus">
+			<button type="button" data-wert="1">Anfänger</button>
+			<button type="button" data-wert="2">Fortgeschritten</button>
+		</div>
+		<button type="button" class="einstellungen">
+			<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+			Einstellungen
+		</button>
+		<div class="version">Mobile Eyes v0.9.1</div>
+	</div>
+</div>
+
+<!-- Original-Intro: INTRO_E.OVL aus den Spieldaten, ausgeführt von intro.js -->
+<div id="intro" hidden aria-label="Intro">
+	<canvas width="320" height="200"></canvas>
+	<button type="button" class="ueberspringen">Intro überspringen</button>
+</div>
+
+<!-- neue Version der App bereit (Service Worker) -->
+<div id="ende" hidden role="alertdialog" aria-label="Spiel beendet">
+	<span>Das Spiel ist beendet.</span>
+	<button type="button">Neu starten</button>
+</div>
+
+<!-- Ton erst nach der ersten Berührung: kurzer Hinweis beim Start (lässt Berührungen durch) -->
+<div id="tonhinweis" hidden role="status">
+	<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>
+	<span>Einmal tippen für Ton</span>
+</div>
+<div id="update" hidden role="status">
+	<span>Neue Version verfügbar</span>
+	<button type="button">Jetzt laden</button>
+</div>
+
+<div id="leiste">
+	<div id="icons-halter">
+		<canvas id="icons" class="aus" data-aus="241,57,78,78" aria-label="Aktionen"></canvas>
+	</div>
+	<div class="rechts">
+		<div id="minimap-spalte">
+			<canvas id="minimap" aria-label="Karte der Umgebung"></canvas>
+			<div id="karte-unter" hidden></div>
+		</div>
+		<div class="kreuz" aria-label="Bewegung">
+			<button data-key="left" data-wdh aria-label="Links drehen" title="Links drehen (←)">
+				<svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+			</button>
+			<button data-key="up" data-wdh aria-label="Vorwärts" title="Vorwärts (↑)">
+				<svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
+			</button>
+			<button data-key="right" data-wdh aria-label="Rechts drehen" title="Rechts drehen (→)">
+				<svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+			</button>
+			<span class="leer"></span>
+			<button data-key="down" data-wdh aria-label="Umdrehen / zurück" title="Zurück (↓)">
+				<svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>
+			</button>
+			<span class="leer"></span>
+		</div>
+		<div id="heldenbogen" aria-label="Inventar"></div>
+		<div id="kampfbedien" aria-label="Kampf"></div>
+		<div class="aktionen" aria-label="Aktionen">
+			<button data-key="enter" title="Bestätigen (Enter)">OK</button>
+			<button data-key="rechtsklick" title="Abbrechen / Dialog schließen / Menü (Rechtsklick)">Zurück</button>
+			<button data-key="j" title="Ja (J)">Ja</button>
+			<button data-key="n" title="Nein (N)">Nein</button>
+			<button id="wurflog-knopf" class="wuerfel" aria-label="Würfelprotokoll" title="Würfelprotokoll: Proben, Zauber, Kampfwürfe">
+				<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/></svg><span class="text">Protokoll</span>
+			</button>
+			<button id="questlog-knopf" class="quest" aria-label="Questlog" title="Questlog: Aufträge, Informanten, bekannte Orte">
+				<svg viewBox="0 0 24 24"><path d="M6 3.5h10.5a2 2 0 0 1 2 2V18"/><path d="M6 3.5a2 2 0 0 0-2 2v1.5h3"/><path d="M7 5.5v13a2 2 0 0 0 2 2h9.5a2 2 0 0 0 2-2V18H11v.5a2 2 0 0 1-4 0"/><path d="M10 8.5h5.5M10 12h5.5"/></svg><span class="text">Aufträge</span>
+			</button>
+			<button id="menue-knopf" class="menue" aria-label="Menü" title="Menü: Speichern, Laden, Tagebuch, Einstellungen">
+				<svg viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></svg><span class="text">Menü</span>
+			</button>
+		</div>
+	</div>
+</div>
+
+<script src="daten.js"></script>
+<script src="schreibung.js"></script>
+<script src="dialog.js"></script>
+<script src="ton.js"></script>
+<script src="wurflog.js"></script>
+<script src="questlog.js"></script>
+<script src="karte.js"></script>
+<script src="heldenbogen.js"></script>
+<script src="kampf.js"></script>
+<script src="aktionen.js"></script>
+<script src="minimap.js"></script>
+<script src="menue.js"></script>
+<script src="startmenue.js"></script>
+<script src="intro.js"></script>
+<script>
+	// SDL-Tastencodes, die das Spiel in sdl_event_loop() auswertet
+	const TASTEN = {
+		up: 0x40000052, down: 0x40000051, left: 0x40000050, right: 0x4000004F,
+		enter: 13, esc: 27, j: 106, n: 110,
+	};
+	const statusEl = document.getElementById('status');
+	const mobilEl = document.getElementById('mobil');
+
+	// ---------- Ausschnitte ----------
+	const ausschnitte = [...document.querySelectorAll('canvas.aus')].map((c) => {
+		const [x, y, w, h] = c.dataset.aus.split(',').map(Number);
+		c.width = w; c.height = h;
+		c.style.aspectRatio = `${w} / ${h * 1.2}`;
+		const ctx = c.getContext('2d');
+		ctx.imageSmoothingEnabled = false;
+		return { c, ctx, x, y, w, h };
+	});
+	// ganz: Quelle der Ausschnitte, bleibt bei offenem Overlay unverändert.
+	// lebend: immer das aktuelle Spielbild (Porträt im Overlay, Tests).
+	// Getrennt, weil Safari (iOS) drawImage aus einer Canvas verzögert ausführt und dann deren
+	// späteren Inhalt nimmt: die Box des Spiels erschien so trotz Festhalten in den Ausschnitten.
+	const ganz = document.createElement('canvas');
+	ganz.width = 320; ganz.height = 200;
+	const ganzCtx = ganz.getContext('2d');
+	const ganzBild = ganzCtx.createImageData(320, 200);
+	const lebend = document.createElement('canvas');
+	lebend.width = 320; lebend.height = 200;
+	const lebendCtx = lebend.getContext('2d');
+
+	// Antippen eines Ausschnitts -> Klick an der Originalkoordinate
+	for (const a of ausschnitte) {
+		a.c.addEventListener('pointerdown', (e) => {
+			e.preventDefault();
+			const r = a.c.getBoundingClientRect();
+			const x = Math.floor(a.x + (e.clientX - r.left) / r.width * a.w);
+			const y = Math.floor(a.y + (e.clientY - r.top) / r.height * a.h);
+			Module._web_click?.(Math.min(319, x), Math.min(199, y), e.button === 2 ? 3 : 1);
+		});
+		a.c.addEventListener('contextmenu', (e) => e.preventDefault());
+	}
+
+	// Datumszeile: das Spiel zeichnet sie im Stil der Ortszeile (web_datum_zeile → Module.datumZeile).
+	// Antippen öffnet wie im Original die Box mit Datum, Uhrzeit und Feiertag (Klickfeld 0xfc).
+	const datumEl = document.getElementById('datum');
+	datumEl.style.aspectRatio = `320 / ${18 * 1.2}`;
+	const datumCtx = datumEl.getContext('2d');
+	const datumHilf = document.createElement('canvas');
+	datumHilf.width = 320; datumHilf.height = 18;
+	const datumHilfCtx = datumHilf.getContext('2d');
+	let datumMitRahmen = true;
+	// auf der Reisekarte steht die Zeile zwischen Karte und Zielen (die Uhr des Spiels liegt im Zoom oft außerhalb)
+	function datumZeichnen(aufKarte) {
+		const karteEl = document.getElementById('karte');
+		if (aufKarte && datumEl.parentNode !== karteEl) karteEl.insertBefore(datumEl, karteEl.querySelector('.ziele'));
+		if (!aufKarte && datumEl.parentNode === karteEl) mobilEl.insertBefore(datumEl, mobilEl.querySelector('canvas.voll'));
+		datumMitRahmen = !aufKarte;
+		Module._web_datum_zeile?.(aufKarte ? 0 : 1);
+	}
+	datumEl.addEventListener('pointerdown', (e) => {
+		e.preventDefault();
+		if (datumMitRahmen) Module._web_click?.(280, 38, 1);   // auf der Reisekarte läge dort ein Gebiet
+	});
+	datumEl.addEventListener('contextmenu', (e) => e.preventDefault());
+	// Textboxen (dialog.js) nicht breiter als das Bild darüber (Querformat: Bild schmaler als das Fenster).
+	// Breite der sichtbaren Ausschnitte; Reisekarte und Original-Layout: volle Breite
+	const bildBreiteSetzen = () => {
+		const w = Math.max(0, ...[...mobilEl.querySelectorAll(':scope > .teil, :scope > .voll')].map((c) => c.offsetParent ? c.getBoundingClientRect().width : 0));
+		if (w > 0) document.documentElement.style.setProperty('--dialog-breite', `${Math.round(w)}px`);
+		else document.documentElement.style.removeProperty('--dialog-breite');
+		// Mitte des Bilds (Querformat: Textboxen über dem Bild, nicht über der Leiste rechts)
+		const r = mobilEl.getBoundingClientRect();
+		if (r.width > 0) document.documentElement.style.setProperty('--dialog-mitte', `${Math.round(r.left + r.width / 2)}px`);
+	};
+	const bildBeobachter = new ResizeObserver(bildBreiteSetzen);
+	for (const c of mobilEl.querySelectorAll('canvas.aus')) bildBeobachter.observe(c);
+	bildBeobachter.observe(datumEl);
+	bildBeobachter.observe(mobilEl);
+	bildBeobachter.observe(document.getElementById('karte'));
+
+	// vom Spiel nach jedem geänderten Bild aufgerufen (RGBA, Alpha 0)
+	// Mauszeiger nur im Original-Layout: vor dem Start nur merken (onRuntimeInitialized),
+	// beim Layoutwechsel im laufenden Spiel sofort neu zeichnen
+	let zeigerGesetzt = false;
+	const zeigerSetzen = (neuZeichnen) => Module._web_mouse_cursor?.(document.body.classList.contains('mobil') ? 0 : 1, neuZeichnen ? 1 : 0);
+
+	function neuesBild(heap, ptr, w, h) {
+		if (w !== 320 || h !== 200) return;
+		const quelle = heap.subarray(ptr, ptr + w * h * 4);
+		const ziel = ganzBild.data;
+		ziel.set(quelle);
+		for (let i = 3; i < ziel.length; i += 4) ziel[i] = 255;
+		lebendCtx.putImageData(ganzBild, 0, 0);
+
+		const haupt = Module._web_screen_mode?.() === 1;
+		if (!haupt) alleLoslassen();   // Meldung/Dialog: gehaltene Bewegung sofort beenden
+		// Overlay offen: Ausschnitte auf dem Bild vor der Textbox festhalten (das Spiel gibt es
+		// direkt vor dialogAuf aus), damit nur das Overlay zu sehen ist und nicht die Box des Spiels
+		if (dialoge.length > 0 && document.body.classList.contains('mobil')) {
+			if (dialoge.at(-1).bildPos) portraetZeichnen();
+			return;
+		}
+		ganzCtx.putImageData(ganzBild, 0, 0);
+		mobilEl.classList.toggle('vollbild', !haupt);
+		const mitKarte = !haupt && document.body.classList.contains('mobil') && karte.pruefen();
+		mobilEl.classList.toggle('karte', mitKarte);
+		if (mitKarte) { karte.zeichnen(); datumZeichnen(true); }
+		mobilEl.classList.toggle('heldenbogen', !haupt && heldenbogen.aktualisieren());
+		const mitKampf = !haupt && document.body.classList.contains('mobil') && kampf.pruefen();
+		mobilEl.classList.toggle('kampf', mitKampf);
+		if (mitKampf) { kampf.zeichnen(); requestAnimationFrame(kbPlatz); }
+		requestAnimationFrame(hbPlatz);
+		for (const a of ausschnitte) {
+			if (a.c.offsetParent === null) continue; // ausgeblendet
+			a.ctx.drawImage(ganz, a.x, a.y, a.w, a.h, 0, 0, a.w, a.h);
+		}
+		// Lager (Wildnis, Stadt, Dungeon): dort läuft man nicht, also ohne Minimap und Steuerkreuz
+		document.body.classList.toggle('lager', haupt && LAGER_ORTE.has(gruppe()?.ort));
+		if (haupt && document.body.classList.contains('mobil')) {
+			datumZeichnen(false);
+			minimap.aktualisieren();   // vor den Aktionsknöpfen: „Karte“ steht unter der Minimap
+			if (document.body.classList.contains('aktionsknoepfe')) aktionen.zeichnen(ganz);
+		} else minimap.aus();
+	}
+
+	var Module = {
+		canvas: document.getElementById('canvas'),
+		print: (t) => console.log(t),
+		printErr: (t) => console.warn(t),
+		setStatus: (t) => {
+			statusEl.textContent = t;
+			statusEl.style.display = t ? 'flex' : 'none';
+		},
+		onRuntimeInitialized: () => {
+			statusEl.style.display = 'none';
+			zeigerSetzen(false);   // läuft vor main()
+			zeigerGesetzt = true;
+			autokampfSetzen();
+			durchsichtSetzen();
+			tuerfrageSetzen();
+			bugfixesSetzen();
+			questLog.starten();
+			minimapStarten();   // erst jetzt: vorher gibt es web_screen_mode noch nicht
+			kampftempoSetzen();
+		},
+		onFrame: neuesBild,
+		datumZeile: (heap, ptr, w, h) => {
+			const bild = new ImageData(new Uint8ClampedArray(heap.subarray(ptr, ptr + w * h * 4)), w, h);
+			if (datumMitRahmen) { datumCtx.putImageData(bild, 0, 0); return; }
+			// Reisekarte: nur Text, der Rahmen bleibt vom letzten Hauptbildschirm (Innenfläche wie clear_loc_line)
+			datumCtx.fillStyle = '#000';
+			datumCtx.fillRect(3, 1, 314, 14);
+			datumHilfCtx.putImageData(bild, 0, 0);
+			datumCtx.drawImage(datumHilf, 0, 0);
+		},
+		onExit: () => Module.spielEnde(),   // exit() im Spiel (Strg+Q, Sieg)
+	};
+
+	// Spieldaten (daten.js): ohne eingebaute Daten aus dem Browser, beim ersten Start mit Import;
+	// pre.js wartet darauf, bevor main() startet. Musik dann als OGG aus derselben Ablage (ton.js).
+	const spieldaten = spieldatenEinrichten();
+	if (!spieldaten.eingebaut) {
+		Module.spieldatenHolen = () => spieldaten.holen();
+		Module.musikDatei = (track) => spieldaten.musik(track);
+	}
+
+	// Spielende: wie unter DOS zurück „zum Betriebssystem“ – hier ein Hinweis mit Neustart.
+	// Neustart ohne Intro direkt ins Startmenü; Spielstände liegen schon in IndexedDB.
+	const endeEl = document.getElementById('ende');
+	Module.spielEnde = () => {
+		if (!endeEl.hidden) return;
+		alleLoslassen?.();
+		Module.musikPause?.();
+		endeEl.hidden = false;
+	};
+	endeEl.querySelector('button').addEventListener('click', () => {
+		location.replace(location.pathname + '?ohneIntro');
+	});
+
+	// Textboxen als Overlay (dialog.js); nach dem Schließen zeigt das nächste Bild des
+	// Spiels wieder alles (die Box ist dort schon entfernt)
+	// Kampfmenü und Auswahllisten zeigt im Kampf das Bedienfeld (kampf.js) statt des Overlays
+	const overlay = textboxOverlay(Module, { portraetQuelle: () => lebend, beimOeffnen: alleLoslassen,
+		uebernehmen: (d) => kampf.uebernehmen(d) });
+	const { dialoge, alsText, portraetZeichnen } = overlay;
+	const ton = tonEinrichten(Module);   // Soundeffekte und Musik (ton.js)
+	// Hinweis „Einmal tippen für Ton“: beim Start, bis zur ersten Berührung, höchstens 10 s
+	const tonHinweisEl = document.getElementById('tonhinweis');
+	const tonHinweisWeg = () => {
+		if (tonHinweisEl.hidden || tonHinweisEl.classList.contains('weg')) return;
+		tonHinweisEl.classList.add('weg');
+		setTimeout(() => { tonHinweisEl.hidden = true; }, 400);
+	};
+	if (!ton.freigeschaltet) {
+		tonHinweisEl.hidden = false;
+		ton.beimFreischalten = tonHinweisWeg;
+		setTimeout(tonHinweisWeg, 10000);
+	}
+	// Würfelprotokoll (wurflog.js): Proben, Zauber und Kampfwürfe zum Nachlesen
+	const wurfLog = wurfLogEinrichten(Module, { spielText: overlay.spielText, spielRoh: overlay.alsText, beimOeffnen: alleLoslassen,
+		knopf: document.getElementById('wurflog-knopf') });
+	document.getElementById('wurflog-knopf').addEventListener('click', () => wurfLog.oeffnen());
+	// Questlog (questlog.js): Haupt- und Nebenquests aus den Flags des Spielstands
+	const questLog = questLogEinrichten(Module, { spielText: overlay.spielText, beimOeffnen: alleLoslassen,
+		knopf: document.getElementById('questlog-knopf') });
+	document.getElementById('questlog-knopf').addEventListener('click', () => questLog.oeffnen());
+	// Reisekarte (karte.js): zoom- und verschiebbar, Namen, Ziele als Knöpfe
+	const karte = karteEinrichten(Module, { el: document.getElementById('karte'), spielText: overlay.spielText,
+		quelle: () => ganz, dialogOffen: () => dialoge.length > 0 });
+	// Startmenü (startmenue.js): das Spiel wartet in web_startmenue() auf die Wahl
+	const startmenue = startmenueEinrichten(Module, { el: document.getElementById('start'),
+		einstellungenOeffnen: () => einstellungenOeffnen('start') });
+	Module.startmenue = () => { alleLoslassen(); return startmenue.zeigen(); };
+	// Aktionsknöpfe (aktionen.js): die Icons des Hauptbildschirms beschriftet
+	const aktionen = aktionenEinrichten(Module, { el: document.getElementById('aktionsknoepfe'),
+		kartenEl: document.getElementById('karte-unter'), karteUnterMinimap: () => document.body.classList.contains('minimap') });
+	// Heldenbogen (heldenbogen.js): Gruppe, Gegenstandskarte und Kacheln statt des Steuerkreuzes
+	// flaches Querformat: Aktionsknöpfe rechts oben in der Leiste statt unter dem Bild
+	const querformat = window.matchMedia('(orientation: landscape) and (max-height: 600px)');
+	const aktionsknoepfeEl = document.getElementById('aktionsknoepfe');
+	const aktionenPlatz = () => {
+		const leisteEl = document.getElementById('leiste');
+		if (querformat.matches) {
+			if (aktionsknoepfeEl.parentNode !== leisteEl) leisteEl.insertBefore(aktionsknoepfeEl, leisteEl.firstChild);
+		} else if (aktionsknoepfeEl.parentNode !== mobilEl) {
+			mobilEl.insertBefore(aktionsknoepfeEl, document.getElementById('karte'));
+		}
+	};
+	aktionenPlatz();
+	querformat.addEventListener('change', aktionenPlatz);
+	const heldenbogen = heldenbogenEinrichten(Module, { el: document.getElementById('heldenbogen'), spielText: overlay.spielText,
+		dialogOffen: () => dialoge.length > 0,
+		layoutPasst: () => document.body.classList.contains('mobil') && document.body.classList.contains('aktionsknoepfe') });
+	window.heldenbogen = heldenbogen;
+	// Platz für die Ablage: reicht die geschätzte Höhe nicht (Schrift, Safari-Leisten), wird das Bild um den
+	// gemessenen Überlauf kleiner; nach einer Größenänderung neu messen
+	const hbEl = document.getElementById('heldenbogen');
+	let hbMehr = 0;
+	function hbPlatz() {
+		if (!mobilEl.classList.contains('heldenbogen') || !hbEl.clientHeight) return;
+		const zuviel = hbEl.scrollHeight - hbEl.clientHeight;
+		if (zuviel > 1 && hbMehr < 300) {
+			hbMehr += zuviel;
+			document.body.style.setProperty('--hb-mehr', hbMehr + 'px');
+		}
+	}
+	window.addEventListener('resize', () => { hbMehr = 0; document.body.style.removeProperty('--hb-mehr'); });
+	// Kampf (kampf.js): Feld zoombar, Befehle, Zielwahl mit schrägen Pfeilen, Kampfverlauf
+	const kampf = kampfEinrichten(Module, { el: document.getElementById('kampf'), bedienEl: document.getElementById('kampfbedien'),
+		quelle: () => ganz, spielText: overlay.spielText, dialoge, wurfLog,
+		tempo: { lies: () => einstellung.kampftempo.lies(), setze: (v) => einstellung.kampftempo.setze(v) },
+		bild: (id) => heldenbogen.bildBekannt(id),
+		layoutPasst: () => document.body.classList.contains('mobil') && document.body.classList.contains('aktionsknoepfe') });
+	window.kampf = kampf;
+	// wie beim Heldenbogen: reicht der Platz nicht, wird das Feld um den gemessenen Überlauf niedriger
+	const kbEl = document.getElementById('kampfbedien');
+	let kbMehr = 0;
+	function kbPlatz() {
+		if (!mobilEl.classList.contains('kampf') || !kbEl.clientHeight) return;
+		const zuviel = kbEl.scrollHeight - kbEl.clientHeight;
+		if (zuviel > 1 && kbMehr < 300) {
+			kbMehr += zuviel;
+			document.body.style.setProperty('--kampf-mehr', kbMehr + 'px');
+		}
+	}
+	window.addEventListener('resize', () => { kbMehr = 0; document.body.style.removeProperty('--kampf-mehr'); });
+	// Minimap (minimap.js): Automap von Stadt oder Dungeon neben dem Steuerkreuz
+	const minimap = minimapEinrichten(Module, { canvas: document.getElementById('minimap'),
+		an: () => einstellung.minimap.lies() === 'an' && !document.body.classList.contains('lager') });
+	// zusätzlich laufend abgleichen: das Spiel deckt die Felder um die Gruppe erst nach dem Bild des
+	// Schritts auf (seg066 nach town_direction_change, seg076 nach DNG_update_pos), ohne neues Bild
+	const minimapStarten = () => setInterval(() => {
+		if (!document.hidden && document.body.classList.contains('mobil') && dialoge.length == 0 &&
+			!mobilEl.classList.contains('vollbild') && Module._web_screen_mode?.() === 1) {
+			const vorher = document.body.classList.contains('minimap');
+			if (minimap.aktualisieren() !== vorher && document.body.classList.contains('aktionsknoepfe')) aktionen.zeichnen(ganz);
+		}
+		// Heldenbogen: Ende einer Aktion ohne neues Bild (laeuft), Layoutwechsel
+		if (!document.hidden && dialoge.length == 0 && mobilEl.classList.contains('vollbild')) {
+			mobilEl.classList.toggle('heldenbogen', heldenbogen.aktualisieren());
+		}
+		hbPlatz();
+	}, 250);
+	window.onerror = () => { Module.setStatus('Fehler – siehe Konsole'); };
+
+	function taste(name) {
+		if (name === 'rechtsklick') { Module._web_right_click?.(); return; }
+		if (Module._web_key) Module._web_key(TASTEN[name]);
+	}
+
+	// Knöpfe: sofort beim Antippen auslösen, Bewegung beim Halten wiederholen.
+	// Die Wiederholung muss sicher enden: iOS Safari meldet das Loslassen nicht
+	// zuverlässig, wenn sich währenddessen das Layout ändert (Meldung erscheint).
+	// Sonst läuft die Gruppe endlos weiter (z. B. immer wieder gegen ein Haus).
+	const MAX_WDH = 40;            // ca. 9 s Dauerlauf
+	const laufende = new Set();    // Enden-Funktionen der gerade gehaltenen Knöpfe
+	function alleLoslassen() { for (const ende of [...laufende]) ende(); }
+	const LAGER_ORTE = new Set([6, 18]);   // LOCTYPE_WILDCAMP, LOCTYPE_AREA_CAMP
+	function gruppe() {
+		const v = Module._web_party_state?.();
+		if (v === undefined) return null;
+		return { x: v & 0xff, y: (v >> 8) & 0xff, richtung: (v >> 16) & 3, ort: (v >> 18) & 0xff };
+	}
+	for (const typ of ['pointerup', 'pointercancel', 'touchend', 'touchcancel']) {
+		window.addEventListener(typ, alleLoslassen, true);
+	}
+	window.addEventListener('blur', alleLoslassen);   // nur das Fenster, nicht Elemente
+	document.addEventListener('visibilitychange', alleLoslassen);
+
+	for (const b of document.querySelectorAll('button[data-key]')) {
+		let wdh = null;
+		const ende = () => {
+			b.classList.remove('aktiv');
+			clearTimeout(wdh); clearInterval(wdh); wdh = null;
+			laufende.delete(ende);
+		};
+		b.addEventListener('pointerdown', (e) => {
+			e.preventDefault();
+			ende();
+			try { b.setPointerCapture(e.pointerId); } catch (_) { /* nicht überall möglich */ }
+			b.classList.add('aktiv');
+			taste(b.dataset.key);
+			if (b.hasAttribute('data-wdh')) {
+				laufende.add(ende);
+				const schritt = b.dataset.key === 'up' || b.dataset.key === 'down';
+				const start = gruppe();
+				let vorher = start;
+				let n = 0;
+				wdh = setTimeout(() => {
+					wdh = setInterval(() => {
+						// Nur weiterlaufen, solange das Spiel normal Schritte macht: Abbruch bei
+						// Dialog/Meldung, Ortswechsel, vom Spiel geänderter Richtung (z. B. aus
+						// einem Haus zurückgesetzt), Stillstand (Wand) und nach MAX_WDH Wiederholungen.
+						const jetzt = gruppe();
+						const abbruch = Module._web_screen_mode?.() !== 1 || ++n > MAX_WDH || !jetzt ||
+							jetzt.ort !== start.ort ||
+							(schritt && (jetzt.richtung !== start.richtung || (jetzt.x === vorher.x && jetzt.y === vorher.y)));
+						if (abbruch) { ende(); return; }
+						vorher = jetzt;
+						taste(b.dataset.key);
+					}, 220);
+				}, 380);
+			}
+		});
+		b.addEventListener('lostpointercapture', ende);
+		b.addEventListener('contextmenu', (e) => e.preventDefault());
+	}
+
+	// ---------- Spielstände: Export/Import ----------
+	// GAMES.NAM: 5 Namen à 9 Bytes; Datei je Platz = Name auf 8 Zeichen (nicht alphanumerisch
+	// und Rest „_“, wie prepare_sg_name in seg026) + „.GAM“, im Spielverzeichnis /spiel
+	const verwaltungEl = document.getElementById('verwaltung');
+	const vPlaetze = verwaltungEl.querySelector('.plaetze');
+	const vMeldung = verwaltungEl.querySelector('.meldung');
+	const vDatei = verwaltungEl.querySelector('input[type=file]');
+	let importPlatz = -1;
+
+	function spielstandNamen() {
+		let nam;
+		try { nam = FS.readFile('/spiel/GAMES.NAM'); } catch (e) { nam = new Uint8Array(45); }
+		return [0, 1, 2, 3, 4].map((i) => {
+			const b = nam.subarray(i * 9, i * 9 + 9);
+			const ende = b.indexOf(0);
+			return alsText([...b.subarray(0, ende < 0 ? 9 : ende)]);
+		});
+	}
+	function dateiName(name) {
+		let n = '';
+		for (let i = 0; i < 8; i++) n += /[A-Za-z0-9]/.test(name[i] ?? '') ? name[i] : '_';
+		return n + '.GAM';
+	}
+	function zeigeSpielstaende(meldung = '') {
+		const namen = spielstandNamen();
+		vPlaetze.replaceChildren(...namen.map((name, i) => {
+			const li = document.createElement('li');
+			const n = document.createElement('span');
+			n.className = 'name' + (name ? '' : ' frei');
+			n.textContent = name || 'frei';
+			li.append(n);
+			let vorhanden = false;
+			try { vorhanden = !!name && FS.stat('/spiel/' + dateiName(name)); } catch (e) {}
+			if (vorhanden) {
+				const ex = document.createElement('button');
+				ex.type = 'button'; ex.textContent = 'Exportieren';
+				ex.addEventListener('click', () => exportieren(name));
+				li.append(ex);
+			}
+			const im = document.createElement('button');
+			im.type = 'button'; im.textContent = 'Importieren';
+			im.addEventListener('click', () => { importPlatz = i; vDatei.value = ''; vDatei.click(); });
+			li.append(im);
+			return li;
+		}));
+		vMeldung.textContent = meldung;
+	}
+	function exportieren(name) {
+		const daten = FS.readFile('/spiel/' + dateiName(name));
+		const url = URL.createObjectURL(new Blob([daten], { type: 'application/octet-stream' }));
+		const a = document.createElement('a');
+		a.href = url; a.download = dateiName(name);
+		document.body.append(a); a.click(); a.remove();
+		setTimeout(() => URL.revokeObjectURL(url), 10000);
+	}
+	vDatei.addEventListener('change', async () => {
+		const datei = vDatei.files?.[0];
+		if (!datei || importPlatz < 0) return;
+		const daten = new Uint8Array(await datei.arrayBuffer());
+		// Kopf „DSA VERSION“, dann Spielzustand (5952) und Dateitabelle (286 × 4)
+		const kennung = String.fromCharCode(...daten.subarray(0, 11));
+		if (kennung !== 'DSA VERSION' || daten.length < 20 + 5952 + 286 * 4) {
+			zeigeSpielstaende(`„${datei.name}“ ist kein Spielstand der Schicksalsklinge.`);
+			return;
+		}
+		const name = datei.name.replace(/\.gam$/i, '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || `IMPORT${importPlatz + 1}`;
+		const namen = spielstandNamen();
+		const doppelt = namen.findIndex((n, i) => i !== importPlatz && dateiName(n) === dateiName(name));
+		if (doppelt >= 0) { zeigeSpielstaende(`Der Name „${name}“ ist schon auf Platz ${doppelt + 1} vergeben.`); return; }
+		if (namen[importPlatz] && !confirm(`Platz ${importPlatz + 1} („${namen[importPlatz]}“) überschreiben?`)) return;
+		if (!confirm('Nach dem Import startet das Spiel neu. Nicht gespeicherter Fortschritt geht verloren. Fortfahren?')) return;
+		try {
+			if (namen[importPlatz]) { try { FS.unlink('/spiel/' + dateiName(namen[importPlatz])); } catch (e) {} }
+			FS.writeFile('/spiel/' + dateiName(name), daten);
+			const nam = new Uint8Array(45);
+			try { nam.set(FS.readFile('/spiel/GAMES.NAM').subarray(0, 45)); } catch (e) {}
+			nam.fill(0, importPlatz * 9, importPlatz * 9 + 9);
+			for (let i = 0; i < name.length; i++) nam[importPlatz * 9 + i] = name.charCodeAt(i);
+			FS.writeFile('/spiel/GAMES.NAM', nam);
+		} catch (e) {
+			zeigeSpielstaende('Import fehlgeschlagen: ' + e);
+			return;
+		}
+		// das laufende Spiel kennt die Namen nur vom Start: sichern und neu starten
+		Module.spielstaendeGesichert = (ok) => {
+			Module.spielstaendeGesichert = null;
+			if (ok) location.reload(); else zeigeSpielstaende('Import konnte nicht gesichert werden.');
+		};
+		Module.spielstaendeSichern();
+	});
+	function spielstaendeOeffnen() {
+		document.getElementById('einstellungen').hidden = true;
+		zeigeSpielstaende();
+		verwaltungEl.hidden = false;
+	}
+	document.getElementById('spielstaende-knopf').addEventListener('click', spielstaendeOeffnen);
+	verwaltungEl.querySelector('.schliessen').addEventListener('click', () => { verwaltungEl.hidden = true; });
+	// Browser bitten, die Spielstände nicht bei Speicherknappheit zu löschen
+	navigator.storage?.persist?.().catch(() => {});
+
+	// ---------- Heldenerschaffung / Intro ----------
+	// Das Spiel ruft sie wie spawnl("gen.exe") auf (seg120 call_gen, Intro in main) und wartet.
+	const genEl = document.getElementById('gen');
+	const genFrame = genEl.querySelector('iframe');
+	const ohneIntro = new URLSearchParams(location.search).has('ohneIntro');   // Tests
+	const logoIntro = new URLSearchParams(location.search).has('logoIntro');   // Tests: Ersatz ohne INTRO_E.OVL
+	Module.genStarten = async (parameter) => {
+		if (parameter === 'intro') {
+			if (ohneIntro) return;
+			// das Original-Intro, wenn INTRO_E.OVL bei den Spieldaten ist; sonst das Logo-Intro der Heldenerschaffung
+			if (!logoIntro && await originalIntro()) return;
+		}
+		await genRahmen(parameter);
+	};
+
+	// Original-Intro (INTRO.EXE startete INTRO_E.OVL): intro.js führt das Programm aus, virtuelle Zeit je Bild
+	// an die echte gekoppelt. Ohne Musiktreiber („nomusic“, vom Programm vorgesehen: Szenendauer aus den eigenen
+	// Werten); die angeforderten Stücke spielt ton.js als CD-Tracks.
+	// Nach einem Durchlauf (Titel, zehn Szenen, Abspann) oder mit „Intro überspringen“ geht es ins Startmenü.
+	const introEl = document.getElementById('intro');
+	function originalIntro() {
+		const dateien = {};
+		try {
+			for (const n of ['INTRO_E.OVL', 'INTRODAT.DIR', 'INTRODAT.VOL', 'INTRODAT.SND']) dateien[n] = Module.FS.readFile('/spiel/' + n);
+		} catch (e) { return false; }
+		let intro;
+		try {
+			// Musik wie in der GOG-Fassung: Stück 0 (Logos, Titel, Abspann) = CD-Track 2, Stück 1 (Szenen) = Track 3
+			intro = new Intro(dateien, {
+				argumente: 'nomusic', einDurchlauf: true, log: (t) => console.log('[intro]', t),
+				musik: (art, stueck) => { if (art === 'spielen') Module.musikSpielen?.(stueck + 2); },
+			});
+		} catch (e) { console.warn('Intro nicht gestartet', e); return false; }
+		alleLoslassen();
+		return new Promise((fertig) => {
+			const canvas = introEl.querySelector('canvas'), ctx = canvas.getContext('2d');
+			const bild = ctx.createImageData(320, 200);
+			let zuletzt = performance.now(), ziel = 0, aus = false, titelGemerkt = false;
+			const taste = (e) => { e.preventDefault(); e.stopPropagation(); ende(); };   // im Original beendet jede Taste
+			const ende = () => {
+				if (aus) return;
+				aus = true; introEl.hidden = true;
+				window.removeEventListener('keydown', taste, true);
+				Module.musikSpielen?.(0);
+				if (intro.fehler) console.warn('Intro:', intro.fehler);
+				fertig(true);
+			};
+			const schritt = (jetzt) => {
+				if (aus) return;
+				ziel += Math.min(100, jetzt - zuletzt) * Intro.CPU_HZ / 1000;   // nach einer Pause nicht nachholen
+				zuletzt = jetzt;
+				intro.laufen(ziel);
+				intro.bild(bild.data);
+				ctx.putImageData(bild, 0, 0);
+				if (!titelGemerkt && ziel >= startmenue.TITEL_ZEIT * Intro.CPU_HZ) { titelGemerkt = true; startmenue.titelAusIntro(bild.data); }
+				if (intro.beendet) ende(); else requestAnimationFrame(schritt);
+			};
+			introEl.querySelector('.ueberspringen').onclick = ende;
+			window.addEventListener('keydown', taste, true);
+			introEl.hidden = false;
+			requestAnimationFrame(schritt);
+		});
+	}
+
+	// Musik: ngen spielt ab dem Start CD-Track 4 („A New Life is Born“) in Schleife (start_music); im Browser
+	// ist ihre Musik aus (gen-pre.js), die Seite spielt ihn hier. Danach wieder der Track des Spiels.
+	const genRahmen = (parameter) => new Promise((fertig) => {
+		alleLoslassen();
+		const musikVorher = { track: ton.track, pausiert: ton.pausiert };
+		Module.musikWeiter();
+		Module.musikSpielen(4);
+		const ende = async (e) => {
+			if (e.source !== genFrame.contentWindow || e.data?.gen !== 'fertig') return;
+			window.removeEventListener('message', ende);
+			genEl.hidden = true;
+			genFrame.src = 'about:blank';
+			Module.musikSpielen(musikVorher.track);
+			if (musikVorher.pausiert) Module.musikPause();
+			if (parameter !== 'intro') await Module.heldenNachladen();
+			fertig();
+		};
+		window.addEventListener('message', ende);
+		genFrame.src = 'gen.html?' + parameter + (document.body.classList.contains('mobil') ? '' : '&original');
+		genEl.hidden = false;
+		genFrame.focus();
+	});
+
+	// ---------- PWA: Offline (Service Worker), Updates, Bildschirm anlassen ----------
+	// Beides geht nur in einem sicheren Kontext (HTTPS oder localhost), nicht über http://<IP>.
+	const updateEl = document.getElementById('update');
+	if ('serviceWorker' in navigator && window.isSecureContext) {
+		let neuLaden = false;
+		navigator.serviceWorker.addEventListener('controllerchange', () => {
+			if (neuLaden) location.reload();
+		});
+		navigator.serviceWorker.register('sw.js').then((reg) => {
+			// neue Version wartet: Hinweis zeigen, erst auf Wunsch übernehmen (nicht mitten im Spiel)
+			const zeigen = () => { if (reg.waiting && navigator.serviceWorker.controller) updateEl.hidden = false; };
+			zeigen();
+			reg.addEventListener('updatefound', () => {
+				reg.installing?.addEventListener('statechange', zeigen);
+			});
+			updateEl.querySelector('button').addEventListener('click', () => {
+				neuLaden = true;
+				reg.waiting?.postMessage('jetzt-aktualisieren');
+			});
+			// regelmäßig nach Updates sehen, wenn die App lange offen ist
+			setInterval(() => reg.update().catch(() => {}), 30 * 60 * 1000);
+		}).catch((e) => console.warn('Service Worker nicht angemeldet', e));
+	}
+	// Bildschirm während des Spiels anlassen; der Browser gibt die Sperre beim Verbergen frei
+	let wachSperre = null;
+	async function wachHalten() {
+		if (!('wakeLock' in navigator) || document.visibilityState !== 'visible' || wachSperre) return;
+		try {
+			wachSperre = await navigator.wakeLock.request('screen');
+			wachSperre.addEventListener('release', () => { wachSperre = null; });
+		} catch (e) { /* z. B. Energiesparmodus */ }
+	}
+	document.addEventListener('visibilitychange', wachHalten);
+	document.addEventListener('pointerdown', wachHalten, { once: true });   // iOS: erst nach einer Berührung
+	wachHalten();
+
+	// ---------- Einstellungen (im Browser gemerkt) ----------
+	const einstEl = document.getElementById('einstellungen');
+	const lies = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+	const merke = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+
+	function setzeLayout(mobil) {
+		document.body.classList.toggle('mobil', mobil);
+		if (zeigerGesetzt) zeigerSetzen(true);
+		merke('layout', mobil ? 'mobil' : 'original');
+	}
+	if (lies('layout') === 'original') setzeLayout(false);
+
+	// Schreibung und Schriftgröße der Textboxen liest dialog.js beim Anzeigen (auch im iframe
+	// der Heldenerschaffung); die Schreibung gibt es nur mit Wörterbuch (schreibung.json)
+	const einstellung = {
+		schreibung: { lies: () => lies('schreibung') === 'original' ? 'original' : 'normal',
+			setze: (v) => { merke('schreibung', v); overlay.neuZeichnen(); } },
+		schrift: { lies: () => lies('schriftgroesse') || '1',
+			setze: (v) => { merke('schriftgroesse', v); overlay.neuZeichnen(); } },
+		layout: { lies: () => document.body.classList.contains('mobil') ? 'mobil' : 'original',
+			setze: (v) => setzeLayout(v === 'mobil') },
+		// schnell: Autokampf ohne Animationen und Wartezeiten (seg005), Würfe stehen im Protokoll
+		autokampf: { lies: () => lies('autokampf') === 'schnell' ? 'schnell' : 'normal',
+			setze: (v) => { merke('autokampf', v); autokampfSetzen(); } },
+		// Dungeon: gegen Tür oder Truhe laufen bietet deren Aktionen an (BrightEyes seg076 g_dng_aktion_fragen)
+		tuerfrage: { lies: () => lies('tuerfrage') === 'meldung' ? 'meldung' : 'fragen',
+			setze: (v) => { merke('tuerfrage', v); tuerfrageSetzen(); } },
+		// Kampf: Figuren hinter Wänden (BrightEyes kampf_durchsicht.cpp: aus 0, Raster 1, Umriss 2)
+		durchsicht: { lies: () => ({ aus: 'aus', umriss: 'umriss' })[lies('durchsicht')] ?? 'raster',
+			setze: (v) => { merke('durchsicht', v); durchsichtSetzen(); } },
+		// Fehlerkorrekturen aus docs/bugfixes.md (BrightEyes g_bugfixes: aus 0, an 1 = Stufe wichtig, alle 2;
+		// Voreinstellung alle)
+		bugfixes: { lies: () => ({ aus: 'aus', an: 'an' })[lies('bugfixes')] ?? 'alle',
+			setze: (v) => { merke('bugfixes', v); bugfixesSetzen(); } },
+		// Wartezeit der Kampfanimation (g_delay_factor, „Rechner anpassen“ des Originals; 4 wie im Original)
+		kampftempo: { lies: () => ['2', '4', '6'].includes(lies('kampftempo')) ? lies('kampftempo') : '4',
+			setze: (v) => { merke('kampftempo', v); kampftempoSetzen(); } },
+		wurflog: { lies: () => lies('wurflog') === 'aus' ? 'aus' : 'an',
+			setze: (v) => { merke('wurflog', v); wurflogKnopfZeigen(); } },
+		questlog: { lies: () => lies('questlog') === 'aus' ? 'aus' : 'an',
+			setze: (v) => { merke('questlog', v); questlogKnopfZeigen(); } },
+		// Minimap neben dem Steuerkreuz (minimap.js), nur mit Aktionsknöpfen im Hochformat
+		minimap: { lies: () => lies('minimap') === 'aus' ? 'aus' : 'an',
+			setze: (v) => { merke('minimap', v); if (Module._web_screen_mode?.() === 1) minimap.aktualisieren(); } },
+		// Aktionsknöpfe mit Text statt der Icons (aktionen.js), gilt nur im mobilen Layout
+		aktionen: { lies: () => lies('aktionen') === 'icons' ? 'icons' : 'knoepfe',
+			setze: (v) => { merke('aktionen', v); aktionenZeigen(); } },
+	};
+	const aktionenZeigen = () => {
+		document.body.classList.toggle('aktionsknoepfe', einstellung.aktionen.lies() === 'knoepfe');
+		if (document.body.classList.contains('aktionsknoepfe') && Module._web_icons) aktionen.zeichnen(ganz);
+	};
+	aktionenZeigen();
+	function kampftempoSetzen() { Module._web_kampftempo?.(Number(einstellung.kampftempo.lies())); }
+	function bugfixesSetzen() { Module._web_bugfixes?.({ aus: 0, an: 1, alle: 2 }[einstellung.bugfixes.lies()]); }
+	function tuerfrageSetzen() { Module._web_dng_aktion_fragen?.(einstellung.tuerfrage.lies() === 'fragen' ? 1 : 0); }
+	function durchsichtSetzen() { Module._web_kampf_durchsicht?.({ aus: 0, raster: 1, umriss: 2 }[einstellung.durchsicht.lies()]); }
+	function autokampfSetzen() { Module._web_fast_autofight?.(einstellung.autokampf.lies() === 'schnell' ? 1 : 0); }
+	// Protokoll läuft immer mit; die Einstellung blendet nur den Knopf aus
+	const wurflogKnopfZeigen = () => { document.getElementById('wurflog-knopf').hidden = einstellung.wurflog.lies() === 'aus'; };
+	wurflogKnopfZeigen();
+	const questlogKnopfZeigen = () => { document.getElementById('questlog-knopf').hidden = einstellung.questlog.lies() === 'aus'; };
+	questlogKnopfZeigen();
+	const probe = einstEl.querySelector('.probe');
+	const probeText = probe.textContent;
+	function einstellungenZeigen() {
+		tonZeigen();
+		for (const el of einstEl.querySelectorAll('.wahl[data-einstellung]')) {
+			const wert = einstellung[el.dataset.einstellung].lies();
+			for (const b of el.children) b.setAttribute('aria-pressed', String(b.dataset.wert === wert));
+		}
+		probe.style.setProperty('--schrift', einstellung.schrift.lies());
+		probe.textContent = einstellung.schreibung.lies() === 'original' ? probeText.toUpperCase() : probeText;
+	}
+	for (const el of einstEl.querySelectorAll('.wahl[data-einstellung]')) {
+		el.addEventListener('click', (e) => {
+			const b = e.target.closest('button');
+			if (!b) return;
+			einstellung[el.dataset.einstellung].setze(b.dataset.wert);
+			einstellungenZeigen();
+		});
+	}
+	const schreibungTeil = einstEl.querySelector('[data-einstellung="schreibung"]');
+	schreibungTeil.hidden = true;
+	overlay.schreibungBereit.then((ok) => { schreibungTeil.hidden = !ok; });
+	// Spieldaten (nur ohne eingebaute Daten): Größe, entfernen (Spielstände bleiben)
+	const spieldatenTeil = document.getElementById('spieldaten-teil');
+	spieldatenTeil.hidden = spieldaten.eingebaut;
+	document.getElementById('spieldaten-loeschen').addEventListener('click', async () => {
+		if (!confirm('Spieldaten aus diesem Browser entfernen? Beim nächsten Start werden sie neu eingelesen. Spielstände bleiben erhalten.')) return;
+		await spieldaten.loeschen();
+		startmenue.vergessen();
+		location.reload();
+	});
+	// von: 'menue' (mit „‹ Menü“ zurück) oder 'start' (Startmenü, mit den Spielständen)
+	function einstellungenOeffnen(von) {
+		einstEl.classList.toggle('vom-menue', von === 'menue');
+		einstEl.classList.toggle('vom-start', von === 'start');
+		einstEl.querySelector('.karte').scrollTop = 0;
+		if (!spieldaten.eingebaut) {
+			spieldaten.groesse().then((b) => {
+				spieldatenTeil.querySelector('.spieldaten-info').textContent =
+					`Im Browser gespeichert: ${(b / 1048576).toFixed(1).replace('.', ',')} MB.`;
+			}, () => {});
+		}
+		einstellungenZeigen();
+		einstEl.hidden = false;
+	}
+	window.einstellungenOeffnen = einstellungenOeffnen;
+	einstEl.querySelector('.schliessen').addEventListener('click', () => { einstEl.hidden = true; });
+	einstEl.querySelector('.zurueck').addEventListener('click', () => { einstEl.hidden = true; menue.zeigen(); });
+
+	// Ton (ton.js): Musik und Effekte je an/aus und Lautstärke
+	function tonZeigen() {
+		const t = ton.einstellungen;
+		for (const el of einstEl.querySelectorAll('.ton')) {
+			const art = el.dataset.ton, an = t[art];
+			for (const b of el.querySelectorAll('.wahl button')) b.setAttribute('aria-pressed', String((b.dataset.wert === 'an') === an));
+			el.querySelector('input').value = t[art + 'Vol'];
+			el.classList.toggle('aus', !an);
+		}
+	}
+	for (const el of einstEl.querySelectorAll('.ton')) {
+		const art = el.dataset.ton;
+		el.querySelector('.wahl').addEventListener('click', (e) => {
+			const b = e.target.closest('button');
+			if (!b) return;
+			ton.setze({ [art]: b.dataset.wert === 'an' });
+			tonZeigen();
+		});
+		el.querySelector('input').addEventListener('input', (e) => {
+			ton.setze({ [art + 'Vol']: Number(e.target.value) });
+		});
+	}
+
+	// Menü (menue.js) über den Knopf in der Leiste
+	const menue = menueEinrichten(Module, { el: document.getElementById('menue'),
+		dialogOffen: () => dialoge.length > 0 || Module._web_screen_mode?.() !== 1,
+		spielstaende: spielstaendeOeffnen,
+		einstellungen: () => einstellungenOeffnen('menue'),
+		zumStartmenue: () => location.replace(location.pathname + '?ohneIntro') });
+	window.menue = menue;
+	document.getElementById('menue-knopf').addEventListener('click', () => menue.zeigen());
+	einstEl.addEventListener('click', (e) => { if (e.target === einstEl) einstEl.hidden = true; });
+
+	// Vollbild nur im Browser-Tab, wo es etwas bewirkt: die installierte App läuft ohnehin ohne
+	// Browserleisten, iPhone-Safari kennt kein Vollbild für Seiten
+	const vollbildKnopf = document.getElementById('vollbild');
+	const alsApp = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+	vollbildKnopf.hidden = alsApp || !document.fullscreenEnabled;
+	const vollbildZeigen = () => { vollbildKnopf.textContent = document.fullscreenElement ? 'Vollbild beenden' : 'Vollbild'; };
+	document.addEventListener('fullscreenchange', vollbildZeigen);
+	vollbildKnopf.addEventListener('click', () => {
+		if (document.fullscreenElement) document.exitFullscreen();
+		else document.documentElement.requestFullscreen?.().catch(() => {});
+	});
+</script>
+<script async type="text/javascript" src="index.js"></script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<!-- 1: Spieldaten eingebaut (SPIELDATEN=1), 0: Import im Browser (daten.js); setzt web-bauen.sh -->
+<meta name="spieldaten" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Heldenerschaffung</title>
+<style>
+	:root {
+		--bg: #000;
+		--panel: #221d19;
+		--knopf: #3a312a;
+		--knopf-aktiv: #6b5636;
+		--rand: #5a4a3a;
+		--text: #e8dcc8;
+		--leise: #a39480;
+		--gold: #c9a45c;
+	}
+	* { box-sizing: border-box; }
+	html, body {
+		margin: 0; height: 100%;
+		background: var(--bg); color: var(--leise);
+		font: 16px/1.3 system-ui, sans-serif;
+		overscroll-behavior: none;
+		-webkit-user-select: none; user-select: none;
+		-webkit-touch-callout: none;
+	}
+	body {
+		/* oben bündig: wechselnde Knöpfe unter dem Bild verschieben es nicht (Intro: mittig) */
+		display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 1rem;
+		height: 100dvh;
+		padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+	}
+	/* 320x200 mit DOS-Pixeln (1,2-mal so hoch wie breit), so groß wie möglich */
+	#canvas {
+		display: block;
+		width: min(100vw, calc((100dvh - var(--unten, 4.5rem)) * 4 / 3));   /* Platz für die Leiste */
+		aspect-ratio: 4 / 3;
+		image-rendering: pixelated; image-rendering: crisp-edges;
+		touch-action: none; outline: none;
+	}
+	button {
+		font: inherit; color: var(--text);
+		background: var(--knopf);
+		border: 1px solid var(--rand); border-radius: 0.6rem;
+		-webkit-tap-highlight-color: transparent;
+		display: flex; align-items: center; justify-content: center;
+		padding: 0;
+	}
+	/* Leiste: das Menü der Heldenerschaffung öffnet im Original ein Rechtsklick */
+	#leiste { display: flex; gap: 0.6rem; justify-content: center; }
+	#leiste [hidden] { display: none; }
+	#leiste button { min-height: 2.8rem; padding: 0 1.4rem; font-size: 1rem; touch-action: manipulation; }
+	/* Menüs als Knöpfe unter dem Bild (statt Rechtsklick → Menü): Spalten je Menü (--spalten),
+	   „Abbrechen“ allein über die ganze Breite; --unten (Platz unter dem Bild) setzt das Skript */
+	#menueknoepfe { display: grid; grid-template-columns: repeat(var(--spalten, 3), 1fr); gap: 0.45rem; width: min(100vw - 1rem, 36rem); }
+	#menueknoepfe[hidden] { display: none; }
+	#menueknoepfe button { min-height: 2.6rem; padding: 0.2rem 0.4rem; font-size: 0.95rem; line-height: 1.15; text-align: center; touch-action: manipulation; }
+	#menueknoepfe .titel { grid-column: 1 / -1; text-align: center; color: var(--leise); font-size: 0.9rem; }
+	#menueknoepfe .abbrechen { grid-column: 1 / -1; }
+	body.intro { justify-content: center; }
+	/* Seite blättern wie die roten Pfeile im Bild (nur „Fortgeschrittene“), unten bündig */
+	#pfeile { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between;
+		padding: 0.5rem calc(0.5rem + env(safe-area-inset-right)) calc(0.5rem + env(safe-area-inset-bottom)) calc(0.5rem + env(safe-area-inset-left)); pointer-events: none; }
+	#pfeile[hidden] { display: none; }
+	#pfeile button { pointer-events: auto; width: 4.2rem; height: 3.2rem; touch-action: manipulation; }
+	#pfeile svg { width: 1.7rem; height: 1.7rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+	/* Versionsnummer unten im Intro (setzt web-bauen.sh aus VERSION) */
+	#version { position: fixed; left: 0; right: 0; bottom: calc(0.4rem + env(safe-area-inset-bottom)); text-align: center; font-size: 0.8rem; color: var(--leise); pointer-events: none; }
+	#version[hidden] { display: none; }
+	#status { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="status">Lade …</div>
+<canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
+<div id="menueknoepfe" hidden></div>
+<div id="pfeile" hidden>
+	<button type="button" data-taste="1073741904" aria-label="Seite zurück" title="Seite zurück (←)"><svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+	<button type="button" data-taste="1073741903" aria-label="Seite vor" title="Seite vor (→)"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+</div>
+<div id="version" hidden>Mobile Eyes v0.9.1</div>
+<div id="leiste">
+	<button type="button" id="menue" title="Menü der Heldenerschaffung (Rechtsklick)">Menü</button>
+	<button type="button" id="ueberspringen" hidden>Intro überspringen</button>
+</div>
+<script src="daten.js"></script>
+<script src="schreibung.js"></script>
+<script src="dialog.js"></script>
+<script>
+	const statusEl = document.getElementById('status');
+	var Module = {
+		canvas: document.getElementById('canvas'),
+		print: (t) => console.log(t),
+		printErr: (t) => console.warn(t),
+		setStatus: (t) => { statusEl.textContent = t; statusEl.style.display = t ? 'flex' : 'none'; },
+		onRuntimeInitialized: () => { statusEl.style.display = 'none'; },
+	};
+	// ohne eingebaute Spieldaten: DSAGEN.DAT aus dem Browser (das Spiel hat sie beim Start eingelesen)
+	const spieldaten = spieldatenEinrichten({ ohneDialog: true });
+	if (!spieldaten.eingebaut) Module.spieldatenHolen = () => spieldaten.holen(['DSAGEN.DAT']);
+
+	document.getElementById('menue').addEventListener('click', () => Module._web_right_click?.());
+	// Intro: nur „Überspringen“ (meldet dem Spiel sofort „fertig“, das schließt den Rahmen)
+	if (location.search.startsWith('?intro')) {
+		document.getElementById('menue').hidden = true;
+		document.body.classList.add('intro');
+		document.getElementById('version').hidden = false;
+		const weg = document.getElementById('ueberspringen');
+		weg.hidden = false;
+		weg.addEventListener('click', () => melden());
+	}
+
+	// Textboxen als Overlay wie im Spiel (nicht im Original-Layout: gen.html?…&original).
+	// Solange eines offen ist, gibt ngen selbst keine Bilder aus (vgalib.c), seine Box bleibt unsichtbar.
+	// Die Heldenerschaffung siezt („WÄHLEN SIE …“), das Spiel ihrzt
+	const mitOverlay = !new URLSearchParams(location.search).has('original');
+	const overlay = mitOverlay ? textboxOverlay(Module, { schreibungZusatz: { SIE: 'Sie', IHNEN: 'Ihnen' } }) : null;
+
+	// Menüs als Knöpfe unter dem Bild; ein Knopf wirkt wie Menü öffnen und den Eintrag wählen
+	// (web_gen_wahl). Erste Seite: Hauptmenü (drei je Reihe); Talente/Zauber: Gruppen (einer je Reihe)
+	// bzw. Zauber, AT/PA: Waffen (zwei je Reihe). Die Auswahl danach (Talent, Zauber, AT oder PA) meldet
+	// ngen mit spalten > 0: sie erscheint ebenfalls hier statt im Overlay. Nur mit Overlay, nicht im Intro.
+	if (overlay && !location.search.startsWith('?intro')) {
+		const knoepfeEl = document.getElementById('menueknoepfe');
+		const menueKnopf = document.getElementById('menue');
+		const knopf = (text, klick, klasse) => {
+			const b = document.createElement('button');
+			b.type = 'button';
+			b.textContent = text;
+			if (klasse) b.className = klasse;
+			b.addEventListener('click', klick);
+			return b;
+		};
+		const bytes = (h) => (h.match(/../g) || []).map((x) => parseInt(x, 16));
+		const anzeigen = (spalten, kinder) => {
+			knoepfeEl.style.setProperty('--spalten', spalten);
+			knoepfeEl.replaceChildren(...kinder);
+			knoepfeEl.hidden = false;
+		};
+		const pfeileEl = document.getElementById('pfeile');
+		// SDLK_LEFT/RIGHT: ngen blättert wie mit den Pfeilen im Bild (ohne Typus: Meldung wie im Original)
+		for (const b of pfeileEl.querySelectorAll('button')) {
+			b.addEventListener('click', () => { if (!overlay.dialoge.length && !auswahl) Module._web_key(+b.dataset.taste); });
+		}
+		const platzSetzen = () => {
+			const h = knoepfeEl.hidden ? 0 : knoepfeEl.getBoundingClientRect().height;
+			const l = menueKnopf.hidden ? 0 : document.getElementById('leiste').getBoundingClientRect().height;
+			const p = pfeileEl.hidden ? 0 : pfeileEl.getBoundingClientRect().height;
+			document.body.style.setProperty('--unten', `${Math.ceil(h + l + p) + 40}px`);
+		};
+
+		// Auswahl nach einem Knopf (unter dem Bild statt im Overlay)
+		const stapel = [];   // je offene Box: true = unter dem Bild
+		let auswahl = null;
+		const aufOverlay = Module.dialogAuf, zuOverlay = Module.dialogZu;
+		Module.dialogAuf = (d) => {
+			if (!d.spalten) { stapel.push(false); aufOverlay(d); return; }
+			stapel.push(true);
+			auswahl = d;
+			let gesendet = false;
+			const senden = (f) => { if (!gesendet) { gesendet = true; f(); } };
+			const kinder = [];
+			if (d.text) { const t = document.createElement('div'); t.className = 'titel'; t.textContent = overlay.spielText(d.text); kinder.push(t); }
+			d.optionen.forEach((o, i) => kinder.push(knopf(overlay.spielText(o), () => senden(() => Module._web_menu_select(i + 1)))));
+			kinder.push(knopf('Abbrechen', () => senden(() => Module._web_right_click()), 'abbrechen'));
+			anzeigen(d.spalten, kinder);
+			menueKnopf.hidden = true;
+			zuletzt = '';
+			platzSetzen();
+		};
+		Module.dialogZu = () => {
+			if (stapel.pop()) { auswahl = null; abgleichen(); } else zuOverlay();
+		};
+
+		// erste Auswahl der Seite
+		let zuletzt = '';
+		const abgleichen = () => {
+			if (auswahl) return;
+			const m = JSON.parse(Module.UTF8ToString(Module._web_gen_menue()));
+			const zeigen = m.t.length > 0;
+			const schluessel = JSON.stringify(m) + (overlay.schreibungFertig ? 1 : 0);
+			if (schluessel !== zuletzt) {
+				zuletzt = schluessel;
+				if (zeigen) {
+					anzeigen(m.n, m.t.map((h, i) => knopf(overlay.spielText(bytes(h)), () => {
+						if (!overlay.dialoge.length && !auswahl) Module._web_gen_wahl(i + 1);
+					})));
+				}
+			}
+			knoepfeEl.hidden = !zeigen;
+			menueKnopf.hidden = zeigen;
+			pfeileEl.hidden = !(m.s >= 0 && m.l === 2);
+			platzSetzen();
+		};
+
+		const fertig = Module.onRuntimeInitialized;
+		Module.onRuntimeInitialized = () => {
+			fertig();
+			Module._web_gen_knoepfe(1);   // vor main(): das Menü öffnet sich nicht mehr von selbst
+			overlay.schreibungBereit?.then?.(() => { overlay.schreibungFertig = true; });
+			setInterval(abgleichen, 200);
+		};
+		addEventListener('resize', platzSetzen);
+	}
+</script>
+<script async type="text/javascript" src="gen.js"></script>
+</body>
+</html>
