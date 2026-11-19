@@ -2003,6 +2003,12 @@ static int g_web_test_probe[3] = { 0, 0, 0 };
  * Ergebnis in web_test_state() "fix": 1 = in Ordnung, 0 = Fehler, -1 = noch nicht gelaufen */
 static int g_web_test_fix = 0;
 static int g_web_test_fix_ergebnis = -1;
+/* web_test_fix(1001): Stapel mit 0xff füllen, damit nicht initialisierte Variablen Müll enthalten */
+static __attribute__((noinline)) void web_test_stapel_fuellen(void)
+{
+	volatile unsigned char m[4096];
+	for (unsigned i = 0; i < sizeof(m); i++) m[i] = 0xff;
+}
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_fix(const int nr)
 {
 	g_web_test_fix_ergebnis = -1;
@@ -2266,6 +2272,12 @@ static void web_test_hooks(void)
 			held.typus = HERO_TYPE_MAGIER; if (!can_hero_use_item(&held, ITEM_HELM__CURSED)) ok = 0;
 			g_bugfixes = stufe;
 			g_web_test_fix_ergebnis = ok;
+		} else if (nr == 1001) {
+			/* kein Eintrag der Bugfix-Liste, nativer Fehler: FIGHT.LST liefert die Anzahl der Kämpfe in 2 Bytes,
+			 * gelesen in ein 32-Bit-int (seg027). Mit Müll im Stapel darf DCAMPFIGHT1 (2 Orks) nicht zu
+			 * Kampf 0 werden (Oger, 3 Orks, Harpyie) */
+			web_test_stapel_fuellen();
+			g_web_test_fix_ergebnis = (count_fight_enemies(FIGHTS_DCAMPFIGHT1) == 2);
 		}
 	}
 }
