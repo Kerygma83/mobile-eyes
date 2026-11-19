@@ -1093,6 +1093,14 @@ char* spell_analues(void)
 	The original uses the return value to calculate an index, whithout checking for this. */
 	if (inv_slot == -1) item_id = 0;
 	else item_id = get_spelluser()->inventory[inv_slot].item_id;
+
+	/* Schicksalsklinge-Bugfix Nr. 200 (1.5e): after cancelling, end the spell without a text box as Odem
+	 * Arcanum does (not "nothing special"); the academy keeps its answer */
+	if (BUGFIX_ALLES && (inv_slot == -1) && (gs_in_academy != 99)) {
+		*g_dtp2 = '\0';
+		*g_text_output_buf = '\0';
+		return g_text_output_buf;
+	}
 #else
 	item_id = get_spelluser()->inventory[inv_slot].item_id;
 #endif
