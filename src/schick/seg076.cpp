@@ -932,6 +932,9 @@ void DNG_waterbarrel(uint8_t *unit_ptr)
 	signed int hero_refilled_counter;
 	signed int done;
 	struct struct_hero *hero;
+#ifdef M302de_ORIGINAL_BUGFIX
+	signed int skin_needed;	/* Schicksalsklinge-Bugfix Nr. 91 */
+#endif
 
 	done = 0;
 
@@ -983,6 +986,9 @@ void DNG_waterbarrel(uint8_t *unit_ptr)
 
 			/* replenish WATERSKINS */
 			hero = get_hero(0);
+#ifdef M302de_ORIGINAL_BUGFIX
+			skin_needed = 0;
+#endif
 			for (hero_refilled_counter = l_di = 0; l_di <= 6; l_di++, hero++)
 			{
 				if ((hero->typus != HERO_TYPE_NONE) && (hero->group_id == gs_active_group_id) &&
@@ -1004,6 +1010,10 @@ void DNG_waterbarrel(uint8_t *unit_ptr)
 							}
 
 #ifdef M302de_ORIGINAL_BUGFIX
+							if (units_needed != 0) {
+								skin_needed = 1;
+							}
+
 							/* Original-Bug (Schicksalsklinge-Bugfix Nr. 91): the skin is refilled before checking the barrel,
 							 * so an empty barrel still fills every skin. Check the barrel first: nothing from an empty
 							 * barrel, with the last unit an empty skin is only half full. */
@@ -1049,9 +1059,17 @@ void DNG_waterbarrel(uint8_t *unit_ptr)
 			}
 
 			/* print a message if no hero used the barrel */
+#ifdef M302de_ORIGINAL_BUGFIX
+			/* Schicksalsklinge-Bugfix Nr. 91 (1.5e): a skin needed water, but the barrel is empty:
+			 * "THE BARREL IS EMPTY NOW" instead of "YOUR SUPPLIES ARE STILL FULL" */
+			if (!hero_refilled_counter) {
+				GUI_output(get_ttx((BUGFIX_WICHTIG && skin_needed && (*unit_ptr == 0)) ? 785 : 786));
+			}
+#else
 			if (!hero_refilled_counter) {
 				GUI_output(get_ttx(786));
 			}
+#endif
 
 			done = 1;
 		} else {
