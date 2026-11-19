@@ -118,6 +118,13 @@ for (const sz of auswahl) {
 			let schwarz = 0;
 			for (let i = 0; i < g.length; i += 4) if (!g[i] && !g[i + 1] && !g[i + 2]) schwarz++;
 			z.schwarz = Math.round(schwarz / (240 * 136) * 100);
+			// Prüfsumme der linken Hälfte der Ansicht (Dungeonwände links), zum Vergleich zweier Bilder
+			let links = 0;
+			for (let y = 0; y < 136; y++) for (let x = 0; x < 104; x++) {
+				const i = (y * 240 + x) * 4;
+				links = (links * 31 + g[i] + g[i + 1] * 7 + g[i + 2] * 13) | 0;
+			}
+			z.links = links;
 			// weiße Pixel (Farbe des Mauszeigers) um die letzte Tippstelle in den Icons (306,124)
 			const um = lebend.getContext('2d').getImageData(296, 114, 24, 24).data;
 			let weiss = 0;
