@@ -28,6 +28,7 @@
 #include "seg098.h"
 #include "seg103.h"
 #include "seg105.h"
+#include "wurflog.h"
 
 static const signed int g_dcampfights[4] = {
 	FIGHTS_DCAMPFIGHT1,
@@ -205,9 +206,20 @@ void do_area_camp(void)
 						/* without guards: (4*hours - 1) % chance for an incident */
 						/* For a 1 hour rest with guards this will be 0% chance! */
 						/* TODO: maybe change it to random_schick(100) - 1 to fix that */
+#if !defined(__BORLANDC__)
+						/* Würfelprotokoll: Wurf in einer Variablen, gleiche Würfe in gleicher Reihenfolge */
+						const signed int schwelle = (g_area_camp_guards[0] == -1 ? 4 * hours : hours);
+						const signed int wurf = random_schick(100);
+
+						if (schwelle > wurf) {
+							gs_camp_incident = random_schick(3) - 1;
+						}
+						wlog_lager(1, hours, g_area_camp_guards[0] != -1, wurf, schwelle, 0, gs_camp_incident);
+#else
 						if ((g_area_camp_guards[0] == -1 ? 4 * hours : hours) > random_schick(100)) {
 							gs_camp_incident = random_schick(3) - 1;
 						}
+#endif
 					}
 
 					l8 = 0;

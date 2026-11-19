@@ -31,6 +31,7 @@
 #include "seg103.h"
 #include "seg104.h"
 #include "seg105.h"
+#include "wurflog.h"
 
 static const signed int g_campfights[4] = {
 	FIGHTS_CAMPFIGHT1,
@@ -341,10 +342,23 @@ void do_wildcamp(void)
 
 				if (gs_camp_incident == -1) {
 
+#if !defined(__BORLANDC__)
+					/* Würfelprotokoll: Wurf in einer Variablen, gleiche Würfe in gleicher Reihenfolge */
+					const signed int schwelle = (g_wildcamp_guards[0] == -1 ? 60 : 10);
+					const signed int wurf = random_schick(100);
+
+					if ((schwelle > wurf) && !gs_ingame_timers[INGAME_TIMER_TRAVIA_SAFE_REST])
+					{
+						gs_camp_incident = random_schick(3) - 1;
+					}
+					wlog_lager(0, l3, g_wildcamp_guards[0] != -1, wurf, schwelle,
+						gs_ingame_timers[INGAME_TIMER_TRAVIA_SAFE_REST] != 0, gs_camp_incident);
+#else
 					if (((g_wildcamp_guards[0] == -1 ? 60 : 10) > random_schick(100)) && !gs_ingame_timers[INGAME_TIMER_TRAVIA_SAFE_REST])
 					{
 						gs_camp_incident = random_schick(3) - 1;
 					}
+#endif
 				} else {
 					have_guards = 1;
 				}

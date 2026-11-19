@@ -241,7 +241,17 @@ void hero_disease_test(struct struct_hero *hero, const signed int disease_id, co
 #endif
 
 	/* check the probability and if hero is diseased*/
+#if !defined(__BORLANDC__)
+	/* Würfelprotokoll: Wurf in einer Variablen, gleiche Würfe in gleicher Reihenfolge */
+	const signed int wurf = random_schick(100);
+
+	wlog_ansteckung(wlog_spiel(hero->alias), wlog_spiel(get_ttx(disease_id + 0x193)), wurf, probability,
+		hero->disease[disease_id].status == DISEASE_STATUS_DISEASED);
+
+	if ((wurf <= probability) && (hero->disease[disease_id].status != DISEASE_STATUS_DISEASED)) {
+#else
 	if ((random_schick(100) <= probability) && (hero->disease[disease_id].status != DISEASE_STATUS_DISEASED)) {
+#endif
 
 		hero_gets_diseased(hero, disease_id);
 	}

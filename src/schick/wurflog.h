@@ -29,6 +29,9 @@
 #define WLOG_KAMPF	3	/* Angriff im Kampf */
 #define WLOG_RUNDE	4	/* Trenner: Kampfrunde / Kampfbeginn */
 #define WLOG_SONST	5	/* AP, Krankheit u. a. */
+#define WLOG_EREIGNIS	6	/* Würfe für Ereignisse: Lagerüberfall, Reisetag, Seereise, Ansteckung */
+#define WLOG_STUFE	7	/* Stufenanstieg: Steigerungen, Eigenschaften, LE/AE */
+#define WLOG_KAMPFBEGINN 8	/* Kampfnummer und Gegner (Seite: unter Kampf und Ereignisse) */
 
 /* Ausgang aus Sicht der Helden */
 #define WLOG_PATZER	-2
@@ -67,6 +70,23 @@ const char *wlog_spiel(const char *dos);
 const char *wlog_monster(const signed int monster_id);
 /* Würfelformel aus den Gegnerdaten (n*Wm+x, wie dice_template) */
 const char *wlog_formel(const unsigned short val);
+
+/* Ereignisse (Einträge mit den Würfen, die das Spiel ohnehin macht; nichts wird zusätzlich gewürfelt) */
+/* Kampfbeginn: Nummer und Name aus der Kampfliste, Gegner (nach g_current_fight, g_monster_dat_buf),
+ * obergrenze > 0: gewürfelte Höchstzahl der Gegner (g_max_enemies) */
+void wlog_kampfbeginn(const signed int fight_id, const signed int obergrenze);
+/* Überfallwurf im Lager: W100 gegen schwelle; vorfall = Wache 0..2 oder -1; travia: Travias Segen verhindert */
+void wlog_lager(const int dungeon, const int stunden, const int wache, const int wurf, const int schwelle,
+		const int travia, const int vorfall);
+/* Reisetag: W100 auf Zufallsbegegnung und auf Kampf gegen die Schwellen der Route */
+void wlog_reisetag(const int w_begegnung, const int s_begegnung, const int w_kampf, const int s_kampf);
+/* Seereise: W100 auf Totenschiff (-1: nicht gewürfelt), Krakenmolch, Piraten */
+void wlog_seereise(const int w_tot, const int w_krake, const int w_pirat);
+/* Ansteckung: W100 gegen schwelle (Name und Krankheit als Spieltext); krank: hat die Krankheit schon */
+void wlog_ansteckung(const char *held, const char *krankheit, const int wurf, const int schwelle, const int krank);
+/* Stufenanstieg: Steigerungsversuch eines Talents/Zaubers mit altem Wert, Wurf und Fehlversuchen davor */
+void wlog_steigerung(const char *held, const int zauber, const int id, const int wert, const int wurf,
+		const int fehlversuche);
 
 #endif
 #endif

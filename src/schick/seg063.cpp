@@ -38,6 +38,7 @@
 #include "seg075.h"
 #include "seg097.h"
 #include "seg119.h"
+#include "wurflog.h"
 
 static const signed int g_passage_type_to_name[7] = {
 	/* maps entry PASSAGE_TYPE in SHIP_TABLE -> ptr to name of type of passage (Begleitschutzfahrt, Deckpassage etc.) */
@@ -609,14 +610,46 @@ void sea_travel(const signed int passage_id, const signed int reverse)
 	 * I (siebenstreich) think that the original idea was 18h * gs_travel_speed, copying the
 	 * corresponding part from trv_do_journey, and then messing up the removal of speed_mod */
 
+#if !defined(__BORLANDC__)
+	{
+		/* Würfelprotokoll: Würfe in Variablen, gleiche Würfe in gleicher Reihenfolge */
+		signed int w_tot = -1;
+		signed int w_krake;
+		signed int w_pirat;
+
+		if (passage_id <= 6 && gs_quest_deadship && !gs_quest_deadship_done) {
+			/* only on high seas routes */
+
+			w_tot = random_schick(100);
+			if ((gs_passage_deadship_flag = w_tot <= 20 ? 1 : 0)) {
+				gs_passage_deadship_position = random_schick(gs_travel_distance_per_18_hours);
+				D1_INFO("Totenschiff wurde bei %o0 Schritt aktiviert!\n", gs_passage_deadship_position);
+			}
+		} else {
+			gs_passage_deadship_flag = 0;
+		}
+
+		w_krake = random_schick(100);
+		if ((gs_passage_octopus_flag = w_krake <= 5 ? 1 : 0)) {
+
+			gs_passage_octopus_position = random_schick(gs_travel_distance_per_18_hours);
+			D1_INFO("Krakenmolch wurde bei %o0 Schritt aktiviert!\n", gs_passage_octopus_position);
+		}
+
+		w_pirat = random_schick(100);
+		if ((gs_passage_pirates_flag = w_pirat <= 10 ? 1 : 0)) {
+
+			gs_passage_pirates_position = random_schick(gs_travel_distance_per_18_hours);
+			D1_INFO("Piratenangriff wurde bei %o0 Schritt aktiviert!\n", gs_passage_pirates_position);
+		}
+		wlog_seereise(w_tot, w_krake, w_pirat);
+	}
+#else
 	if (passage_id <= 6 && gs_quest_deadship && !gs_quest_deadship_done) {
 		/* only on high seas routes */
 
 		if ((gs_passage_deadship_flag = random_schick(100) <= 20 ? 1 : 0)) {
 			gs_passage_deadship_position = random_schick(gs_travel_distance_per_18_hours);
-#if !defined(__BORLANDC__)
-			D1_INFO("Totenschiff wurde bei %o0 Schritt aktiviert!\n", gs_passage_deadship_position);
-#endif
 		}
 	} else {
 		gs_passage_deadship_flag = 0;
@@ -625,18 +658,13 @@ void sea_travel(const signed int passage_id, const signed int reverse)
 	if ((gs_passage_octopus_flag = random_schick(100) <= 5 ? 1 : 0)) {
 
 		gs_passage_octopus_position = random_schick(gs_travel_distance_per_18_hours);
-#if !defined(__BORLANDC__)
-		D1_INFO("Krakenmolch wurde bei %o0 Schritt aktiviert!\n", gs_passage_octopus_position);
-#endif
 	}
 
 	if ((gs_passage_pirates_flag = random_schick(100) <= 10 ? 1 : 0)) {
 
 		gs_passage_pirates_position = random_schick(gs_travel_distance_per_18_hours);
-#if !defined(__BORLANDC__)
-		D1_INFO("Piratenangriff wurde bei %o0 Schritt aktiviert!\n", gs_passage_pirates_position);
-#endif
 	}
+#endif
 
 	gs_travel_step_counter = gs_travel_distance_made = gs_travel_distance_per_18_hours = gs_travel_detour = 0;
 	g_travel_herokeeping = 1;

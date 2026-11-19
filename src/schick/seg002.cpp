@@ -1999,7 +1999,8 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_test_talk(const int art, const int talk
 	g_web_test_talk[0] = art; g_web_test_talk[1] = talk_id; g_web_test_talk[2] = partner;
 }
 
-/* Probe des ersten Helden (Würfel-Log): art 1 = Talent (test_talent), 2 = Eigenschaft (test_attrib) */
+/* Probe des ersten Helden (Würfel-Log): art 1 = Talent (test_talent), 2 = Eigenschaft (test_attrib),
+ * 3 = Ansteckung (hero_disease_test: id = Krankheit, Erschwernis = Schwelle; mit -1 nie angesteckt) */
 static int g_web_test_probe[3] = { 0, 0, 0 };
 /* Behebung aus der Bugfix-Liste (docs/bugfixes.md) in einer gezielt hergestellten Lage prüfen;
  * Ergebnis in web_test_state() "fix": 1 = in Ordnung, 0 = Fehler, -1 = noch nicht gelaufen */
@@ -2199,6 +2200,7 @@ static void web_test_hooks(void)
 		const int art = g_web_test_probe[0];
 		g_web_test_probe[0] = 0;
 		if (art == 1) test_talent(get_hero(0), g_web_test_probe[1], g_web_test_probe[2]);
+		else if (art == 3) hero_disease_test(get_hero(0), g_web_test_probe[1], g_web_test_probe[2]);	/* Ansteckung: id, Schwelle */
 		else test_attrib(get_hero(0), g_web_test_probe[1], g_web_test_probe[2]);
 	}
 

@@ -29,6 +29,7 @@
 #include "seg098.h"
 #include "seg103.h"
 #include "seg120.h"
+#include "wurflog.h"
 
 const signed int g_autoinc_spells_witch[3] = { SP_ODEM_ARCANUM, SP_BLITZ_DICH_FIND, -1 }; // ds:25924
 const signed int g_autoinc_spells_druid[4] = { SP_ODEM_ARCANUM, SP_VERWANDLUNG_BEENDEN, SP_EXPOSAMI_CREATUR, -1 }; // ds:25930
@@ -197,6 +198,10 @@ void inc_spell_advanced(struct struct_hero *hero, const signed int spell_id)
 		}
 #endif
 
+#if !defined(__BORLANDC__)
+		wlog_steigerung(wlog_spiel(hero->alias), 1, spell_id, hero->spells[spell_id], randval, g_inc_spells_counter[spell_id].tries);
+#endif
+
 		if (hero->spells[spell_id] < randval) {
 
 			/* success */
@@ -262,6 +267,10 @@ void inc_talent_advanced(struct struct_hero *hero, const signed int talent_id)
 		} else {
 			randval = dice_roll(2,6,0);
 		}
+#endif
+
+#if !defined(__BORLANDC__)
+		wlog_steigerung(wlog_spiel(hero->alias), 0, talent_id, hero->talents[talent_id], randval, g_inc_talents_counter[talent_id].tries);
 #endif
 
 		if (hero->talents[talent_id] < randval) {
@@ -363,6 +372,10 @@ void inc_talent_novice(struct struct_hero *hero, const signed int talent_id)
 			}
 #endif
 
+#if !defined(__BORLANDC__)
+			wlog_steigerung(wlog_spiel(hero->alias), 0, talent_id, hero->talents[talent_id], randval, g_inc_talents_counter[talent_id].tries);
+#endif
+
 			/* check if increase success */
 			if (hero->talents[talent_id] < randval) {
 
@@ -441,6 +454,10 @@ void inc_spell_novice(struct struct_hero *hero, const signed int spell_id)
 			}
 #endif
 
+#if !defined(__BORLANDC__)
+			wlog_steigerung(wlog_spiel(hero->alias), 1, spell_id, hero->spells[spell_id], randval, g_inc_spells_counter[spell_id].tries);
+#endif
+
 			/* check if increase success */
 			if (hero->spells[spell_id] < randval) {
 
@@ -516,6 +533,9 @@ void level_up(const signed int hero_pos)
 
 	/* increment level */
 	hero->level++;
+#if !defined(__BORLANDC__)
+	wlog_note(WLOG_STUFE, WLOG_GUT, "%s erreicht Stufe %d", wlog_spiel(hero->alias), hero->level);
+#endif
 
 	g_status_page_hero = hero_pos;
 
@@ -570,6 +590,10 @@ void level_up(const signed int hero_pos)
 
 		hero->attrib[l_si].normal++;
 		hero->attrib[l_si].current++;
+#if !defined(__BORLANDC__)
+		wlog_note(WLOG_STUFE, WLOG_GUT, "%s: %s steigt auf %d", wlog_spiel(hero->alias), names_attrib[l_si],
+			hero->attrib[l_si].normal);
+#endif
 
 		status_show(hero_pos);
 
@@ -616,6 +640,32 @@ void level_up(const signed int hero_pos)
 
 		v3 = 0;
 
+#if !defined(__BORLANDC__)
+		{
+			/* Würfelprotokoll: Würfe in Variablen, gleiche Würfe in gleicher Reihenfolge */
+			signed int wurf[3];
+
+			for (i = 0; i < 3; i++) {
+
+				wurf[i] = random_schick(20);
+				if (wurf[i] <= hero->attrib[l_si + 7].normal) {
+
+					v3 = 1;
+				}
+			}
+
+			const int wlog_offen = wlog_begin(WLOG_STUFE, "%s: %s senken (%d)", wlog_spiel(hero->alias),
+				names_attrib[l_si + 7], hero->attrib[l_si + 7].normal);
+			wlog_detail("3 × W20 = %d, %d, %d; gesenkt, wenn einer höchstens %d", wurf[0], wurf[1], wurf[2],
+				hero->attrib[l_si + 7].normal);
+			if (v3) {
+				wlog_result(WLOG_GUT, "gesenkt auf %d", hero->attrib[l_si + 7].normal - 1);
+			} else {
+				wlog_result(WLOG_SCHLECHT, "nicht gesenkt");
+			}
+			wlog_end(wlog_offen);
+		}
+#else
 		for (i = 0; i < 3; i++) {
 
 			if (random_schick(20) <= hero->attrib[l_si + 7].normal) {
@@ -623,6 +673,7 @@ void level_up(const signed int hero_pos)
 				v3 = 1;
 			}
 		}
+#endif
 
 		if (v3 != 0) {
 
@@ -755,6 +806,14 @@ void level_up(const signed int hero_pos)
 		/* add AE and fill them up */
 		hero->ae_max += i - l_si;
 		add_hero_ae(hero, i - l_si);
+#if !defined(__BORLANDC__)
+		{
+			const int wlog_offen = wlog_begin(WLOG_STUFE, "%s: LE und AE", wlog_spiel(hero->alias));
+			wlog_detail("W6 + 2 = %d + 2 = %d Punkte", i - 2, i);
+			wlog_result(WLOG_GUT, "%d LE, %d AE", l_si, i - l_si);
+			wlog_end(wlog_offen);
+		}
+#endif
 
 		/* change talent increasements into AE */
 		if ((hero->typus == HERO_TYPE_MAGIER) && (g_game_mode == GAME_MODE_ADVANCED)) {
@@ -765,6 +824,9 @@ void level_up(const signed int hero_pos)
 				i = random_interval(3, 8);
 				hero->ae_max += i;
 				hero->ae += i;
+#if !defined(__BORLANDC__)
+				wlog_note(WLOG_STUFE, WLOG_GUT, "%s: 10 Zaubersteigerungen gegen W6 + 2 = %d AE", wlog_spiel(hero->alias), i);
+#endif
 			}
 		}
 
@@ -778,6 +840,9 @@ void level_up(const signed int hero_pos)
 		/* add LE and fill them up */
 		hero->le_max += i;
 		add_hero_le(hero, i);
+#if !defined(__BORLANDC__)
+		wlog_note(WLOG_STUFE, WLOG_GUT, "%s: LE-Wurf W6 = %d LE", wlog_spiel(hero->alias), i);
+#endif
 	}
 
 	status_show(hero_pos);

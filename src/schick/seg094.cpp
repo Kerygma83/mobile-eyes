@@ -31,6 +31,7 @@
 #include "seg109.h"
 #include "seg117.h"
 #include "seg119.h"
+#include "wurflog.h"
 
 signed char g_traveling = 0; // ds:0xa842
 
@@ -345,6 +346,25 @@ void trv_do_journey(const signed int land_route_id, const signed int reverse)
 		gs_journey_olvir_treborn_flag = 0;
 	}
 
+#if !defined(__BORLANDC__)
+	{
+		/* Würfelprotokoll: Würfe in Variablen, gleiche Würfe in gleicher Reihenfolge */
+		const signed int w_begegnung = random_schick(100);
+
+		if ((gs_journey_random_encounter_flag = w_begegnung <= gs_travel_route_ptr->encounters ? 1 : 0))
+		{
+			gs_journey_random_encounter_position = random_schick(gs_travel_distance_per_18_hours); /* unit: [10m] */
+		}
+
+		const signed int w_kampf = random_schick(100);
+
+		if ((gs_journey_fight_flag = (w_kampf <= gs_travel_route_ptr->fights / 3 ? 1 : 0)))
+		{
+			gs_journey_fight_position = random_schick(gs_travel_distance_per_18_hours); /* unit: [10m] */
+		}
+		wlog_reisetag(w_begegnung, gs_travel_route_ptr->encounters, w_kampf, gs_travel_route_ptr->fights / 3);
+	}
+#else
 	if ((gs_journey_random_encounter_flag = random_schick(100) <= gs_travel_route_ptr->encounters ? 1 : 0))
 	{
 		gs_journey_random_encounter_position = random_schick(gs_travel_distance_per_18_hours); /* unit: [10m] */
@@ -354,6 +374,7 @@ void trv_do_journey(const signed int land_route_id, const signed int reverse)
 	{
 		gs_journey_fight_position = random_schick(gs_travel_distance_per_18_hours); /* unit: [10m] */
 	}
+#endif
 
 	gs_travel_distance_per_18_hours = 0;
 	/* random section ends */
@@ -594,6 +615,23 @@ void trv_do_journey(const signed int land_route_id, const signed int reverse)
 				/* figure out encounters etc. for next day */
 				gs_travel_distance_per_18_hours = ((gs_travel_speed + (gs_travel_route_ptr->speed_mod * gs_travel_speed / 10)) * 18);
 
+#if !defined(__BORLANDC__)
+				/* Würfelprotokoll: Würfe in Variablen, gleiche Würfe in gleicher Reihenfolge */
+				const signed int w_begegnung = random_schick(100);
+
+				if ((gs_journey_random_encounter_flag = (w_begegnung <= gs_travel_route_ptr->encounters ? 1 : 0)))
+				{
+					gs_journey_random_encounter_position = random_schick(gs_travel_distance_per_18_hours);
+				}
+
+				const signed int w_kampf = random_schick(100);
+
+				if ((gs_journey_fight_flag = w_kampf <= gs_travel_route_ptr->fights / 3 ? 1 : 0) != 0)
+				{
+					gs_journey_fight_position = random_schick(gs_travel_distance_per_18_hours);
+				}
+				wlog_reisetag(w_begegnung, gs_travel_route_ptr->encounters, w_kampf, gs_travel_route_ptr->fights / 3);
+#else
 				if ((gs_journey_random_encounter_flag = (random_schick(100) <= gs_travel_route_ptr->encounters ? 1 : 0)))
 				{
 					gs_journey_random_encounter_position = random_schick(gs_travel_distance_per_18_hours);
@@ -603,6 +641,7 @@ void trv_do_journey(const signed int land_route_id, const signed int reverse)
 				{
 					gs_journey_fight_position = random_schick(gs_travel_distance_per_18_hours);
 				}
+#endif
 
 				if (gs_quested_months > 3)
 				{

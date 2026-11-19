@@ -953,6 +953,9 @@ signed int do_fight(const signed int fight_id)
 #ifdef M302de_ORIGINAL_BUGFIX
 	signed int max_enemies_bak = 0;	/* Schicksalsklinge-Bugfix Nr. 9 */
 #endif
+#if !defined(__BORLANDC__)
+	signed int wlog_obergrenze = 0;	/* Würfelprotokoll: gewürfelte Höchstzahl der Gegner */
+#endif
 
 	if ((gs_group_member_counts[gs_active_group_id] == 1) && (get_hero(0)->invisible != 0))
 	{
@@ -1034,6 +1037,9 @@ signed int do_fight(const signed int fight_id)
 #ifdef M302de_ORIGINAL_BUGFIX
 		max_enemies_bak = g_max_enemies;
 #endif
+#if !defined(__BORLANDC__)
+		wlog_obergrenze = g_max_enemies;
+#endif
 		g_max_enemies = 0;
 	}
 
@@ -1057,6 +1063,12 @@ signed int do_fight(const signed int fight_id)
 	handle = load_archive_file(ARCHIVE_FILE_MONSTER_DAT);
 	read_archive_file(handle, (uint8_t*)g_monster_dat_buf, 79 * sizeof(struct monster));
 	close(handle);
+
+#if !defined(__BORLANDC__)
+	/* Würfelprotokoll: Kampfnummer (wie gelesen) und Gegner */
+	wlog_flush();
+	wlog_kampfbeginn(fight_id, wlog_obergrenze);
+#endif
 
 	/* clear all dropped weapons */
 	g_fig_dropped_counter = 0;
