@@ -1976,6 +1976,7 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_bugfixes(const int stufe) { g_bugfixes 
 #if defined(WEB_TESTHOOKS)
 #include "seg064.h"	/* get_passage_travel_hours (web_test_fix 137) */
 #include "seg092.h"	/* loot_simple_chest (web_test_fix 440) */
+#include "seg028.h"	/* load_area_description (web_test_dng_pos) */
 #include "seg099.h"	/* spell_analues (web_test_fix 200) */
 /* ---- Nur im Test-Build (TESTHOOKS=1): Abkürzungen und Zustand für Browser-Tests ---- */
 static int g_web_test_fight = 0;	/* Kampf-ID, wird in game_loop() gestartet */
@@ -1992,6 +1993,13 @@ extern "C" EMSCRIPTEN_KEEPALIVE void web_test_input(const int digits) { g_web_te
 /* Dungeon betreten (DNG_enter_dungeon wie am Eingang) */
 static int g_web_test_dungeon = 0;
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_dungeon(const int dungeon_id) { g_web_test_dungeon = dungeon_id; }
+/* im Dungeon auf Ebene/Feld/Richtung stellen (wie eine Treppe: Karte neu laden, Ansicht neu), mit Licht (Flim Flam) */
+static int g_web_test_dng_pos[5] = { 0, 0, 0, 0, 0 };
+extern "C" EMSCRIPTEN_KEEPALIVE void web_test_dng_pos(const int level, const int x, const int y, const int dir)
+{
+	g_web_test_dng_pos[1] = level; g_web_test_dng_pos[2] = x; g_web_test_dng_pos[3] = y; g_web_test_dng_pos[4] = dir;
+	g_web_test_dng_pos[0] = 1;
+}
 /* Gespräch starten: art 1 = Informant (do_talk), 2 = Händler/Zufall (do_random_talk) */
 static int g_web_test_talk[3] = { 0, 0, 0 };
 extern "C" EMSCRIPTEN_KEEPALIVE void web_test_talk(const int art, const int talk_id, const int partner)
@@ -2175,6 +2183,17 @@ static void web_test_hooks(void)
 		gs_travel_destination_x = gs_x_target;
 		gs_travel_destination_y = gs_y_target;
 		DNG_enter_dungeon(id);
+	}
+	if (g_web_test_dng_pos[0] && gs_dungeon_id) {
+		g_web_test_dng_pos[0] = 0;
+		g_dng_level_changed = 1;
+		gs_dungeon_level = g_web_test_dng_pos[1];
+		gs_x_target = g_web_test_dng_pos[2];
+		gs_y_target = g_web_test_dng_pos[3];
+		gs_direction = g_web_test_dng_pos[4];
+		gs_ingame_timers[INGAME_TIMER_FLIM_FLAM] = HOURS(1);	/* Licht, sonst ist die Ansicht dunkel */
+		load_area_description(1);
+		DNG_update_pos();
 	}
 	if (g_web_test_talk[0]) {
 		const int art = g_web_test_talk[0];
