@@ -235,7 +235,16 @@ void loot_simple_chest(struct struct_chest *chest)
 	tw_bak = g_textbox_width;
 	g_textbox_width = 7;
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Original-Bug (Schicksalsklinge-Bugfix Nr. 440): the lock is cleared in the chest table, which is not part
+	 * of the savegame. After loading an earlier savegame the chest is locked again, but with lock +0 (key chests
+	 * without key). Leave the table alone: an opened chest is marked in the dungeon map (0x02). */
+	if (!BUGFIX_WICHTIG) {
+		chest->key = 0;
+	}
+#else
 	chest->key = 0;
+#endif
 
 	do {
 
@@ -320,7 +329,14 @@ void loot_chest(struct struct_chest *chest, char *text_non_empty, char *text_emp
 	char names[20][20];
 #endif
 
+#ifdef M302de_ORIGINAL_BUGFIX
+	/* Schicksalsklinge-Bugfix Nr. 440 */
+	if (!BUGFIX_WICHTIG) {
+		chest->key = 0;
+	}
+#else
 	chest->key = 0;
+#endif
 
 	tw_bak = g_textbox_width;
 	g_textbox_width = 7;
