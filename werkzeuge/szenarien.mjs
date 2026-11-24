@@ -1134,6 +1134,18 @@ export const szenarien = [
 			{ groesse: [844, 390] },
 			{ warteAuf: "(() => { const a = document.getElementById('aktionsknoepfe'), l = document.getElementById('leiste').getBoundingClientRect(), t = [...document.querySelectorAll('#mobil > .teil')].map((c) => c.getBoundingClientRect()); return a.parentNode.id == 'leiste' && getComputedStyle(a).display == 'grid' && !document.getElementById('icons').offsetParent && t.length == 4 && t.every((r) => r.right <= l.left + 0.5) && t[0].top < 15 && t[3].bottom > innerHeight - 15 && l.top < 1 && document.querySelector('#leiste .kreuz').offsetParent; })()", seite: true, max: 2000, text: 'Querformat: Bild links in voller Höhe, Bedienung rechts' },
 			{ bild: 'aktionsknoepfe-querformat' },
+			// iPad quer (höher als 600 px, Touch): ebenfalls Bild links, Bedienung rechts, nicht Hochformat mit Rand
+			{ groesse: [1180, 820] },
+			{ warteAuf: "(() => { const a = document.getElementById('aktionsknoepfe'), l = document.getElementById('leiste').getBoundingClientRect(), t = [...document.querySelectorAll('#mobil > .teil')].map((c) => c.getBoundingClientRect()); return a.parentNode.id == 'leiste' && t.length == 4 && t.every((r) => r.right <= l.left + 0.5) && t[0].top < 15 && t[3].bottom > innerHeight - 15 && l.top < 1 && t[0].width > 750; })()", seite: true, max: 2000, text: 'iPad quer: Bild links in voller Höhe, Bedienung rechts' },
+			// hohe Spalte: Minimap über dem Kreuz, so breit wie möglich, beide ganz in der Leiste
+			{ warteAuf: "(() => { if (!document.body.classList.contains('minimap')) return false; const m = document.getElementById('minimap').getBoundingClientRect(), k = document.querySelector('#leiste .kreuz').getBoundingClientRect(), r = document.querySelector('#leiste .rechts').getBoundingClientRect(), u = document.querySelector('#leiste .wuerfel').getBoundingClientRect(); return m.bottom <= k.top && m.width > r.width * 0.7 && Math.abs(m.width - m.height) < 1 && k.bottom <= u.top && m.left >= r.left - 0.5 && m.right <= r.right + 0.5; })()", seite: true, max: 2000, text: 'iPad quer: Minimap über dem Kreuz' },
+			{ bild: 'aktionsknoepfe-ipad-quer' },
+			// niedriger (Safari-Leisten, größere Schrift): Kreuz kleiner, Minimap weiter darüber
+			{ groesse: [1180, 700] },
+			{ warteAuf: "(() => { const m = document.getElementById('minimap').getBoundingClientRect(), k = document.querySelector('#leiste .kreuz').getBoundingClientRect(), r = document.querySelector('#leiste .rechts').getBoundingClientRect(), u = document.querySelector('#leiste .wuerfel').getBoundingClientRect(); return m.bottom <= k.top && m.width >= r.width * 0.6 - 1 && k.bottom <= u.top; })()", seite: true, max: 2000, text: 'iPad quer, niedriger: Minimap über dem Kreuz' },
+			{ bild: 'aktionsknoepfe-ipad-quer-niedrig' },
+			{ groesse: [844, 390] },
+			{ warteAuf: "(() => { const m = document.getElementById('minimap').getBoundingClientRect(), k = document.querySelector('#leiste .kreuz').getBoundingClientRect(); return !document.body.classList.contains('minimap') || m.right <= k.left; })()", seite: true, max: 2000, text: 'Handy quer: Minimap neben dem Kreuz' },
 			// Textbox über dem Bild, nicht über der Bedienung
 			{ tippBei: "(() => { const r = document.getElementById('datum').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })()" },
 			{ warteAuf: 'z.ov == 1', max: 3000 },
@@ -1176,7 +1188,7 @@ export const szenarien = [
 			{ erwarte: "(() => { const m = document.getElementById('minimap').getBoundingClientRect(), k = document.querySelector('#leiste .kreuz').getBoundingClientRect(), l = document.getElementById('leiste').getBoundingClientRect(); return m.width > 100 && Math.abs(m.width - m.height) < 1 && m.right <= k.left && m.left >= l.left && k.right <= l.right + 0.5 && m.bottom <= l.bottom; })()", seite: true, text: 'Minimap links, Kreuz rechts' },
 			{ erwarte: "(() => { const d = document.getElementById('minimap').getContext('2d').getImageData(0, 0, 192, 192).data; for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 200 && d[i + 2] < 60) return true; return false; })()", seite: true, text: 'gelber Pfeil der Gruppe' },
 			{ bild: 'minimap-stadt' },
-			// breites Browserfenster: Leiste so breit wie Bild und Aktionsknöpfe, nicht über die ganze Breite
+			// breites Fenster (mit Touch: Querformat-Anordnung wie auf dem iPad): Bedienung nicht über die ganze Breite
 			{ groesse: [1600, 900] },
 			{ warteAuf: "(() => { const a = document.getElementById('aktionsknoepfe').getBoundingClientRect(); return a.width < 1000 && [document.querySelector('#leiste .rechts'), document.getElementById('minimap'), document.querySelector('#leiste .kreuz'), document.querySelector('#leiste .menue')].every((e) => { const r = e.getBoundingClientRect(); return r.left >= a.left - 0.5 && r.right <= a.right + 0.5; }); })()", seite: true, max: 2000 },
 			{ bild: 'minimap-breit' },
